@@ -1,0 +1,7 @@
+FROM node:v20.19.5
+WORKDIR /cheNow/backend
+COPY package*.json .
+RUN npm install
+COPY . .
+EXPOSE 3001
+CMD ["npm", "run", "dev"]

@@ -1,7 +1,10 @@
 "use client";
 
-import * as React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+import { routes } from "@/common/utils/constant";
 import { useSignupMutation } from "@/services/controllers/auth/AuthQueries";
 import {
   AuthArtwork,
@@ -17,65 +20,59 @@ import {
   Typography,
 } from "@/components";
 
-type SignupForm = {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  confirmPassword: string;
-};
+const signupSchema = z
+  .object({
+    name: z.string().trim().min(2, "Vui lòng nhập họ và tên."),
+    email: z.string().trim().email("Email không hợp lệ."),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^[0-9+\s.-]{9,15}$/, "Số điện thoại không hợp lệ."),
+    password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự."),
+    confirmPassword: z.string().min(1, "Vui lòng nhập lại mật khẩu."),
+    acceptedTerms: z.boolean().refine((accepted) => accepted, {
+      message: "Vui lòng đồng ý với điều khoản dịch vụ.",
+    }),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "Mật khẩu nhập lại chưa trùng khớp.",
+    path: ["confirmPassword"],
+  });
 
-const initialForm: SignupForm = {
-  name: "",
-  email: "",
-  phone: "",
-  password: "",
-  confirmPassword: "",
-};
+type SignupValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
-  const [form, setForm] = React.useState(initialForm);
-  const [acceptedTerms, setAcceptedTerms] = React.useState(false);
-  const [validationError, setValidationError] = React.useState("");
-
   const { mutate: signup, isPending, error: apiError } = useSignupMutation();
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      acceptedTerms: false,
+    },
+  });
 
   const apiErrorMessage =
     apiError instanceof Error ? apiError.message : "";
 
-  const updateField =
-    (field: keyof SignupForm) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((current) => ({ ...current, [field]: event.target.value }));
-      setValidationError("");
-    };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (Object.values(form).some((value) => !value)) {
-      setValidationError("Vui lòng điền đầy đủ thông tin.");
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      setValidationError("Mật khẩu nhập lại chưa trùng khớp.");
-      return;
-    }
-    if (!acceptedTerms) {
-      setValidationError("Vui lòng đồng ý với điều khoản dịch vụ.");
-      return;
-    }
-
-    setValidationError("");
+  const submitSignup = (values: SignupValues) => {
     signup({
-      fullName: form.name,
-      email: form.email,
-      phone: form.phone,
-      password: form.password,
+      fullName: values.name,
+      email: values.email,
+      phone: values.phone,
+      password: values.password,
     });
   };
 
-  const displayError = validationError || apiErrorMessage;
+  const confirmPasswordError = errors.confirmPassword?.message || apiErrorMessage;
 
   return (
     <Paper
@@ -93,72 +90,89 @@ export default function SignupPage() {
             Bắt đầu hành trình khám phá hương vị truyền thống của Quán Chè.
           </Typography>
 
-          <Form className="mt-7" noValidate onSubmit={handleSubmit}>
+          <Form className="mt-7" noValidate onSubmit={handleSubmit(submitSignup)}>
             <Box className="space-y-4">
               <TextField
                 autoComplete="name"
+                error={Boolean(errors.name)}
                 fullWidth
+                helperText={errors.name?.message}
                 label="Họ và tên"
-                onChange={updateField("name")}
                 placeholder="Nguyễn Văn A"
-                value={form.name}
                 variant="standard"
+                {...register("name")}
               />
               <TextField
                 autoComplete="email"
+                error={Boolean(errors.email)}
                 fullWidth
+                helperText={errors.email?.message}
                 label="Email"
-                onChange={updateField("email")}
                 placeholder="email@example.com"
                 type="email"
-                value={form.email}
                 variant="standard"
+                {...register("email")}
               />
               <TextField
                 autoComplete="tel"
+                error={Boolean(errors.phone)}
                 fullWidth
+                helperText={errors.phone?.message}
                 label="Số điện thoại"
-                onChange={updateField("phone")}
                 placeholder="090 123 4567"
                 type="tel"
-                value={form.phone}
                 variant="standard"
+                {...register("phone")}
               />
               <TextField
                 autoComplete="new-password"
                 endAdornment={<Eye className="h-4 w-4" />}
+                error={Boolean(errors.password)}
                 fullWidth
+                helperText={errors.password?.message}
                 label="Mật khẩu"
-                onChange={updateField("password")}
                 placeholder="••••••••"
                 type="password"
-                value={form.password}
                 variant="standard"
+                {...register("password")}
               />
               <TextField
                 autoComplete="new-password"
-                error={Boolean(displayError)}
+                error={Boolean(confirmPasswordError)}
                 fullWidth
-                helperText={displayError}
+                helperText={confirmPasswordError}
                 label="Nhập lại mật khẩu"
-                onChange={updateField("confirmPassword")}
                 placeholder="••••••••"
                 type="password"
-                value={form.confirmPassword}
                 variant="standard"
+                {...register("confirmPassword")}
               />
             </Box>
 
             <FormControlLabel
               className="mt-5"
               control={
-                <Checkbox
-                  checked={acceptedTerms}
-                  onChange={(event) => setAcceptedTerms(event.target.checked)}
+                <Controller
+                  control={control}
+                  name="acceptedTerms"
+                  render={({ field }) => (
+                    <Checkbox
+                      checked={field.value}
+                      name={field.name}
+                      onBlur={field.onBlur}
+                      onChange={(event) => field.onChange(event.target.checked)}
+                      ref={field.ref}
+                    />
+                  )}
                 />
               }
               label="Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của Quán Chè."
             />
+            {errors.acceptedTerms && (
+              <Typography className="mt-2 text-red-700" variant="caption">
+                {errors.acceptedTerms.message}
+              </Typography>
+            )}
 
             <Button className="mt-6" disabled={isPending} fullWidth type="submit">
               {isPending ? "Đang đăng ký..." : "Đăng ký"}
@@ -168,7 +182,7 @@ export default function SignupPage() {
           <Divider className="my-6" />
           <Typography className="text-center text-[#746b61]" variant="body2">
             Đã có tài khoản?{" "}
-            <Link className="font-semibold text-[#304a34]" href="/login">
+            <Link className="font-semibold text-[#304a34]" href={routes.LOGIN}>
               Đăng nhập ngay
             </Link>
           </Typography>

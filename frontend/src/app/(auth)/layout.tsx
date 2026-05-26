@@ -21,7 +21,7 @@ export default function AuthLayout({
             href="/"
             underline="none"
           >
-            Quán Chè
+            Sam Sam
           </Link>
 
           <Box className="flex items-center gap-7">
@@ -58,7 +58,7 @@ export default function AuthLayout({
         >
           <Box>
             <Typography className="font-serif" variant="h3">
-              Quán Chè
+              Sam Sam
             </Typography>
             <Typography className="mt-4 max-w-[230px] text-[#786f62]" variant="caption">
               Thưởng thức tinh hoa trà và chè Việt trong không gian thanh tịnh

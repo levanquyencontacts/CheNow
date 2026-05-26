@@ -1,6 +1,8 @@
 "use client";
 
-import * as React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { routes } from "@/common/utils/constant";
 import { useLoginMutation } from "@/services/controllers/auth/AuthQueries";
 import {
@@ -17,21 +19,33 @@ import {
   Typography,
 } from "@/components";
 
+const loginSchema = z.object({
+  email: z.string().trim().min(1, "Vui lòng nhập email hoặc tên đăng nhập."),
+  password: z.string().min(1, "Vui lòng nhập mật khẩu."),
+  rememberMe: z.boolean(),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
 export default function LoginPage() {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [rememberMe, setRememberMe] = React.useState(false);
-
   const { mutate: login, isPending, error } = useLoginMutation();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
 
-  const errorMessage =
+  const apiErrorMessage =
     error instanceof Error ? error.message : error ? "Đăng nhập thất bại." : "";
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!email || !password) return;
-
+  const submitLogin = ({ email, password }: LoginForm) => {
     login({ email, password });
   };
 
@@ -51,29 +65,29 @@ export default function LoginPage() {
             Vui lòng đăng nhập để tiếp tục hành trình khám phá hương vị Việt.
           </Typography>
 
-          <Form className="mt-9" noValidate onSubmit={handleSubmit}>
+          <Form className="mt-9" noValidate onSubmit={handleSubmit(submitLogin)}>
             <Box className="space-y-7">
               <TextField
                 autoComplete="username"
+                error={Boolean(errors.email)}
                 fullWidth
+                helperText={errors.email?.message}
                 label="Email hoặc Tên đăng nhập"
-                onChange={(event) => setEmail(event.target.value)}
                 placeholder="example@email.com"
                 type="email"
-                value={email}
                 variant="standard"
+                {...register("email")}
               />
               <TextField
                 autoComplete="current-password"
-                error={Boolean(errorMessage)}
+                error={Boolean(errors.password || apiErrorMessage)}
                 fullWidth
-                helperText={errorMessage}
+                helperText={errors.password?.message || apiErrorMessage}
                 label="Mật khẩu"
-                onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
                 type="password"
-                value={password}
                 variant="standard"
+                {...register("password")}
               />
             </Box>
 
@@ -81,8 +95,7 @@ export default function LoginPage() {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={rememberMe}
-                    onChange={(event) => setRememberMe(event.target.checked)}
+                    {...register("rememberMe")}
                   />
                 }
                 label="Ghi nhớ tôi"

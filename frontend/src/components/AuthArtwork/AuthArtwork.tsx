@@ -2,10 +2,13 @@ import Image from "next/image";
 import type { StaticImageData } from "next/image";
 import type { ReactNode } from "react";
 import forgotPasswordHero from "@/common/assets/images/che-forgot-password-hero.png";
-import signupHero from "@/common/assets/images/che-signup-hero.png";
 import loginHero from "@/common/assets/images/che-troi-nuoc-hero.png";
+
+import chenmit from "@/common/assets/images/chemit.png";
+
 import { Box } from "../Box/Box";
 import { Typography } from "../Typography/Typography";
+import { sign } from "crypto";
 
 type AuthArtworkVariant = "login" | "signup" | "forgot-password";
 
@@ -14,13 +17,13 @@ const artworkContent: Record<
   { description: string; image: StaticImageData; title: ReactNode }
 > = {
   login: {
-    image: loginHero,
+    image: chenmit,
     title: "Tinh Hoa Chè Việt",
     description:
       "Nơi lưu giữ những giá trị truyền thống qua từng bát chè sen thanh mát.",
   },
   signup: {
-    image: signupHero,
+    image: chenmit,
     title: (
       <>
         Gia Nhập Cộng Đồng
