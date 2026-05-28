@@ -1,4 +1,5 @@
 import * as React from "react";
+import { twMerge } from "tailwind-merge";
 import { clsx } from "../utils";
 
 export interface ButtonProps
@@ -27,7 +28,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
     const variants = {
       contained:
-        "bg-[#183d2b] text-white shadow-[0_7px_14px_rgba(48,74,52,0.16)] hover:bg-[#102f21]",
+        "bg-[#183d2b] text-black shadow-[0_7px_14px_rgba(48,74,52,0.16)] hover:bg-[#102f21]",
       outlined:
         "border border-[#e5d8cc] bg-transparent text-[#5d5448] hover:bg-white/60",
       text: "bg-transparent text-[#6c543e] hover:bg-[#e9ddd2]/50",
@@ -35,12 +36,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <button
-        className={clsx(
-          "inline-flex items-center justify-center gap-3 rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",
-          sizes[size],
-          variants[variant],
-          fullWidth && "w-full",
-          className
+        className={twMerge(
+          clsx(
+            "inline-flex items-center justify-center gap-3 rounded-lg font-semibold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50",
+            sizes[size],
+            variants[variant],
+            fullWidth && "w-full",
+            className
+          )
         )}
         ref={ref}
         type={type}

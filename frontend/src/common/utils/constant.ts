@@ -14,3 +14,8 @@ export const routes = {
 export const appConstants = {
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
 } as const;
+
+export const LANGUAGES_OPTIONS = [
+  { label: "VI", value: "vi" },
+  { label: "EN", value: "en" },
+];
