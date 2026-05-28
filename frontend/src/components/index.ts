@@ -9,3 +9,4 @@ export * from "./Link/Link";
 export * from "./Paper/Paper";
 export * from "./TextField/TextField";
 export * from "./Typography/Typography";
+export * from "./Select/Select";

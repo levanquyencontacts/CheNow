@@ -1,8 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { routes } from "@/common/utils/constant";
 import { useSignupMutation } from "@/services/controllers/auth/AuthQueries";
@@ -30,9 +31,6 @@ const signupSchema = z
       .regex(/^[0-9+\s.-]{9,15}$/, "Số điện thoại không hợp lệ."),
     password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự."),
     confirmPassword: z.string().min(1, "Vui lòng nhập lại mật khẩu."),
-    acceptedTerms: z.boolean().refine((accepted) => accepted, {
-      message: "Vui lòng đồng ý với điều khoản dịch vụ.",
-    }),
   })
   .refine((values) => values.password === values.confirmPassword, {
     message: "Mật khẩu nhập lại chưa trùng khớp.",
@@ -42,9 +40,10 @@ const signupSchema = z
 type SignupValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { mutate: signup, isPending, error: apiError } = useSignupMutation();
   const {
-    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -56,7 +55,6 @@ export default function SignupPage() {
       phone: "",
       password: "",
       confirmPassword: "",
-      acceptedTerms: false,
     },
   });
 
@@ -76,22 +74,22 @@ export default function SignupPage() {
 
   return (
     <Paper
-      className="grid w-full max-w-[1130px] overflow-hidden bg-[#fbf6f0] lg:grid-cols-2"
+      className="grid w-full max-w-s82.5 overflow-hidden bg-[#fbf6f0] lg:grid-cols-2"
       elevation={3}
     >
       <AuthArtwork variant="signup" />
 
       <Box className="flex flex-col justify-center px-7 py-9 sm:px-14 lg:px-16">
-        <Box className="mx-auto w-full max-w-[390px]">
+        <Box className="mx-auto w-full max-w-97.5">
           <Typography className="font-serif text-[#4b5445]" variant="h2">
             Tạo tài khoản
           </Typography>
           <Typography className="mt-2 text-[#7a7062]" variant="body2">
-            Bắt đầu hành trình khám phá hương vị truyền thống của Quán Chè.
+            Bắt đầu hành trình khám phá hương vị truyền thống.
           </Typography>
 
           <Form className="mt-7" noValidate onSubmit={handleSubmit(submitSignup)}>
-            <Box className="space-y-4">
+            <Box className="flex flex-col gap-4">
               <TextField
                 autoComplete="name"
                 error={Boolean(errors.name)}
@@ -126,56 +124,58 @@ export default function SignupPage() {
               />
               <TextField
                 autoComplete="new-password"
-                endAdornment={<Eye className="h-4 w-4" />}
+                endAdornment={
+                  <button
+                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    className="flex h-5 w-5 items-center justify-center text-[#7a7062] transition hover:text-[#304a34]"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    type="button"
+                  >
+                    {showPassword ? (
+                      <EyeOff aria-hidden="true" className="h-4 w-4" />
+                    ) : (
+                      <Eye aria-hidden="true" className="h-4 w-4" />
+                    )}
+                  </button>
+                }
                 error={Boolean(errors.password)}
                 fullWidth
                 helperText={errors.password?.message}
                 label="Mật khẩu"
-                placeholder="••••••••"
-                type="password"
+                placeholder="Enter your password"
+                type={showPassword ? "text" : "password"}
                 variant="standard"
                 {...register("password")}
               />
               <TextField
                 autoComplete="new-password"
+                endAdornment={
+                  <button
+                    aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    className="flex h-5 w-5 items-center justify-center text-[#7a7062] transition hover:text-[#304a34]"
+                    onClick={() => setShowConfirmPassword((visible) => !visible)}
+                    type="button"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff aria-hidden="true" className="h-4 w-4" />
+                    ) : (
+                      <Eye aria-hidden="true" className="h-4 w-4" />
+                    )}
+                  </button>
+                }
                 error={Boolean(confirmPasswordError)}
                 fullWidth
                 helperText={confirmPasswordError}
                 label="Nhập lại mật khẩu"
-                placeholder="••••••••"
-                type="password"
+                placeholder="Enter your password again"
+                type={showConfirmPassword ? "text" : "password"}
                 variant="standard"
                 {...register("confirmPassword")}
               />
             </Box>
 
-            <FormControlLabel
-              className="mt-5"
-              control={
-                <Controller
-                  control={control}
-                  name="acceptedTerms"
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      name={field.name}
-                      onBlur={field.onBlur}
-                      onChange={(event) => field.onChange(event.target.checked)}
-                      ref={field.ref}
-                    />
-                  )}
-                />
-              }
-              label="Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của Quán Chè."
-            />
-            {errors.acceptedTerms && (
-              <Typography className="mt-2 text-red-700" variant="caption">
-                {errors.acceptedTerms.message}
-              </Typography>
-            )}
-
             <Button className="mt-6" disabled={isPending} fullWidth type="submit">
-              {isPending ? "Đang đăng ký..." : "Đăng ký"}
+            Đăng ký
             </Button>
           </Form>
 

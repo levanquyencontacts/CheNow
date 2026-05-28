@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { routes } from "@/common/utils/constant";
@@ -18,6 +20,7 @@ import {
   TextField,
   Typography,
 } from "@/components";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().trim().min(1, "Vui lòng nhập email hoặc tên đăng nhập."),
@@ -28,7 +31,9 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
   const { mutate: login, isPending, error } = useLoginMutation();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -51,13 +56,13 @@ export default function LoginPage() {
 
   return (
     <Paper
-      className="grid w-full max-w-[1130px] overflow-hidden bg-[#fbf6f0] lg:grid-cols-2"
+      className="grid w-full max-w-282.5 overflow-hidden bg-[#fbf6f0] lg:grid-cols-2"
       elevation={3}
     >
       <AuthArtwork />
 
       <Box className="flex flex-col justify-center px-7 py-10 sm:px-14 lg:px-16">
-        <Box className="mx-auto w-full max-w-[390px]">
+        <Box className="mx-auto w-full max-w-97.5">
           <Typography className="font-serif text-[#4b5445]" variant="h2">
             Chào mừng trở lại
           </Typography>
@@ -66,7 +71,7 @@ export default function LoginPage() {
           </Typography>
 
           <Form className="mt-9" noValidate onSubmit={handleSubmit(submitLogin)}>
-            <Box className="space-y-7">
+            <Box className="flex flex-col gap-4">
               <TextField
                 autoComplete="username"
                 error={Boolean(errors.email)}
@@ -80,26 +85,33 @@ export default function LoginPage() {
               />
               <TextField
                 autoComplete="current-password"
+                endAdornment={
+                  <button
+                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    className="flex h-5 w-5 items-center justify-center text-[#7a7062] transition hover:text-[#304a34] cursor-pointer"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    type="button"
+                  >
+                    {showPassword ? (
+                      <EyeOff aria-hidden="true" className="h-4 w-4" />
+                    ) : (
+                      <Eye aria-hidden="true" className="h-4 w-4" />
+                    )}
+                  </button>
+                }
                 error={Boolean(errors.password || apiErrorMessage)}
                 fullWidth
                 helperText={errors.password?.message || apiErrorMessage}
                 label="Mật khẩu"
-                placeholder="••••••••"
-                type="password"
+                placeholder="Enter your password"
+                type={showPassword ? "text" : "password"}
                 variant="standard"
                 {...register("password")}
               />
             </Box>
 
             <Box className="mt-7 flex items-center justify-between">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    {...register("rememberMe")}
-                  />
-                }
-                label="Ghi nhớ tôi"
-              />
+              <div/>
               <Link
                 className="text-xs font-medium text-[#745e46] hover:text-[#304a34]"
                 href={routes.FORGOT_PASSWORD}
@@ -110,13 +122,14 @@ export default function LoginPage() {
             </Box>
 
             <Button
-              className="mt-8"
+              className="mt-8 text-zinc-900 hover:bg-[#e0c9b7] cursor-pointer"
               disabled={isPending}
               fullWidth
               size="large"
               type="submit"
+              onClick={()=>{router.push(routes.HOME)}}
             >
-              {isPending ? "Đang đăng nhập..." : "Đăng nhập"}
+              Đăng nhập
             </Button>
           </Form>
 
