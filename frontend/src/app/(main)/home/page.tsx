@@ -1,9 +1,9 @@
-import React from 'react'
+import { Box } from "@/components";
 
-export default function Dashboard() {
+export default function Home() {
   return (
-    <div>
-      
-    </div>
-  )
+    <Box className="bg-white">
+    
+    </Box>
+  );
 }

@@ -47,15 +47,15 @@ export function HeaderPage() {
         <Box className="flex h-10 items-center gap-2 px-3 text-[#675d50]">
           <Select
             aria-label={t("selectLanguage")}
-            className="h-auto pl-0 pr-9 text-xs font-semibold text-[#675d50]"
+            className="h-auto pl-0 text-xs font-semibold text-[#675d50]"
             onChange={handleLanguageChange}
             value={locale}
             variant="plain"
           >
             {LANGUAGE_OPTIONS.map((item) => (
-              <option key={item.value} value={item.value}>
+              <Select.Option key={item.value} value={item.value}>
                 {item.label}
-              </option>
+              </Select.Option>
             ))}
           </Select>
         </Box>
