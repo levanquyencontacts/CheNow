@@ -2,6 +2,12 @@
 
 export const routes = {
   HOME: "/",
+  PRODUCTS: "/home",
+  ORDERS: "/orders",
+  CUSTOMERS: "/customers",
+  REPORTS: "/reports",
+  SETTINGS: "/settings",
+  SUPPORT: "/support",
   LOGIN: "/login",
   SIGNUP: "/signup",
   FORGOT_PASSWORD: "/forgot-password",

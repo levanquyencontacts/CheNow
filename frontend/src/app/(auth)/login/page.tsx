@@ -126,7 +126,7 @@ export default function LoginPage() {
               disabled={isPending}
               fullWidth
               size="large"
-              type="submit"
+              type="button"
               onClick={()=>{router.push(routes.HOME)}}
             >
               Đăng nhập

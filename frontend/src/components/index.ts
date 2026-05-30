@@ -10,3 +10,4 @@ export * from "./Paper/Paper";
 export * from "./TextField/TextField";
 export * from "./Typography/Typography";
 export * from "./Select/Select";
+export * from "./Search/Search";
