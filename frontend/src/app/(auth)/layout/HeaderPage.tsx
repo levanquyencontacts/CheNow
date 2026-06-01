@@ -1,19 +1,14 @@
 "use client";
 
-import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/common/hook";
 import { Box, Button, Link, Select } from "@/components";
-import {
-  LANGUAGE_OPTIONS,
-  type Locale,
-  normalizeLocale,
-} from "@/i18n/config";
 
 export function HeaderPage() {
-  const { i18n, t } = useTranslation();
-  const locale = normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
+  const { changeLanguage, currentLanguage, supportedLanguages, t } =
+    useLanguage();
 
   const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    void i18n.changeLanguage(event.target.value as Locale);
+    changeLanguage(event.target.value);
   };
 
   return (
@@ -49,12 +44,12 @@ export function HeaderPage() {
             aria-label={t("selectLanguage")}
             className="h-auto pl-0 text-xs font-semibold text-[#675d50]"
             onChange={handleLanguageChange}
-            value={locale}
+            value={currentLanguage}
             variant="plain"
           >
-            {LANGUAGE_OPTIONS.map((item) => (
-              <Select.Option key={item.value} value={item.value}>
-                {item.label}
+            {supportedLanguages.map((item) => (
+              <Select.Option key={item.code} value={item.code}>
+                {item.nativeName}
               </Select.Option>
             ))}
           </Select>

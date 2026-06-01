@@ -29,7 +29,7 @@ export function MainSidebar() {
       className="hidden min-h-screen w-48 shrink-0 flex-col border-r border-solid border-[#eadfd4] bg-[#fff8f1] text-[#143d2a] md:flex"
       component="aside"
     >
-      <Box className="flex h-16 items-center pt-2 gap-3 px-5">
+      <Box className="flex h-16 items-center pt-2 gap-3 px-5 cursor-pointer" onClick={() => router.push(routes.HOME)}>
         <Box className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fff8f1] text-[#805533]">
           <Store aria-hidden="true" className="h-4 w-4" />
         </Box>

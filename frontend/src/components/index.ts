@@ -11,3 +11,7 @@ export * from "./TextField/TextField";
 export * from "./Typography/Typography";
 export * from "./Select/Select";
 export * from "./Search/Search";
+export * from "./Header/PageHeader";
+export * from "./Modal/Modal";
+export * from "./Input/TextInput";
+export * from "./HelperText/HelperText";

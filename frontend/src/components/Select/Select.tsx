@@ -80,7 +80,7 @@ const getOptions = (
   return options;
 };
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
   (
     {
       children,
@@ -300,8 +300,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       </label>
     );
   }
-) as SelectComponent;
+);
+
+SelectBase.displayName = "Select";
+
+export const Select = SelectBase as SelectComponent;
 
 Select.Option = SelectOption;
-
-Select.displayName = "Select";
