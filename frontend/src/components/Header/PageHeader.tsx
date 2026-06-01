@@ -1,0 +1,164 @@
+"use client";
+
+import {
+  ChevronDown,
+  LogOut,
+  type LucideIcon,
+  Settings,
+  Store,
+  UserRound,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { routes } from "@/common/utils/constant";
+import { Box, Button, Search } from "@/components";
+import { useModal } from "@/providers";
+import { useLogoutMutation } from "@/services/controllers/auth/AuthQueries";
+
+export type PageHeaderActionKey =
+  | "PROFILE"
+  | "STORE_SETTINGS"
+  | "ACCOUNT_SETTINGS"
+  | "SIGN_OUT";
+
+export interface UserMenuItem {
+  actionKey: PageHeaderActionKey;
+  icon: LucideIcon;
+  label: string;
+}
+
+interface PageHeaderProps {
+  searchPlaceholder?: string;
+  userMenuItems?: UserMenuItem[];
+  userName?: string;
+  userRole?: string;
+}
+
+const defaultUserMenuItems: UserMenuItem[] = [
+  { actionKey: "PROFILE", label: "Profile", icon: UserRound },
+  // { actionKey: "STORE_SETTINGS", label: "Store Settings", icon: Store },
+  {
+    actionKey: "ACCOUNT_SETTINGS",
+    label: "Account Settings",
+    icon: Settings,
+  },
+  { actionKey: "SIGN_OUT", label: "Sign Out", icon: LogOut },
+];
+
+export function PageHeader({
+  userMenuItems = defaultUserMenuItems,
+  userName = "Admin User",
+  userRole = "Store Manager",
+}: PageHeaderProps) {
+  const router = useRouter();
+  const { openModal } = useModal();
+  const logoutMutation = useLogoutMutation();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const handleProfileClick = () => {
+    openModal("ACCOUNT");
+    setIsUserMenuOpen(false);
+  }
+const handleSettingsClick = () => {
+    setIsUserMenuOpen(false);
+    router.push(routes.SETTINGS);
+  }
+  
+
+  const handleUserMenuItemClick = (item: UserMenuItem) => {
+    switch (item.actionKey) {
+      case "PROFILE":
+        handleProfileClick();
+        break;
+      case "STORE_SETTINGS":
+      case "ACCOUNT_SETTINGS":
+        handleSettingsClick();
+        break;
+      case "SIGN_OUT":
+        break;
+    }
+
+    setIsUserMenuOpen(false);
+  };
+
+  return (
+    <Box
+      className="sticky top-0 z-20 flex min-h-16 flex-col gap-3 border-b border-[#eadfd4] bg-[#fff8f1] px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10"
+      component="header"
+    >
+      <Search
+        className="w-full bg-[#fff3e8] lg:w-105"
+        placeholder=''
+        size="small"
+      />
+
+      <Box className="flex items-center justify-between gap-4 lg:justify-end">
+        <Box className="flex items-center gap-2">
+          <Button
+            aria-label="Settings"
+            className="h-8 w-8 rounded-md p-0 text-[#143d2a] hover:bg-[#f3e8de]"
+            size="small"
+            variant="text"
+          >
+            <Settings aria-hidden="true" className="h-4 w-4" />
+          </Button>
+        </Box>
+
+        <Box className="relative border-l border-[#eadfd4] pl-4">
+          <Button
+            aria-expanded={isUserMenuOpen}
+            aria-haspopup="menu"
+            className="h-auto justify-start gap-3 rounded-md px-1 py-1 text-[#143d2a] hover:bg-[#f3e8de]"
+            onClick={() => setIsUserMenuOpen((open) => !open)}
+            variant="outlined"
+          >
+            <Box className="flex h-9 w-9 items-center justify-center rounded-md border-2 border-[#143d2a] bg-[#f7efe7]">
+              <UserRound aria-hidden="true" className="h-4 w-4" />
+            </Box>
+            <Box className="text-right leading-tight">
+              <p className="text-xs font-semibold text-[#143d2a]">
+                {userName}
+              </p>
+              <p className="text-[10px] text-[#8a7867]">{userRole}</p>
+            </Box>
+            <ChevronDown
+              aria-hidden="true"
+              className={`h-4 w-4 text-[#805533] transition-transform ${
+                isUserMenuOpen ? "rotate-180" : ""
+              }`}
+            />
+          </Button>
+
+          {isUserMenuOpen ? (
+            <Box
+              className="absolute right-0 top-full z-30 mt-2 w-52 rounded-md border border-[#eadfd4] bg-[#fff8f1] p-2 shadow-lg shadow-[#2a1d12]/10"
+              component="div"
+              role="menu"
+            >
+              {userMenuItems.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Button
+                    className="h-10 w-full justify-start gap-3 rounded-sm px-3 text-left text-sm font-semibold text-[#314032] hover:bg-[#eadfd4]"
+                    disabled={
+                      item.actionKey === "SIGN_OUT" &&
+                      logoutMutation.isPending
+                    }
+                    key={item.actionKey}
+                    onClick={() => handleUserMenuItemClick(item)}
+                    role="menuitem"
+                    variant="text"
+                  >
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                    {item.label}
+                  </Button>
+                );
+              })}
+            </Box>
+          ) : null}
+        </Box>
+      </Box>
+    </Box>
+  );
+}

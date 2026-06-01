@@ -2,7 +2,7 @@
 
 export const routes = {
   HOME: "/",
-  PRODUCTS: "/home",
+  PRODUCTS: "/products",
   ORDERS: "/orders",
   CUSTOMERS: "/customers",
   REPORTS: "/reports",
