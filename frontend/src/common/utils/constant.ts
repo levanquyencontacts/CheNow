@@ -3,6 +3,7 @@
 export const routes = {
   HOME: "/",
   PRODUCTS: "/products",
+  TEST_API: "/test-api",
   ORDERS: "/orders",
   CUSTOMERS: "/customers",
   REPORTS: "/reports",

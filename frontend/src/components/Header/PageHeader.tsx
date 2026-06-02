@@ -112,14 +112,17 @@ const handleSettingsClick = () => {
             onClick={() => setIsUserMenuOpen((open) => !open)}
             variant="outlined"
           >
-            <Box className="flex h-9 w-9 items-center justify-center rounded-md border-2 border-[#143d2a] bg-[#f7efe7]">
+            <Box
+              className="flex h-9 w-9 items-center justify-center rounded-md border-2 border-[#143d2a] bg-[#f7efe7]"
+              component="span"
+            >
               <UserRound aria-hidden="true" className="h-4 w-4" />
             </Box>
-            <Box className="text-right leading-tight">
-              <p className="text-xs font-semibold text-[#143d2a]">
+            <Box className="text-right leading-tight" component="span">
+              <span className="block text-xs font-semibold text-[#143d2a]">
                 {userName}
-              </p>
-              <p className="text-[10px] text-[#8a7867]">{userRole}</p>
+              </span>
+              <span className="block text-[10px] text-[#8a7867]">{userRole}</span>
             </Box>
             <ChevronDown
               aria-hidden="true"

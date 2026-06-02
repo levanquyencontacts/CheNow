@@ -2,6 +2,7 @@
 
 import {
   BarChart3,
+  FlaskConical,
   Headphones,
   LayoutGrid,
   ReceiptText,
@@ -17,6 +18,7 @@ import { Box, Button } from "@/components";
 
 const navItems = [
   { href: routes.PRODUCTS, label: "Products", icon: LayoutGrid },
+  { href: routes.TEST_API, label: "Test API", icon: FlaskConical },
   { href: routes.ORDERS, label: "Orders", icon: ReceiptText },
   { href: routes.CUSTOMERS, label: "Customers", icon: UsersRound },
   { href: routes.REPORTS, label: "Reports", icon: BarChart3 },
