@@ -2,6 +2,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { routes } from "@/common/utils/constant";
 import { clearSession } from "@/services/controllers/auth/AuthSlice";
+import {
+  clearStoredAccessToken,
+  getStoredAccessToken,
+} from "@/services/controllers/auth/tokenStorage";
 import store from "@/services/store";
 
 const apiClient = axios.create({
@@ -14,7 +18,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   config.headers["Cache-Control"] = "no-cache";
 
-  const token = store.getState().auth.accessToken;
+  const token = getStoredAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -28,7 +32,8 @@ apiClient.interceptors.response.use(
     const status = error?.response?.status as number | undefined;
     const message = error?.response?.data?.message as unknown;
 
-    if (status === 401 && store.getState().auth.accessToken) {
+    if (status === 401 && getStoredAccessToken()) {
+      clearStoredAccessToken();
       store.dispatch(clearSession());
       window.location.href = routes.LOGIN;
       return Promise.reject(error);

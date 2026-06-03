@@ -11,16 +11,13 @@ import {
   AuthArtwork,
   Box,
   Button,
-  Checkbox,
   Divider,
   Form,
-  FormControlLabel,
   Link,
   Paper,
   TextField,
   Typography,
 } from "@/components";
-import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().trim().min(1, "Vui lòng nhập email hoặc tên đăng nhập."),
@@ -33,7 +30,6 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: login, isPending, error } = useLoginMutation();
-  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -126,8 +122,7 @@ export default function LoginPage() {
               disabled={isPending}
               fullWidth
               size="large"
-              type="button"
-              onClick={()=>{router.push(routes.HOME)}}
+              type="submit"
             >
               Đăng nhập
             </Button>

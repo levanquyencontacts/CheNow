@@ -2,12 +2,10 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { AuthResponse, AuthUser } from "@/services/types/apiType";
 
 interface AuthState {
-  accessToken: string | null;
   user: AuthUser | null;
 }
 
 const initialState: AuthState = {
-  accessToken: null,
   user: null,
 };
 
@@ -17,8 +15,7 @@ const authSlice = createSlice({
   reducers: {
     clearSession: () => initialState,
     setSession: (_state, action: PayloadAction<AuthResponse>) => ({
-      accessToken: action.payload.accessToken,
-      user: action.payload.user,
+      user: action.payload.user ?? null,
     }),
   },
 });

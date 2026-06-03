@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { routes } from "@/common/utils/constant";
 import { clearSession, setSession } from "@/services/controllers/auth/AuthSlice";
+import {
+  clearStoredAccessToken,
+  setStoredAccessToken,
+} from "@/services/controllers/auth/tokenStorage";
 import store from "@/services/store";
 import api from "@/services/apiServices";
 
@@ -15,9 +19,10 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: api.auth.login,
     onSuccess: (response) => {
+      setStoredAccessToken(response.access_token);
       store.dispatch(setSession(response));
       toast.success("Đăng nhập thành công!");
-      router.push(routes.DASHBOARD);
+      router.push(routes.HOME);
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Đăng nhập thất bại."));
@@ -31,9 +36,10 @@ export const useSignupMutation = () => {
   return useMutation({
     mutationFn: api.auth.signup,
     onSuccess: (response) => {
+      setStoredAccessToken(response.access_token);
       store.dispatch(setSession(response));
       toast.success("Đăng ký thành công!");
-      router.push(routes.DASHBOARD);
+      router.push(routes.HOME);
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Đăng ký thất bại."));
@@ -86,11 +92,13 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: api.auth.logout,
     onSuccess: () => {
+      clearStoredAccessToken();
       store.dispatch(clearSession());
       toast.success("Đăng xuất thành công!");
       router.push(routes.LOGIN);
     },
     onError: () => {
+      clearStoredAccessToken();
       store.dispatch(clearSession());
       router.push(routes.LOGIN);
     },
