@@ -15,3 +15,6 @@ export * from "./Header/PageHeader";
 export * from "./Modal/Modal";
 export * from "./Input/TextInput";
 export * from "./HelperText/HelperText";
+export * from "./UploadImage/UploadImage";
+export * from "./Image/Image";
+export * from "./Table";

@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Users } from '../users/user.entities';
+import { Users } from '../users/users.entities';
 import { LocalAuthGuard } from '../../guards/localauth.guard';
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 
@@ -17,7 +17,7 @@ interface AuthRequest {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   register(@Body() user: Partial<Users>) {
