@@ -16,8 +16,8 @@ export interface AuthUser {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  user: AuthUser;
+  access_token: string;
+  user?: AuthUser;
 }
 
 // ─── Auth Payloads ────────────────────────────────────────────────────────────
