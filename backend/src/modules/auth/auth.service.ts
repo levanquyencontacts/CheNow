@@ -34,11 +34,17 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<Users> {
-    const user = await this.usersService.validateUser(email, password);
+    const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('sai tai khoan hoac mat khau');
+      throw new UnauthorizedException('Email khong ton tai');
     }
-    return user;
+
+    const validatedUser = await this.usersService.validateUser(email, password);
+    if (!validatedUser) {
+      throw new UnauthorizedException('Mat khau khong dung');
+    }
+
+    return validatedUser;
   }
 
   async register(user: Partial<Users>): Promise<AuthResponse> {

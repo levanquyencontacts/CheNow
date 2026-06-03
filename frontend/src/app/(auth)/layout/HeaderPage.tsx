@@ -54,8 +54,8 @@ export function HeaderPage() {
             ))}
           </Select>
         </Box>
-        <Button className="h-10 px-5 text-black-900" size="small">
-          {t("signIn")}
+        <Button className="h-10 px-5 text-white" size="small">
+          {t("client_signIn")}
         </Button>
       </Box>
     </Box>

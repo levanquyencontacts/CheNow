@@ -43,8 +43,7 @@ export default function LoginPage() {
     },
   });
 
-  const apiErrorMessage =
-    error instanceof Error ? error.message : error ? "Đăng nhập thất bại." : "";
+
 
   const submitLogin = ({ email, password }: LoginForm) => {
     login({ email, password });
@@ -95,9 +94,9 @@ export default function LoginPage() {
                     )}
                   </button>
                 }
-                error={Boolean(errors.password || apiErrorMessage)}
+                error={Boolean(errors.password)}
                 fullWidth
-                helperText={errors.password?.message || apiErrorMessage}
+                helperText={errors.password?.message}
                 label="Mật khẩu"
                 placeholder="Enter your password"
                 type={showPassword ? "text" : "password"}
@@ -107,7 +106,7 @@ export default function LoginPage() {
             </Box>
 
             <Box className="mt-7 flex items-center justify-between">
-              <div/>
+              <div />
               <Link
                 className="text-xs font-medium text-[#745e46] hover:text-[#304a34]"
                 href={routes.FORGOT_PASSWORD}
@@ -118,7 +117,7 @@ export default function LoginPage() {
             </Box>
 
             <Button
-              className="mt-8 text-zinc-900 hover:bg-[#e0c9b7] cursor-pointer"
+              className="mt-8 text-white hover:bg-[#e0c9b7] cursor-pointer"
               disabled={isPending}
               fullWidth
               size="large"
