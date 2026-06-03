@@ -15,9 +15,13 @@ interface AuthRequest {
   user: Users;
 }
 
+interface RefreshTokenRequest {
+  refresh_token: string;
+}
+
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   register(@Body() user: Partial<Users>) {
@@ -28,6 +32,16 @@ export class AuthController {
   @Post('login')
   login(@Request() request: AuthRequest) {
     return this.authService.login(request.user);
+  }
+
+  @Post('refresh-token')
+  refresh(@Body() body?: RefreshTokenRequest) {
+    return this.authService.refresh(body?.refresh_token);
+  }
+
+  @Post('logout')
+  logout(@Body() body?: Partial<RefreshTokenRequest>) {
+    return this.authService.logout(body?.refresh_token);
   }
 
   @UseGuards(JwtAuthGuard)

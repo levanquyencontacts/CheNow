@@ -1,5 +1,25 @@
-import {Injectable} from '@nestjs/common';
-import {AuthGuard} from '@nestjs/passport';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  handleRequest<TUser = unknown>(
+    err: unknown,
+    user: TUser,
+    info: { name?: string } | undefined,
+  ): TUser {
+    if (info?.name === 'TokenExpiredError') {
+      throw new UnauthorizedException({ messageCode: 'api_tokenExpired' });
+    }
+
+    if (err instanceof Error) {
+      throw err;
+    }
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    return user;
+  }
+}

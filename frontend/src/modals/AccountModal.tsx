@@ -1,6 +1,6 @@
 "use client";
 
-import { Languages, ShieldCheck, UserRound } from "lucide-react";
+import { Languages, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { ProfileAccountPanel } from "@/components/Account/ProfileAccount";
 import { SecurityAccountPanel } from "@/components/Account/SecurityAccountPanel";
 import { Box, Button, Modal, Select } from "@/components";
 import { useModal } from "@/providers/ModalProvider";
+import { useLogoutMutation } from "@/services/controllers/auth/AuthQueries";
 
 const accountTabs = [
   { labelKey: "client_personalInformation", icon: UserRound, key: "profile" },
@@ -26,6 +27,12 @@ export function AccountModal() {
   const { closeModal } = useModal();
   const [activeTab, setActiveTab] = useState<AccountTabKey>("profile");
   const { t } = useTranslation();
+  const logoutMutation = useLogoutMutation();
+
+  const handleLogout = () => {
+    closeModal();
+    logoutMutation.mutate();
+  };
 
   return (
     <Modal
@@ -63,6 +70,16 @@ export function AccountModal() {
               );
             })}
           </Box>
+
+          <Button
+            className="mt-auto h-12 w-full justify-start gap-3 rounded-sm px-4 text-xs font-bold text-[#9f2f24] shadow-none hover:bg-[#eadfd4]"
+            disabled={logoutMutation.isPending}
+            onClick={handleLogout}
+            variant="text"
+          >
+            <LogOut aria-hidden="true" className="h-4 w-4" />
+            {t("client_logout")}
+          </Button>
         </Box>
 
         <Box className="overflow-y-auto px-10 py-8">
