@@ -8,7 +8,7 @@ export class UsersService {
   constructor(
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
-  ) { }
+  ) {}
 
   create(user: Partial<Users>): Promise<Users> {
     const newUser = this.usersRepository.create(user);
@@ -75,5 +75,7 @@ export class UsersService {
     return user;
   }
 
-
+  async updatePassword(id: number, passwordHash: string): Promise<void> {
+    await this.usersRepository.update(id, { password: passwordHash });
+  }
 }
