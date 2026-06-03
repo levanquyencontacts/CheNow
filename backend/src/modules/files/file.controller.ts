@@ -26,7 +26,7 @@ type UploadedImage = {
 
 @Controller('file')
 export class FileController {
-  constructor(private readonly fileService: FileService) {}
+  constructor(private readonly fileService: FileService) { }
 
   @Post('image')
   @UseInterceptors(
@@ -86,11 +86,6 @@ export class FileController {
     return {
       message: 'successfully uploaded',
       fileName: file.filename,
-      originalName: file.originalname,
-      mimeType: file.mimetype,
-      size: file.size,
-      originalUrl: this.fileService.getImageUrl(file.filename),
-      thumbnailUrl: this.fileService.getThumbnailUrl(file.filename),
     };
   }
 

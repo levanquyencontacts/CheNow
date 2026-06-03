@@ -30,6 +30,9 @@ export class Users {
   })
   isActive: boolean;
 
+  @Column({ type: 'varchar', nullable: true })
+  avatar?: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

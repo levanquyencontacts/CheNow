@@ -1,19 +1,20 @@
 "use client";
 
+import { routes } from "@/common/utils/constant";
+import { Box, Button, Image, Search } from "@/components";
+import { useModal } from "@/providers";
+import { useLogoutMutation } from "@/services/controllers/auth/AuthQueries";
+import { useMeQuery } from "@/services/controllers/user/UserQueries";
+import api from "@/services/apiServices";
 import {
   ChevronDown,
   LogOut,
   type LucideIcon,
   Settings,
-  Store,
-  UserRound,
+  UserRound
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { routes } from "@/common/utils/constant";
-import { Box, Button, Search } from "@/components";
-import { useModal } from "@/providers";
-import { useLogoutMutation } from "@/services/controllers/auth/AuthQueries";
+import { useEffect, useState } from "react";
 
 export type PageHeaderActionKey =
   | "PROFILE"
@@ -47,23 +48,31 @@ const defaultUserMenuItems: UserMenuItem[] = [
 
 export function PageHeader({
   userMenuItems = defaultUserMenuItems,
-  userName = "Admin User",
-  userRole = "Store Manager",
 }: PageHeaderProps) {
   const router = useRouter();
   const { openModal } = useModal();
   const logoutMutation = useLogoutMutation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [hasAvatarError, setHasAvatarError] = useState(false);
+  const { data: user } = useMeQuery();
+  const avatarUrl =
+    user?.avatar && !hasAvatarError
+      ? api.file.getThumbnailUrl(user.avatar)
+      : null;
+
+  useEffect(() => {
+    setHasAvatarError(false);
+  }, [user?.avatar]);
 
   const handleProfileClick = () => {
     openModal("ACCOUNT");
     setIsUserMenuOpen(false);
   }
-const handleSettingsClick = () => {
+  const handleSettingsClick = () => {
     setIsUserMenuOpen(false);
     router.push(routes.SETTINGS);
   }
-  
+
 
   const handleUserMenuItemClick = (item: UserMenuItem) => {
     switch (item.actionKey) {
@@ -113,22 +122,31 @@ const handleSettingsClick = () => {
             variant="outlined"
           >
             <Box
-              className="flex h-9 w-9 items-center justify-center rounded-md border-2 border-[#143d2a] bg-[#f7efe7]"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-md border-2 border-[#E6A57E] bg-[#f7efe7]"
               component="span"
             >
-              <UserRound aria-hidden="true" className="h-4 w-4" />
+              {avatarUrl ? (
+                <Image
+                  alt={user?.fullName || "User avatar"}
+                  className="h-full w-full"
+                  fit="cover"
+                  onError={() => setHasAvatarError(true)}
+                  src={avatarUrl}
+                />
+              ) : (
+                <UserRound aria-hidden="true" className="h-4 w-4" />
+              )}
             </Box>
             <Box className="text-right leading-tight" component="span">
               <span className="block text-xs font-semibold text-[#143d2a]">
-                {userName}
+                {user?.fullName}
               </span>
-              <span className="block text-[10px] text-[#8a7867]">{userRole}</span>
+              <span className="block text-[10px] text-[#8a7867]">Store Manager</span>
             </Box>
             <ChevronDown
               aria-hidden="true"
-              className={`h-4 w-4 text-[#805533] transition-transform ${
-                isUserMenuOpen ? "rotate-180" : ""
-              }`}
+              className={`h-4 w-4 text-[#805533] transition-transform ${isUserMenuOpen ? "rotate-180" : ""
+                }`}
             />
           </Button>
 

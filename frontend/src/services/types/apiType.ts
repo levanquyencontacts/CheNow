@@ -9,15 +9,27 @@ export interface ApiErrorPayload {
 // ─── Auth Entities ────────────────────────────────────────────────────────────
 
 export interface AuthUser {
-  id: string;
+  id: number;
   email: string;
-  fullName?: string;
-  phone?: string;
+  fullName: string | null;
+  phone: string | null;
+  avatar: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthResponse {
   access_token: string;
   user?: AuthUser;
+}
+
+export interface UpdateUserPayload {
+  id: number;
+  email?: string;
+  fullName?: string;
+  phone?: string;
+  avatar?: string | null;
 }
 
 // ─── Auth Payloads ────────────────────────────────────────────────────────────
