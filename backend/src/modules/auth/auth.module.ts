@@ -5,17 +5,19 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from '../../passport/local.strategy';
 import { JwtStrategy } from '../../passport/jwt.strategy';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshToken } from './refresh-token.entity';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService,LocalStrategy,JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   imports: [
     UsersModule,
+    TypeOrmModule.forFeature([RefreshToken]),
     JwtModule.register({
       secret: 'your-secret-key',
       signOptions: { expiresIn: '1h' },
     }),
-    
   ],
 })
 export class AuthModule {}

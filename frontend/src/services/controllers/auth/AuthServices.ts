@@ -6,9 +6,11 @@ import type {
   ForgotPasswordPayload,
   LoginPayload,
   MessageResponse,
+  RefreshTokenResponse,
   ResetPasswordPayload,
   SignupPayload,
 } from "@/services/types/apiType";
+import { getStoredRefreshToken } from "@/services/controllers/auth/tokenStorage";
 
 class AuthService {
   constructor(private readonly apiClient: AxiosInstance) {}
@@ -66,8 +68,20 @@ class AuthService {
     return data;
   };
 
+  refreshToken = async (
+    refreshToken: string
+  ): Promise<RefreshTokenResponse> => {
+    const { data } = await this.apiClient.post<RefreshTokenResponse>(
+      "/auth/refresh-token",
+      { refresh_token: refreshToken }
+    );
+    return data;
+  };
+
   logout = async (): Promise<void> => {
-    await this.apiClient.post("/auth/logout");
+    await this.apiClient.post("/auth/logout", {
+      refresh_token: getStoredRefreshToken(),
+    });
   };
 }
 
