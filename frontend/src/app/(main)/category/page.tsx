@@ -3,6 +3,7 @@ import {
     Box,
     Button,
     PageHeader,
+    TableActionCell,
     TableBody,
     TableCell,
     TableContainer,
@@ -23,18 +24,22 @@ import { LIMIT_PAGE } from "@/common/utils/constant";
 import { useCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
 import { PaginationParams } from "@/services/types/apiType";
 import { formatDate } from "@/common/utils/formatDate";
+import { useModal } from "@/providers";
 
 export default function CategoryPage() {
     const { t } = useTranslation();
+    const { openModal } = useModal();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(LIMIT_PAGE);
     const [searchValue, setSearchValue] = useState('');
+    const [statusValue, setStatusValue] = useState("");
 
     const paginationPrams: PaginationParams = {
         page: page,
         limit,
         order: 'ASC',
         searchValue,
+        ...(statusValue ? { status: statusValue } : {}),
 
     }
     const { data, isError, isLoading } = useCategoriesQuery(paginationPrams);
@@ -46,8 +51,8 @@ export default function CategoryPage() {
         <>
             <PageHeader title={t('Category')} searchPlaceholder="Search Inventory..." />
 
-            <Box className="flex min-h-full bg-[#fff8f1] px-4 py-4 text-[#143d2a] sm:px-6 lg:px-8">
-                <Box className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4">
+            <Box className="bg-[#fff8f1] px-4 py-4 text-[#143d2a] sm:px-6 lg:px-8">
+                <Box className="mx-auto flex w-full max-w-7xl flex-col gap-4">
                     <Box className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <Box>
                             <h1 className="text-2xl font-semibold tracking-normal text-[#183d2b]">
@@ -58,7 +63,10 @@ export default function CategoryPage() {
                             </p>
                         </Box>
 
-                        <Button className="h-9 w-fit rounded-md bg-[#183d2b] px-4 text-xs font-semibold text-white shadow-[0_6px_12px_rgba(24,61,43,0.14)] hover:bg-[#102f21]">
+                        <Button
+                            className="h-9 w-fit rounded-md bg-[#183d2b] px-4 text-xs font-semibold text-white shadow-[0_6px_12px_rgba(24,61,43,0.14)] hover:bg-[#102f21]"
+                            onClick={() => openModal("CATEGORY")}
+                        >
                             <CirclePlus aria-hidden="true" className="h-3.5 w-3.5" />
                             Add Category
                         </Button>
@@ -67,17 +75,23 @@ export default function CategoryPage() {
                     <CategoryFilters
                         onReset={() => {
                             setSearchValue('');
+                            setStatusValue('')
                             setPage(1);
                         }}
                         onSearchChange={(nextSearchValue) => {
                             setSearchValue(nextSearchValue);
                             setPage(1);
                         }}
+                        onStatusChange={(nextStatusValue) => {
+                            setStatusValue(nextStatusValue);
+                            setPage(1);
+                        }}
                         searchValue={searchValue}
+                        statusValue={statusValue}
                     />
 
-                    <Box className="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#eadfd4] bg-white/90 shadow-[0_16px_34px_rgba(55,36,20,0.06)]">
-                        <TableContainer className="flex-1 bg-white/70" style={{ overflow: "auto" }}>
+                    <Box className="flex flex-col rounded-lg border border-[#eadfd4] bg-white/90 shadow-[0_16px_34px_rgba(55,36,20,0.06)]">
+                        <TableContainer className="bg-white/70">
                             <Table
                                 className="min-w-[900px] table-fixed text-left text-sm"
                                 padding="none"
@@ -139,7 +153,7 @@ export default function CategoryPage() {
 
                                     {categories.map((category) => (
                                         <TableRow
-                                            className="h-20 bg-white/60 text-[#153c2a] transition hover:bg-[#fff8f1]"
+                                            className="group h-20 bg-white/60 text-[#153c2a] transition hover:bg-[#fff8f1]"
                                             key={category.id}
                                             style={{ borderBottom: "1px solid #eadfd4" }}
                                         >
@@ -171,11 +185,9 @@ export default function CategoryPage() {
                                             <TableCell style={{ padding: "16px", borderBottom: 0, color: "#284536" }}>
                                                 {formatDate(category.updatedAt)}
                                             </TableCell>
-                                            <TableCell align="right" style={{ padding: "16px", borderBottom: 0 }}>
-                                                <button className="rounded-md px-3 py-2 text-sm font-semibold text-[#183d2b] hover:bg-[#f3e8de]">
-                                                    Edit
-                                                </button>
-                                            </TableCell>
+                                            <TableActionCell
+                                                onClick={() => openModal("CATEGORY", { categoryId: category.id })}
+                                            />
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -198,6 +210,7 @@ export default function CategoryPage() {
                     </Box>
                 </Box>
             </Box>
+
         </>
     );
 }

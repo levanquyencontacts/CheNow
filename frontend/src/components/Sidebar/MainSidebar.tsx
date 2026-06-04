@@ -21,7 +21,6 @@ const navItems = [
 
   { href: routes.PRODUCTS, label: "Products", icon: LayoutGrid },
   { href: routes.CATEGORY, label: "Category", icon: CategoryIcon },
-  { href: routes.TEST_API, label: "Test API", icon: FlaskConical },
   { href: routes.ORDERS, label: "Orders", icon: ReceiptText },
   { href: routes.CUSTOMERS, label: "Customers", icon: UsersRound },
   { href: routes.REPORTS, label: "Reports", icon: BarChart3 },

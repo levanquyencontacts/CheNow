@@ -28,4 +28,8 @@ export class PaginationParamsDto {
   @IsString()
   @IsOptional()
   searchValue?: string;
+
+  @IsString()
+  @IsOptional()
+  status?: string;
 }

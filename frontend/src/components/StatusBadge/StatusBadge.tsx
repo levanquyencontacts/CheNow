@@ -66,7 +66,7 @@ export function StatusBadge({
   return (
     <span
       className={clsx(
-        "inline-flex rounded-full border px-3 py-1 text-xs font-semibold",
+        "inline-flex rounded-full border px-3 py-1 text-xs font-semiboldb cursor-pointer",
         statusVariantClasses[normalizedVariant],
         className
       )}
