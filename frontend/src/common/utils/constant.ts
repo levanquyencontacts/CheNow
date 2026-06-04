@@ -4,7 +4,6 @@ export const routes = {
   HOME: "/",
   CATEGORY: "/category",
   PRODUCTS: "/products",
-  TEST_API: "/test-api",
   ORDERS: "/orders",
   CUSTOMERS: "/customers",
   REPORTS: "/reports",
@@ -26,6 +25,10 @@ export const appConstants = {
 export const LANGUAGES_OPTIONS = [
   { label: "VI", value: "vi" },
   { label: "EN", value: "en" },
+];
+export const STATUS_OPTIONS = [
+  { label: "Active", value: "active" },
+  { label: "Inactive", value: "inactive" },
 ];
 
 export const LIMIT_PAGE = 10;

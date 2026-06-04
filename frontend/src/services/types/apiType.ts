@@ -78,15 +78,24 @@ export interface PaginationParams {
   page?: number;
   searchValue?: string;
   sort?: string;
+  status?: string;
 }
 export type CategoryStatus = "active" | "inactive";
 
-export interface Category {
+export interface Category extends CategoryBase {
   id: number;
-  categoryName: string;
-  description: string;
-  status: CategoryStatus;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CategoryBase {
+  categoryName: string;
+  description?: string;
+  status: CategoryStatus;
+
+}
+
+export interface UpdateCategoryPayload extends CategoryBase {
+  id: number;
 }
 

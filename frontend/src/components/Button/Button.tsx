@@ -6,7 +6,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   size?: "small" | "medium" | "large";
-  variant?: "contained" | "outlined" | "text";
+  variant?: "contained" | "delete" | "outlined" | "text";
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -29,6 +29,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       contained:
         "bg-[#183d2b] text-black shadow-[0_7px_14px_rgba(48,74,52,0.16)] hover:bg-[#102f21]",
+      delete:
+        "border border-[#f0c8c5] bg-[#fff2ef] text-[#b12f1d] shadow-none hover:bg-[#ffe1dc] hover:text-[#8f2417] disabled:border-[#ead8d4] disabled:bg-[#f7eeee] disabled:text-[#b99a94] disabled:hover:bg-[#f7eeee]",
       outlined:
         "border border-[#e5d8cc] bg-transparent text-[#5d5448] hover:bg-white/60",
       text: "bg-transparent text-[#6c543e] hover:bg-[#e9ddd2]/50",

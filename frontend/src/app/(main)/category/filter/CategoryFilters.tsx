@@ -1,4 +1,5 @@
-import { Box } from "@/components";
+import { STATUS_OPTIONS } from "@/common/utils/constant";
+import { Box, Button, Select } from "@/components";
 import {
     ChevronDown,
     RefreshCcw,
@@ -9,13 +10,17 @@ import {
 interface CategoryFiltersProps {
     onReset?: () => void;
     onSearchChange: (value: string) => void;
+    onStatusChange: (value: string) => void;
     searchValue: string;
+    statusValue: string;
 }
 
 export function CategoryFilters({
     onReset,
     onSearchChange,
+    onStatusChange,
     searchValue,
+    statusValue,
 }: CategoryFiltersProps) {
     return (
         <Box className="rounded-md border border-[#eadfd4] bg-white/78 p-3 shadow-[0_8px_18px_rgba(55,36,20,0.04)]">
@@ -32,29 +37,39 @@ export function CategoryFilters({
                     />
                 </label>
 
-                <button className="flex h-10 items-center justify-between rounded-md border border-[#eadfd4] bg-[#fffaf5] px-3 text-xs font-semibold text-[#1f2c22]">
+                <Button className="h-10 justify-between rounded-md border-[#eadfd4] bg-[#fffaf5] px-3 text-xs font-semibold text-[#1f2c22]" variant="outlined">
                     All Categories
                     <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 text-[#9d8b78]" />
-                </button>
+                </Button>
 
-                <button className="flex h-10 items-center justify-between rounded-md border border-[#eadfd4] bg-[#fffaf5] px-3 text-xs font-semibold text-[#1f2c22]">
-                    Any Status
-                    <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 text-[#9d8b78]" />
-                </button>
+                <Select
+                    aria-label="Filter status"
+                    className="h-10 rounded-md border-[#eadfd4] bg-[#fffaf5] px-3 pr-8 text-xs font-semibold text-[#1f2c22]"
+                    onChange={(event) => onStatusChange(event.target.value)}
+                    value={statusValue}
+                >
+                    <Select.Option value="">All Status</Select.Option>
+                    {STATUS_OPTIONS.map((option) => (
+                        <Select.Option key={option.value} value={option.value}>
+                            {option.label}
+                        </Select.Option>
+                    ))}
+                </Select>
 
-                <button className="flex h-10 items-center justify-center gap-2 rounded-md border border-[#eadfd4] bg-[#fffaf5] px-3 text-xs font-semibold text-[#6b5a49]">
+                <Button className="h-10 rounded-md border-[#eadfd4] bg-[#fffaf5] px-3 text-xs font-semibold text-[#6b5a49]" variant="outlined">
                     <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5 text-[#b7a89a]" />
                     Stock
-                </button>
+                </Button>
 
-                <button
-                    className="flex h-10 items-center justify-center gap-2 rounded-md px-3 text-xs font-semibold text-[#183d2b] hover:bg-[#f3e8de]"
+                <Button
+                    className="h-10 rounded-md px-3 text-xs font-semibold text-[#183d2b] hover:bg-[#f3e8de]"
                     onClick={onReset}
                     type="button"
+                    variant="text"
                 >
                     <RefreshCcw aria-hidden="true" className="h-3.5 w-3.5" />
                     Reset
-                </button>
+                </Button>
             </Box>
         </Box>
     );

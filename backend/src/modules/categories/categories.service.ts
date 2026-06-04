@@ -14,6 +14,13 @@ export class CategoriesService {
 
     async findAll(paginationParams: PaginationParamsDto): Promise<ResponseDto<Category[]>> {
         const queryBuilder = this.categoryRepository.createQueryBuilder('category');
+
+        if (paginationParams.status) {
+            queryBuilder.andWhere('category.status = :status', {
+                status: paginationParams.status,
+            });
+        }
+
         const result = await PaginationHelper.paginate(
             queryBuilder,
             paginationParams,
@@ -25,7 +32,10 @@ export class CategoriesService {
     }
     async createCategory(category: CategoriesDto) {
         const newCategory = await this.categoryRepository.create(category);
-        return this.categoryRepository.save(newCategory);
+        await this.categoryRepository.save(newCategory);
+        return {
+            message: "Category created",
+        };
     }
     async getCategoryById(id: number) {
 
