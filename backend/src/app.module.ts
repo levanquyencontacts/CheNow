@@ -5,13 +5,10 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { FileModule } from './modules/files/file.module';
-import { ProductModule } from './modules/product/product.module';
-import { User } from './modules/user/user.entity';
-import { UserModule } from './modules/user/user.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
-  imports: [UserModule, ProductModule, FileModule, UsersModule, CategoriesModule, TypeOrmModule.forRoot({
+  imports: [FileModule, UsersModule, CategoriesModule, TypeOrmModule.forRoot({
     type: 'postgres',
     host: 'localhost',
     port: 5433,
@@ -20,7 +17,7 @@ import { UsersModule } from './modules/users/users.module';
     database: 'chenow',
     autoLoadEntities: true,
     synchronize: true,
-    entities: [User],
+    entities: [],
   }), UsersModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
