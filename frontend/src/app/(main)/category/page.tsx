@@ -93,7 +93,7 @@ export default function CategoryPage() {
                     <Box className="flex flex-col rounded-lg border border-[#eadfd4] bg-white/90 shadow-[0_16px_34px_rgba(55,36,20,0.06)]">
                         <TableContainer className="bg-white/70">
                             <Table
-                                className="min-w-[900px] table-fixed text-left text-sm"
+                                className="min-w-225 table-fixed text-left text-sm"
                                 padding="none"
                                 size="small"
                             >
