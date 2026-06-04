@@ -1,10 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Users } from '../users/users.entities';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { RefreshToken } from './refresh-token.entity';
+import * as bcrypt from 'bcrypt';
+import nodemailer from 'nodemailer';
 
 export interface AuthResponse {
   access_token: string;
@@ -21,8 +27,20 @@ interface RefreshTokenPayload {
   type: 'refresh';
 }
 
+interface PasswordResetPayload {
+  email: string;
+  sub: number;
+  type: 'password-reset';
+}
+
 const REFRESH_TOKEN_EXPIRES_IN = '7d';
 const REFRESH_TOKEN_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
+const PASSWORD_RESET_TOKEN_EXPIRES_IN = '15m';
+const PASSWORD_RESET_SUCCESS_MESSAGE =
+  'Neu email ton tai, link dat lai mat khau da duoc gui';
+const bcryptService = bcrypt as unknown as {
+  hash(password: string, saltRounds: number): Promise<string>;
+};
 
 @Injectable()
 export class AuthService {
@@ -99,6 +117,47 @@ export class AuthService {
     }
   }
 
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const normalizedEmail = email.trim();
+    const user = await this.usersService.findByEmail(normalizedEmail);
+
+    if (!user || !user.isActive) {
+      return { message: PASSWORD_RESET_SUCCESS_MESSAGE };
+    }
+
+    const resetToken = this.jwtService.sign(
+      { email: user.email, sub: user.id, type: 'password-reset' },
+      { expiresIn: PASSWORD_RESET_TOKEN_EXPIRES_IN },
+    );
+
+    await this.sendPasswordResetEmail(user.email, resetToken);
+
+    return { message: PASSWORD_RESET_SUCCESS_MESSAGE };
+  }
+
+  async resetPassword(
+    token: string,
+    password: string,
+  ): Promise<{ message: string }> {
+    const payload = this.verifyPasswordResetToken(token);
+    const user = await this.usersService.findByEmail(payload.email);
+
+    if (!user || user.id !== payload.sub || !user.isActive) {
+      throw new BadRequestException('Token dat lai mat khau khong hop le');
+    }
+
+    const passwordHash = await bcryptService.hash(password, 10);
+    await this.usersService.updatePassword(user.id, passwordHash);
+
+    const revokedAt = new Date();
+    await this.refreshTokenRepository.update(
+      { userId: user.id, revokedAt: IsNull() },
+      { revokedAt },
+    );
+
+    return { message: 'Dat lai mat khau thanh cong' };
+  }
+
   private async issueTokenPair(user: Users): Promise<AuthResponse> {
     const payload = { email: user.email, sub: user.id };
     const refreshToken = this.jwtService.sign(
@@ -138,5 +197,52 @@ export class AuthService {
 
   private signAccessToken(user: Users): string {
     return this.jwtService.sign({ email: user.email, sub: user.id });
+  }
+
+  private verifyPasswordResetToken(token: string): PasswordResetPayload {
+    try {
+      const payload = this.jwtService.verify<PasswordResetPayload>(token);
+      if (payload.type !== 'password-reset') {
+        throw new BadRequestException('Token dat lai mat khau khong hop le');
+      }
+      return payload;
+    } catch {
+      throw new BadRequestException('Token dat lai mat khau khong hop le');
+    }
+  }
+
+  private async sendPasswordResetEmail(
+    email: string,
+    token: string,
+  ): Promise<void> {
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const resetUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
+
+    if (!process.env.SMTP_HOST) {
+      console.log(`Password reset link for ${email}: ${resetUrl}`);
+      return;
+    }
+
+    const port = Number(process.env.SMTP_PORT ?? 587);
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: user && pass ? { user, pass } : undefined,
+    });
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM ?? 'Quan Che <no-reply@quanche.local>',
+      to: email,
+      subject: 'Dat lai mat khau Quan Che',
+      text: `Ban vua yeu cau dat lai mat khau. Truy cap link sau trong 30 phut: ${resetUrl}`,
+      html: `
+        <p>Ban vua yeu cau dat lai mat khau Quan Che.</p>
+        <p>Link nay co hieu luc trong 30 phut.</p>
+        <p><a href="${resetUrl}">Dat lai mat khau</a></p>
+      `,
+    });
   }
 }
