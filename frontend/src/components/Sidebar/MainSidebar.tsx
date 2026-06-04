@@ -15,9 +15,12 @@ import Image from "next/image";
 import logoSamSam from "@/common/assets/images/logosamsam.png";
 import { routes } from "@/common/utils/constant";
 import { Box, Button } from "@/components";
+import { CategoryIcon } from "@/common/assets/icons";
 
 const navItems = [
+
   { href: routes.PRODUCTS, label: "Products", icon: LayoutGrid },
+  { href: routes.CATEGORY, label: "Category", icon: CategoryIcon },
   { href: routes.TEST_API, label: "Test API", icon: FlaskConical },
   { href: routes.ORDERS, label: "Orders", icon: ReceiptText },
   { href: routes.CUSTOMERS, label: "Customers", icon: UsersRound },

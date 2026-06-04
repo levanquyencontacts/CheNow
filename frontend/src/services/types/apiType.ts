@@ -71,3 +71,22 @@ export interface ChangePasswordPayload {
 export interface MessageResponse {
   message: string;
 }
+
+export interface PaginationParams {
+  limit?: number;
+  order?: "ASC" | "DESC";
+  page?: number;
+  searchValue?: string;
+  sort?: string;
+}
+export type CategoryStatus = "active" | "inactive";
+
+export interface Category {
+  id: number;
+  categoryName: string;
+  description: string;
+  status: CategoryStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+

@@ -3,17 +3,20 @@ import apiClient from "./apiClient";
 import testApiService from "./controllers/testapi/testApiServices";
 import UserService from "./controllers/user/UserServices";
 import { FileService } from "./file/FileServices";
+import { CategoriesService } from "./controllers/categories/CategoriesService";
 
 class ApiServices {
   public auth: AuthService;
   public testApi: testApiService;
   public user: UserService;
+  public categories: CategoriesService;
   public file: FileService;
 
   constructor() {
     this.auth = new AuthService(apiClient);
     this.testApi = new testApiService(apiClient);
     this.user = new UserService(apiClient);
+    this.categories = new CategoriesService(apiClient);
     this.file = new FileService(apiClient);
   }
 }

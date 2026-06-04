@@ -2,6 +2,7 @@
 
 export const routes = {
   HOME: "/",
+  CATEGORY: "/category",
   PRODUCTS: "/products",
   TEST_API: "/test-api",
   ORDERS: "/orders",
@@ -26,3 +27,5 @@ export const LANGUAGES_OPTIONS = [
   { label: "VI", value: "vi" },
   { label: "EN", value: "en" },
 ];
+
+export const LIMIT_PAGE = 10;
