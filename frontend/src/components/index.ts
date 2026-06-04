@@ -18,3 +18,6 @@ export * from "./HelperText/HelperText";
 export * from "./UploadImage/UploadImage";
 export * from "./Image/Image";
 export * from "./Table";
+export * from "./Pagination/Pagination";
+export * from "./StatusBadge";
+export * from "./TablePagination/TablePagination";

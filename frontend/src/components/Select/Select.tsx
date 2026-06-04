@@ -15,6 +15,7 @@ export interface SelectProps
   fullWidth?: boolean;
   helperText?: React.ReactNode;
   label?: React.ReactNode;
+  menuPlacement?: "bottom" | "top";
   placeholder?: string;
   variant?: "standard" | "outlined" | "plain";
 }
@@ -90,6 +91,7 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
       helperText,
       id,
       label,
+      menuPlacement = "bottom",
       placeholder,
       style,
       variant = "outlined",
@@ -252,7 +254,8 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
           {open && !disabled && (
             <span
               className={clsx(
-                "absolute top-full z-30 max-h-80 min-w-full overflow-y-auto rounded-md border border-[#c2ad9d] bg-[#e8ddd3] p-1 text-sm shadow-lg shadow-[#2a1d12]/10",
+                "absolute z-50 max-h-80 min-w-full overflow-y-auto rounded-md border border-[#c2ad9d] bg-[#e8ddd3] p-1 text-sm shadow-lg shadow-[#2a1d12]/10",
+                menuPlacement === "top" ? "bottom-full mb-1" : "top-full mt-1",
                 isPlain && !fullWidth ? "right-0 w-max" : "left-0"
               )}
               id={listboxId}

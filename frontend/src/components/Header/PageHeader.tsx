@@ -33,6 +33,7 @@ interface PageHeaderProps {
   userMenuItems?: UserMenuItem[];
   userName?: string;
   userRole?: string;
+  title?: string;
 }
 
 const defaultUserMenuItems: UserMenuItem[] = [
@@ -48,6 +49,7 @@ const defaultUserMenuItems: UserMenuItem[] = [
 
 export function PageHeader({
   userMenuItems = defaultUserMenuItems,
+  title,
 }: PageHeaderProps) {
   const router = useRouter();
   const { openModal } = useModal();
@@ -95,6 +97,10 @@ export function PageHeader({
       className="sticky top-0 z-20 flex min-h-16 flex-col gap-3 border-b border-[#eadfd4] bg-[#fff8f1] px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10"
       component="header"
     >
+      {title && <Box>
+
+        <h1 className="font-serif text-base leading-tight text-[#143d2a]">{title}</h1>
+      </Box>}
       <Search
         className="w-full bg-[#fff3e8] lg:w-105"
         placeholder=''
