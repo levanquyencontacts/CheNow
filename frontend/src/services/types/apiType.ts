@@ -99,3 +99,27 @@ export interface UpdateCategoryPayload extends CategoryBase {
   id: number;
 }
 
+export interface Product {
+  categoryId: number;
+  productName: string;
+  price: string;
+  imageUrl: string | null;
+  description: string | null;
+  categoryName: string;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProductPayload {
+  categoryId: number;
+  productName: string;
+  price: number;
+  imageUrl?: string | null;
+  description?: string | null;
+}
+
+export interface UpdateProductPayload extends CreateProductPayload {
+  id: number;
+}
+

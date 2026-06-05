@@ -12,9 +12,15 @@ export type StatusVariant =
   | "warning";
 
 export interface StatusBadgeProps {
+  activeLabel?: string;
   className?: string;
+  checked?: boolean;
+  disabled?: boolean;
+  inactiveLabel?: string;
   label?: string;
+  onCheckedChange?: (checked: boolean) => void;
   status: StatusVariant | string;
+  toggle?: boolean;
   variant?: StatusVariant;
 }
 
@@ -55,18 +61,49 @@ function formatStatusLabel(status: string) {
 }
 
 export function StatusBadge({
+  activeLabel = "Đang bán",
   className,
+  checked,
+  disabled = false,
+  inactiveLabel = "Ngừng bán",
   label,
+  onCheckedChange,
   status,
+  toggle = false,
   variant,
 }: StatusBadgeProps) {
   const normalizedStatus = normalizeStatus(status.toLowerCase());
   const normalizedVariant = variant ?? normalizedStatus;
+  const isChecked = checked ?? normalizedStatus === "active";
+
+  if (toggle) {
+    return (
+      <label
+        className={clsx(
+          "inline-flex w-fit cursor-pointer items-center gap-3 text-sm font-semibold text-[#183d2b]",
+          disabled && "cursor-not-allowed opacity-60",
+          className
+        )}
+      >
+        <input
+          checked={isChecked}
+          className="peer sr-only"
+          disabled={disabled}
+          onChange={(event) => onCheckedChange?.(event.target.checked)}
+          type="checkbox"
+        />
+        <span className="relative h-6 w-11 rounded-full bg-[#bfb2a6] transition peer-checked:bg-[#183d2b] peer-focus-visible:ring-2 peer-focus-visible:ring-[#183d2b]/25">
+          <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5" />
+        </span>
+        <span>{label ?? (isChecked ? activeLabel : inactiveLabel)}</span>
+      </label>
+    );
+  }
 
   return (
     <span
       className={clsx(
-        "inline-flex rounded-full border px-3 py-1 text-xs font-semiboldb cursor-pointer",
+        "inline-flex rounded-full border px-3 py-1 text-xs font-semibold cursor-pointer",
         statusVariantClasses[normalizedVariant],
         className
       )}

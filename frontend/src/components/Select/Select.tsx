@@ -15,7 +15,10 @@ export interface SelectProps
   fullWidth?: boolean;
   helperText?: React.ReactNode;
   label?: React.ReactNode;
+  listboxFooter?: React.ReactNode;
   menuPlacement?: "bottom" | "top";
+  onListboxNeedsMoreItems?: () => void;
+  onListboxScrollEnd?: () => void;
   placeholder?: string;
   variant?: "standard" | "outlined" | "plain";
 }
@@ -91,7 +94,10 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
       helperText,
       id,
       label,
+      listboxFooter,
       menuPlacement = "bottom",
+      onListboxNeedsMoreItems,
+      onListboxScrollEnd,
       placeholder,
       style,
       variant = "outlined",
@@ -107,6 +113,7 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
     const isPlain = variant === "plain";
     const isControlled = value !== undefined;
     const rootRef = React.useRef<HTMLLabelElement>(null);
+    const listboxOptionsRef = React.useRef<HTMLSpanElement>(null);
     const selectRef = React.useRef<HTMLSelectElement>(null);
     const [open, setOpen] = React.useState(false);
     const [internalValue, setInternalValue] = React.useState(() =>
@@ -122,6 +129,22 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
       options.find((option) => !option.disabled);
 
     React.useImperativeHandle(ref, () => selectRef.current as HTMLSelectElement);
+
+    React.useEffect(() => {
+      if (!open || !onListboxNeedsMoreItems) {
+        return;
+      }
+
+      const element = listboxOptionsRef.current;
+
+      if (!element) {
+        return;
+      }
+
+      if (element.scrollHeight <= element.clientHeight) {
+        onListboxNeedsMoreItems();
+      }
+    }, [options.length, onListboxNeedsMoreItems, open]);
 
     React.useEffect(() => {
       if (!open) {
@@ -167,6 +190,20 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
         target: nativeSelect,
       } as React.ChangeEvent<HTMLSelectElement>);
       setOpen(false);
+    };
+
+    const handleListboxScroll = (event: React.UIEvent<HTMLSpanElement>) => {
+      if (!onListboxScrollEnd) {
+        return;
+      }
+
+      const element = event.currentTarget;
+      const distanceToBottom =
+        element.scrollHeight - element.scrollTop - element.clientHeight;
+
+      if (distanceToBottom <= 8) {
+        onListboxScrollEnd();
+      }
     };
 
     return (
@@ -231,7 +268,7 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
                 ? "border-0 border-b border-[#c9c2b7] pl-0 hover:border-[#234535] focus:border-[#234535]"
                 : isPlain
                   ? "border-0 pl-0 focus:border-0"
-                : "rounded-md border border-[#c9c2b7] px-3 hover:border-[#234535] hover:bg-[#fffdf9] focus:border-[#234535]",
+                  : "rounded-md border border-[#c9c2b7] px-3 hover:border-[#234535] hover:bg-[#fffdf9] focus:border-[#234535]",
               error && "border-red-700",
               className
             )}
@@ -254,39 +291,50 @@ const SelectBase = React.forwardRef<HTMLSelectElement, SelectProps>(
           {open && !disabled && (
             <span
               className={clsx(
-                "absolute z-50 max-h-80 min-w-full overflow-y-auto rounded-md border border-[#c2ad9d] bg-[#e8ddd3] p-1 text-sm shadow-lg shadow-[#2a1d12]/10",
+                "absolute z-50 min-w-full rounded-md border border-[#c2ad9d] bg-[#e8ddd3] p-1 text-sm shadow-lg shadow-[#2a1d12]/10",
                 menuPlacement === "top" ? "bottom-full mb-1" : "top-full mt-1",
                 isPlain && !fullWidth ? "right-0 w-max" : "left-0"
               )}
               id={listboxId}
               role="listbox"
             >
-              {options.map((option) => (
-                <button
-                  aria-selected={option.value === currentValue}
-                  className={clsx(
-                    "block h-8 w-full rounded bg-[#f3e8de] px-4 text-left leading-8 text-[#2d332c] transition-colors",
-                    option.disabled
-                      ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer hover:bg-[#c8ad98] hover:text-[#102a1d]",
-                    option.value === currentValue &&
+              <span
+                className="block max-h-64 overflow-y-auto pr-1"
+                onScroll={handleListboxScroll}
+                ref={listboxOptionsRef}
+              >
+                {options.map((option) => (
+                  <button
+                    aria-selected={option.value === currentValue}
+                    className={clsx(
+                      "block h-8 w-full rounded bg-[#f3e8de] px-4 text-left leading-8 text-[#2d332c] transition-colors",
+                      option.disabled
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer hover:bg-[#c8ad98] hover:text-[#102a1d]",
+                      option.value === currentValue &&
                       !option.disabled &&
                       "bg-[#b98f70] font-semibold text-[#102a1d] hover:bg-[#e8ddd3]"
-                  )}
-                  disabled={option.disabled}
-                  key={option.value}
-                  onClick={() => handleSelect(option.value)}
-                  role="option"
-                  type="button"
-                >
-                  {React.cloneElement(option.option, {
-                    className: clsx(
-                      "block overflow-hidden text-ellipsis whitespace-nowrap",
-                      option.option.props.className
-                    ),
-                  })}
-                </button>
-              ))}
+                    )}
+                    disabled={option.disabled}
+                    key={option.value}
+                    onClick={() => handleSelect(option.value)}
+                    role="option"
+                    type="button"
+                  >
+                    {React.cloneElement(option.option, {
+                      className: clsx(
+                        "block overflow-hidden text-ellipsis whitespace-nowrap",
+                        option.option.props.className
+                      ),
+                    })}
+                  </button>
+                ))}
+              </span>
+              {listboxFooter ? (
+                <span className="mt-1 block border-t border-[#c2ad9d] bg-[#e8ddd3] pt-1">
+                  {listboxFooter}
+                </span>
+              ) : null}
             </span>
           )}
         </span>

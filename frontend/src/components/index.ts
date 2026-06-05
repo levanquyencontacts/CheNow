@@ -14,6 +14,7 @@ export * from "./Search/Search";
 export * from "./Header/PageHeader";
 export * from "./Modal/Modal";
 export * from "./Input/TextInput";
+export { default as TextArea } from "./Input/TextArea";
 export * from "./HelperText/HelperText";
 export * from "./UploadImage/UploadImage";
 export * from "./Image/Image";

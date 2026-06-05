@@ -2,8 +2,33 @@ import React, { type Ref } from "react";
 import { twMerge } from "tailwind-merge";
 import type { Override } from "@/common/shared";
 import { clsx } from "@/components/utils";
+import api from "@/services/apiServices";
 
 type Fit = "cover" | "contain";
+type PreviewType = "originals" | "thumbnails";
+
+const isAbsoluteUrl = (value: string) =>
+  value.startsWith("http://") ||
+  value.startsWith("https://") ||
+  value.startsWith("blob:") ||
+  value.startsWith("data:") ||
+  value.startsWith("/");
+
+const getImageSrc = (src: string | null, previewType?: PreviewType) => {
+  const trimmed = src?.trim();
+
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (!previewType || isAbsoluteUrl(trimmed)) {
+    return trimmed;
+  }
+
+  return previewType === "thumbnails"
+    ? api.file.getThumbnailUrl(trimmed)
+    : api.file.getOriginalImageUrl(trimmed);
+};
 
 export type ImageProps = Override<
   React.ImgHTMLAttributes<HTMLImageElement>,
@@ -14,6 +39,7 @@ export type ImageProps = Override<
     height?: number;
     fit?: Fit;
     isStacked?: boolean;
+    previewType?: PreviewType;
   }
 >;
 
@@ -23,13 +49,15 @@ const Image = React.forwardRef<HTMLImageElement, ImageProps>(
       className,
       fit = "cover",
       isStacked = false,
+      previewType,
       src,
       style,
       ...rest
     }: ImageProps,
     forwardedRef: Ref<HTMLImageElement>,
   ) => {
-    const hasSrc = Boolean(src?.trim());
+    const resolvedSrc = getImageSrc(src, previewType);
+    const hasSrc = Boolean(resolvedSrc);
 
     return (
       <img
@@ -43,7 +71,7 @@ const Image = React.forwardRef<HTMLImageElement, ImageProps>(
           ),
         )}
         ref={forwardedRef}
-        src={hasSrc ? src ?? undefined : undefined}
+        src={resolvedSrc}
         style={{ objectFit: fit, ...style }}
         {...rest}
       />
