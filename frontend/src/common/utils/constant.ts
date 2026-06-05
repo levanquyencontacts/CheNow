@@ -14,6 +14,9 @@ export const routes = {
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
   DASHBOARD: "/dashboard",
+  PRODUCT_CREATE: "/products/create",
+  PRODUCT_EDIT: (id: number) => `/products/${id}/edit`,
+
 } as const;
 
 // ─── App Constants ────────────────────────────────────────────────────────────
@@ -32,3 +35,5 @@ export const STATUS_OPTIONS = [
 ];
 
 export const LIMIT_PAGE = 10;
+
+export const LIMIT_PAGE_ARRAY = [10, 25, 50, 100]

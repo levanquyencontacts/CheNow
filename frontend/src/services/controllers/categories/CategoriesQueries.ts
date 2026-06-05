@@ -1,5 +1,5 @@
 import api from "@/services/apiServices";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CategoryBase, PaginationParams, UpdateCategoryPayload } from "@/services/types/apiType";
 import { toast } from "react-toastify";
 
@@ -8,6 +8,24 @@ export const useCategoriesQuery = (params?: PaginationParams) => {
     return useQuery({
         queryKey: ["categories", params],
         queryFn: () => api.categories.getCategories({ ...params }),
+    });
+};
+
+export const useInfiniteCategoriesQuery = (params?: Omit<PaginationParams, "page">) => {
+    return useInfiniteQuery({
+        queryKey: ["categories", "infinite", params],
+        queryFn: ({ pageParam = 1 }) =>
+            api.categories.getCategories({
+                ...params,
+                page: pageParam,
+            }),
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage.metadata.pagination;
+            const nextPage = pagination.page + 1;
+
+            return nextPage <= pagination.totalPages ? nextPage : undefined;
+        },
+        initialPageParam: 1,
     });
 };
 

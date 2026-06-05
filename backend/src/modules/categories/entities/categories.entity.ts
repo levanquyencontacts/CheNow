@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Products } from "../../products/entity/products.entity";
 
 export enum CategoryStatus {
     ACTIVE = "active",
@@ -22,6 +23,9 @@ export class Category {
         type: "enum",
     })
     status: CategoryStatus;
+
+    @OneToMany(() => Products, (product) => product.categoryId)
+    products: Products[];
 
     @CreateDateColumn()
     createdAt: Date;

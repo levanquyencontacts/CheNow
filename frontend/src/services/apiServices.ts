@@ -4,12 +4,14 @@ import testApiService from "./controllers/testapi/testApiServices";
 import UserService from "./controllers/user/UserServices";
 import { FileService } from "./file/FileServices";
 import { CategoriesService } from "./controllers/categories/CategoriesService";
+import { ProductsService } from "./controllers/products/ProductsService";
 
 class ApiServices {
   public auth: AuthService;
   public testApi: testApiService;
   public user: UserService;
   public categories: CategoriesService;
+  public products: ProductsService;
   public file: FileService;
 
   constructor() {
@@ -17,6 +19,7 @@ class ApiServices {
     this.testApi = new testApiService(apiClient);
     this.user = new UserService(apiClient);
     this.categories = new CategoriesService(apiClient);
+    this.products = new ProductsService(apiClient);
     this.file = new FileService(apiClient);
   }
 }

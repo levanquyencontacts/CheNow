@@ -1,5 +1,9 @@
 import { AxiosInstance } from "axios";
 
+interface UploadImageResponse {
+    fileName: string;
+}
+
 export class FileService {
     constructor(private readonly apiClient: AxiosInstance) { }
     getBaseUrl() {
@@ -17,4 +21,15 @@ export class FileService {
         const base = this.getBaseUrl();
         return `${base}/file/image/thumbnails/${trimmed}`;
     }
+    uploadImage = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const { data } = await this.apiClient.post<UploadImageResponse>(
+            "/file/image",
+            formData,
+        );
+
+        return data.fileName;
+    };
 }
