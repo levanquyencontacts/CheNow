@@ -1,35 +1,42 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Products } from "../../products/entity/products.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Products } from '../../products/entity/products.entity';
 
 export enum CategoryStatus {
-    ACTIVE = "active",
-    INACTIVE = "inactive",
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
 }
 
-@Entity("categories")
+@Entity('categories')
 export class Category {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    categoryName: string;
+  @Column()
+  categoryName: string;
 
-    @Column({ default: "" })
-    description: string;
+  @Column({ default: '' })
+  description: string;
 
-    @Column({
-        default: CategoryStatus.ACTIVE,
-        enum: CategoryStatus,
-        type: "enum",
-    })
-    status: CategoryStatus;
+  @Column({
+    default: CategoryStatus.ACTIVE,
+    enum: CategoryStatus,
+    type: 'enum',
+  })
+  status: CategoryStatus;
 
-    @OneToMany(() => Products, (product) => product.categoryId)
-    products: Products[];
+  @OneToMany(() => Products, (product) => product.categoryId)
+  products: Products[];
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

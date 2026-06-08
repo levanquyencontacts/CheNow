@@ -1,4 +1,13 @@
-import { Body, Controller, ForbiddenException, Get, Param, Put, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Put,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 import { Users } from './users.entities';
 import { UsersService } from './users.service';
@@ -15,9 +24,7 @@ interface UpdateProfilePayload {
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-  ) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
