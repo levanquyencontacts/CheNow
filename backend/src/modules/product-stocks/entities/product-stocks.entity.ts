@@ -1,24 +1,34 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Products } from "../../products/entity/products.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Products } from '../../products/entity/products.entity';
 
 @Entity()
 export class ProductStocks {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @ManyToOne(() => Products, (product) => product.id)
-    @JoinColumn({ name: "productId" })
-    productId: number;
+  @Column()
+  productId: number;
 
-    @Column()
-    quantity: number;
+  @ManyToOne(() => Products, (product) => product.productStocks)
+  @JoinColumn({ name: 'productId' })
+  product: Products;
 
-    @Column()
-    minQuantity: number;
-    @CreateDateColumn()
-    createdAt: Date;
+  @Column()
+  quantity: number;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @Column()
+  minQuantity: number;
+  @CreateDateColumn()
+  createdAt: Date;
 
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

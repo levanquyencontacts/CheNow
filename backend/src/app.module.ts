@@ -10,18 +10,27 @@ import { ProductsModule } from './modules/products/products.module';
 import { ProductStocksModule } from './modules/product-stocks/product-stocks.module';
 
 @Module({
-  imports: [FileModule, UsersModule, CategoriesModule, TypeOrmModule.forRoot({
-    type: 'postgres',
-    host: 'localhost',
-    port: 5433,
-    username: 'postgres',
-    password: '123456',
-    database: 'chenow',
-    autoLoadEntities: true,
-    synchronize: true,
-    entities: [],
-  }), UsersModule, AuthModule, ProductsModule, ProductStocksModule],
+  imports: [
+    FileModule,
+    UsersModule,
+    CategoriesModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5433,
+      username: 'postgres',
+      password: '123456',
+      database: 'chenow',
+      autoLoadEntities: true,
+      synchronize: true,
+      entities: [],
+    }),
+    UsersModule,
+    AuthModule,
+    ProductsModule,
+    ProductStocksModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

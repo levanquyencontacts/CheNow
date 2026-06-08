@@ -1,9 +1,11 @@
-
-import { IsInt } from "class-validator";
+import { IsInt } from 'class-validator';
 
 export class ProductStocksDto {
-    @IsInt()
-    quantity: number;
-    @IsInt()
-    minQuantity: number;
+  @IsInt()
+  productId: number;
+
+  @IsInt()
+  quantity: number;
+  @IsInt()
+  minQuantity: number;
 }

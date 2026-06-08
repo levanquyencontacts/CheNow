@@ -2,7 +2,6 @@ import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Order } from '../enums/common.enum';
 
-
 export class PaginationParamsDto {
   @IsInt()
   @Min(1)
