@@ -33,7 +33,9 @@ export default function ProductsEditPage() {
             price: String(product.price),
             productName: product.productName,
             status: "active",
-            stockQuantity: "",
+            quantity: product?.quantity ?? 0,
+            minQuantity: product?.minQuantity ?? 0,
+            imageUrl: product.imageUrl,
         };
     }, [product]);
 
@@ -46,7 +48,6 @@ export default function ProductsEditPage() {
 
     return (
         <ProductForm
-            defaultImageUrl={product?.imageUrl ?? null}
             defaultValues={defaultValues}
             deleteAction={
                 <Button

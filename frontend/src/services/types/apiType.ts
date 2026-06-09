@@ -92,7 +92,6 @@ export interface CategoryBase {
   categoryName: string;
   description?: string;
   status: CategoryStatus;
-
 }
 
 export interface UpdateCategoryPayload extends CategoryBase {
@@ -100,13 +99,15 @@ export interface UpdateCategoryPayload extends CategoryBase {
 }
 
 export interface Product {
+  id: number;
   categoryId: number;
   productName: string;
   price: string;
   imageUrl: string | null;
   description: string | null;
   categoryName: string;
-  id: number;
+  quantity: number;
+  minQuantity: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -122,4 +123,3 @@ export interface CreateProductPayload {
 export interface UpdateProductPayload extends CreateProductPayload {
   id: number;
 }
-

@@ -6,17 +6,22 @@ import { ProductsDto, ProductsListResponseDto } from './dto/productsDto.dto';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
+import { ProductStocks } from '../product-stocks/entities/product-stocks.entity';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectRepository(Products) private repository: Repository<Products>,
+    @InjectRepository(Products)
+    private readonly productRepository: Repository<Products>,
+    @InjectRepository(ProductStocks)
+    private readonly productStockRepository: Repository<ProductStocks>,
   ) {}
 
   async findAll(paginationParams: PaginationParamsDto) {
-    const queryBuilder = this.repository
+    const queryBuilder = this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category');
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.productStocks', 'productStocks');
     const result = await PaginationHelper.paginate(
       queryBuilder,
       paginationParams,
@@ -38,16 +43,27 @@ export class ProductsService {
     );
   }
   async createProduct(products: ProductsDto) {
-    const product = this.repository.create(products);
-    await this.repository.save(product);
-    return { message: 'Product created successfully' };
+    const product = this.productRepository.create(products);
+    await this.productRepository.save(product);
+    const productStock = this.productStockRepository.create({
+      productId: product.id,
+      quantity: 0,
+      minQuantity: 1,
+    });
+    await this.productStockRepository.save(productStock);
+    return {
+      message: 'Product created successfully',
+      products,
+      productStock,
+    };
   }
 
   async getProductById(id: number) {
-    const product = await this.repository.findOne({
+    const product = await this.productRepository.findOne({
       where: { id },
       relations: {
         category: true,
+        productStocks: true,
       },
     });
     if (!product) {
@@ -56,11 +72,14 @@ export class ProductsService {
     return new ProductsListResponseDto(product);
   }
   async updateProduct(id: number, products: ProductsDto) {
-    await this.repository.update(id, products);
-    return { message: 'Product updated successfully' };
+    await this.productRepository.update(id, products);
+    return {
+      message: 'Product updated successfully',
+      products,
+    };
   }
   async deleteProduct(id: number) {
-    await this.repository.delete(id);
+    await this.productRepository.delete(id);
     return { message: 'Product deleted successfully' };
   }
 }

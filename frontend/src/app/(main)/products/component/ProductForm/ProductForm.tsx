@@ -11,7 +11,7 @@ import { useInfiniteCategoriesQuery } from "@/services/controllers/categories/Ca
 import { useUploadImageMutation } from "@/services/file/FileQueries";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { SideBarProduct } from "../SideBarProduct";
@@ -29,7 +29,9 @@ const productSchema = z.object({
         }, "Price must be greater than 0."),
     productName: z.string().trim().min(1, "Please enter a product name."),
     status: z.enum(["active", "inactive"]),
-    stockQuantity: z.string().trim().optional(),
+    quantity: z.number(),
+    minQuantity: z.number(),
+    imageUrl: z.string().nullable(),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
@@ -44,7 +46,6 @@ export interface ProductSubmitPayload {
 
 interface ProductFormProps {
     deleteAction?: ReactNode;
-    defaultImageUrl?: string | null;
     defaultValues?: ProductFormValues;
     isLoading?: boolean;
     isSaving?: boolean;
@@ -58,12 +59,13 @@ const emptyValues: ProductFormValues = {
     price: "",
     productName: "",
     status: "active",
-    stockQuantity: "",
+    quantity: 0,
+    minQuantity: 0,
+    imageUrl: null,
 };
 
 export function ProductForm({
     deleteAction,
-    defaultImageUrl = null,
     defaultValues = emptyValues,
     isLoading = false,
     isSaving = false,
@@ -71,7 +73,6 @@ export function ProductForm({
     onSubmit,
 }: ProductFormProps) {
     const router = useRouter();
-    const [productImage, setProductImage] = useState<string | null>(defaultImageUrl);
     const {
         formState: { errors, isDirty, isValid },
         control,
@@ -86,12 +87,13 @@ export function ProductForm({
     });
     const categoryId = useWatch({ control, name: "categoryId" });
     const status = useWatch({ control, name: "status" });
+    const productImage = useWatch({ control, name: "imageUrl" });
     const isActive = status === "active";
 
     useEffect(() => {
         reset(defaultValues);
-        setProductImage(defaultImageUrl);
-    }, [defaultImageUrl, defaultValues, reset]);
+   
+    }, [defaultValues, reset]);
 
     const {
         data: categoriesData,
@@ -108,20 +110,25 @@ export function ProductForm({
     const { mutateAsync: uploadImage, isPending: isUploadingImage } =
         useUploadImageMutation();
     const isSubmitting = isSaving || isUploadingImage;
-    const isImageDirty = productImage !== defaultImageUrl;
-    const canSave = mode === "create" ? isValid : isValid && (isDirty || isImageDirty);
+    const canSave = mode === "create" ? isValid : isValid && isDirty;
     const title = mode === "create" ? "Add New Product" : "Edit Product";
     const submitLabel = mode === "create" ? "Save Product" : "Update Product";
     const submittingLabel = mode === "create" ? "Saving..." : "Updating...";
 
     const handleImageChange = async (file: File | null) => {
         if (!file) {
-            setProductImage(null);
+            setValue("imageUrl", null, {
+                shouldDirty: true,
+                shouldValidate: true,
+            });
             return;
         }
 
         const fileName = await uploadImage(file);
-        setProductImage(fileName);
+        setValue("imageUrl", fileName, {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
     };
 
     const submitProduct = async (values: ProductFormValues) => {
@@ -129,7 +136,7 @@ export function ProductForm({
             categoryId: Number(values.categoryId),
             productName: values.productName.trim(),
             price: Number(values.price),
-            imageUrl: productImage,
+            imageUrl: values.imageUrl,
             description: values.description?.trim() || null,
         });
     };
@@ -277,7 +284,19 @@ export function ProductForm({
                                         inputMode="numeric"
                                         placeholder="0"
                                         readOnly={isLoading}
-                                        {...register("stockQuantity")}
+                                        {...register("quantity")}
+                                    />
+                                </label>
+                                <label className="block">
+                                    <span className="mb-2 block text-xs font-semibold text-[#4c3d31]">
+                                        Minimum Stock Quantity
+                                    </span>
+                                    <TextInput
+                                        className="h-11 rounded-none border-0 placeholder:text-[#c5bab0] focus:ring-2 focus:ring-[#183d2b]/20"
+                                        inputMode="numeric"
+                                        placeholder="0"
+                                        readOnly={isLoading}
+                                        {...register("minQuantity")}
                                     />
                                 </label>
                             </Box>
