@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -17,7 +17,7 @@ export class ProductStocks {
   @Column()
   productId: number;
 
-  @ManyToOne(() => Products, (product) => product.productStocks)
+  @OneToOne(() => Products, (product) => product.productStocks)
   @JoinColumn({ name: 'productId' })
   product: Products;
 

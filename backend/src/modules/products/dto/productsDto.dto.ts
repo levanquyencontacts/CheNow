@@ -2,6 +2,7 @@ import { Exclude } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Category } from '../../categories/entities/categories.entity';
 import { Products } from '../entity/products.entity';
+import { ProductStocks } from '../../product-stocks/entities/product-stocks.entity';
 
 export class ProductsDto {
   @IsNumber()
@@ -40,12 +41,17 @@ export class ProductsListResponseDto {
   @IsOptional()
   description: string;
   categoryName?: string;
-
+  quantity?: number;
+  minQuantity?: number;
   @Exclude()
   category?: Category;
+  @Exclude()
+  productStocks?: ProductStocks;
 
   constructor(product: Products) {
     Object.assign(this, product);
     this.categoryName = product.category?.categoryName;
+    this.quantity = product.productStocks?.quantity;
+    this.minQuantity = product.productStocks?.minQuantity;
   }
 }
