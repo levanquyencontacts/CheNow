@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Products } from '../../products/entity/products.entity';
+import { CategoryToppings } from '../../category-topppings/entity/category-toppings.entity';
 
 export enum CategoryStatus {
   ACTIVE = 'active',
@@ -33,6 +34,12 @@ export class Category {
 
   @OneToMany(() => Products, (product) => product.categoryId)
   products: Products[];
+
+  @OneToMany(
+    () => CategoryToppings,
+    (categoryTopping) => categoryTopping.category,
+  )
+  categoryToppings: CategoryToppings[];
 
   @CreateDateColumn()
   createdAt: Date;

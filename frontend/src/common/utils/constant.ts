@@ -16,7 +16,7 @@ export const routes = {
   DASHBOARD: "/dashboard",
   PRODUCT_CREATE: "/products/create",
   PRODUCT_EDIT: (id: number) => `/products/${id}/edit`,
-
+  TOPPING: "/topping",
 } as const;
 
 // ─── App Constants ────────────────────────────────────────────────────────────
@@ -36,4 +36,4 @@ export const STATUS_OPTIONS = [
 
 export const LIMIT_PAGE = 10;
 
-export const LIMIT_PAGE_ARRAY = [10, 25, 50, 100]
+export const LIMIT_PAGE_ARRAY = [10, 25, 50, 100];
