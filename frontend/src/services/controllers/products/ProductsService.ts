@@ -1,4 +1,10 @@
-import { CreateProductPayload, MessageResponse, PaginationParams, Product, UpdateProductPayload } from "@/services/types/apiType";
+import {
+  CreateProductPayload,
+  MessageResponse,
+  PaginationParams,
+  Product,
+  UpdateProductPayload,
+} from "@/services/types/apiType";
 import { AxiosInstance } from "axios";
 
 export interface ProductsResponse {
@@ -14,7 +20,7 @@ export interface ProductsResponse {
 }
 
 export class ProductsService {
-  constructor(private apiClient: AxiosInstance) { }
+  constructor(private apiClient: AxiosInstance) {}
 
   async getProducts(params?: PaginationParams): Promise<ProductsResponse> {
     const { data } = await this.apiClient.get("/products", { params });
@@ -31,7 +37,10 @@ export class ProductsService {
     return data;
   }
 
-  async updateProduct({ id, ...payload }: UpdateProductPayload): Promise<Product> {
+  async updateProduct({
+    id,
+    ...payload
+  }: UpdateProductPayload): Promise<Product> {
     const { data } = await this.apiClient.put(`/products/${id}`, payload);
     return data;
   }

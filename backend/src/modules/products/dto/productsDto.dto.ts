@@ -21,6 +21,12 @@ export class ProductsDto {
   @IsString()
   @IsOptional()
   description: string;
+  @IsNumber()
+  @IsNotEmpty()
+  quantity: number;
+  @IsNumber()
+  @IsNotEmpty()
+  minQuantity: number;
 }
 
 export class ProductsListResponseDto {

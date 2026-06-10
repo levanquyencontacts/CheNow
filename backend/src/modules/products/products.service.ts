@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Products } from './entity/products.entity';
 import { ProductsDto, ProductsListResponseDto } from './dto/productsDto.dto';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
@@ -13,8 +13,7 @@ export class ProductsService {
   constructor(
     @InjectRepository(Products)
     private readonly productRepository: Repository<Products>,
-    @InjectRepository(ProductStocks)
-    private readonly productStockRepository: Repository<ProductStocks>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAll(paginationParams: PaginationParamsDto) {
@@ -22,6 +21,13 @@ export class ProductsService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.productStocks', 'productStocks');
+
+    if (paginationParams.categoryId) {
+      queryBuilder.andWhere('product.categoryId = :categoryId', {
+        categoryId: paginationParams.categoryId,
+      });
+    }
+
     const result = await PaginationHelper.paginate(
       queryBuilder,
       paginationParams,
@@ -43,19 +49,23 @@ export class ProductsService {
     );
   }
   async createProduct(products: ProductsDto) {
-    const product = this.productRepository.create(products);
-    await this.productRepository.save(product);
-    const productStock = this.productStockRepository.create({
-      productId: product.id,
-      quantity: 0,
-      minQuantity: 1,
+    const { quantity, minQuantity, ...productData } = products;
+
+    return this.dataSource.transaction(async (manager) => {
+      const product = manager.create(Products, productData);
+      await manager.save(product);
+
+      const productStock = manager.create(ProductStocks, {
+        productId: product.id,
+        quantity,
+        minQuantity,
+      });
+      await manager.save(productStock);
+
+      return {
+        message: 'Product created successfully',
+      };
     });
-    await this.productStockRepository.save(productStock);
-    return {
-      message: 'Product created successfully',
-      products,
-      productStock,
-    };
   }
 
   async getProductById(id: number) {
@@ -72,14 +82,30 @@ export class ProductsService {
     return new ProductsListResponseDto(product);
   }
   async updateProduct(id: number, products: ProductsDto) {
-    await this.productRepository.update(id, products);
-    return {
-      message: 'Product updated successfully',
-      products,
-    };
+    const { quantity, minQuantity, ...productData } = products;
+    return this.dataSource.transaction(async (manager) => {
+      await manager.update(Products, id, productData);
+      await manager.update(
+        ProductStocks,
+        { productId: id },
+        {
+          quantity,
+          minQuantity,
+        },
+      );
+
+      return {
+        message: 'Product updated successfully',
+      };
+    });
   }
   async deleteProduct(id: number) {
-    await this.productRepository.delete(id);
-    return { message: 'Product deleted successfully' };
+    return this.dataSource.transaction(async (manager) => {
+      await manager.delete(ProductStocks, { productId: id });
+      await manager.delete(Products, id);
+      return {
+        message: 'Product deleted successfully',
+      };
+    });
   }
 }
