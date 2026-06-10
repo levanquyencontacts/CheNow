@@ -31,4 +31,9 @@ export class PaginationParamsDto {
   @IsString()
   @IsOptional()
   status?: string;
+
+  @IsInt()
+  @IsOptional()
+  @Type(() => Number)
+  categoryId?: number;
 }

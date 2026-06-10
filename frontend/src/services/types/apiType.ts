@@ -73,6 +73,7 @@ export interface MessageResponse {
 }
 
 export interface PaginationParams {
+  categoryId?: number;
   limit?: number;
   order?: "ASC" | "DESC";
   page?: number;
@@ -118,6 +119,8 @@ export interface CreateProductPayload {
   price: number;
   imageUrl?: string | null;
   description?: string | null;
+  quantity: number;
+  minQuantity: number;
 }
 
 export interface UpdateProductPayload extends CreateProductPayload {
