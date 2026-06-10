@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 
-export type ModalType = "ACCOUNT" | "CATEGORY" | "DELETE_PRODUCT";
+export type ModalType = "ACCOUNT" | "CATEGORY" | "DELETE_PRODUCT" | "TOPPING";
 
 interface ModalState {
   modalProps: Record<string, unknown>;

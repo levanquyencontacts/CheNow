@@ -126,3 +126,25 @@ export interface CreateProductPayload {
 export interface UpdateProductPayload extends CreateProductPayload {
   id: number;
 }
+
+export interface ToppingCategory {
+  id: number;
+  categoryName: string;
+}
+export interface ToppingBase {
+  name: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  price: number;
+  categoryIds: number[];
+}
+export interface Topping extends ToppingBase {
+  id: number;
+  categories: ToppingCategory[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateToppingPayload extends ToppingBase {
+  id: number;
+}

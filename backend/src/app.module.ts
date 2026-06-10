@@ -8,6 +8,8 @@ import { FileModule } from './modules/files/file.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ProductStocksModule } from './modules/product-stocks/product-stocks.module';
+import { ToppingsModule } from './modules/toppings/toppings.module';
+import { CategoryToppingsModule } from './modules/category-topppings/category-toppings.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { ProductStocksModule } from './modules/product-stocks/product-stocks.mod
     AuthModule,
     ProductsModule,
     ProductStocksModule,
+    ToppingsModule,
+    CategoryToppingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

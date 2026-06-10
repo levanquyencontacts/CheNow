@@ -5,11 +5,13 @@ import { type ModalType, useModal } from "@/providers";
 import { AccountModal } from "./AccountModal";
 import { CategoryModal } from "./CategoryModal";
 import { DeleteProductModal } from "./DeleteProductModal";
+import { ToppingModal } from "./ToppingModal";
 
 const modalComponents: Partial<Record<ModalType, ElementType>> = {
   ACCOUNT: AccountModal,
   CATEGORY: CategoryModal,
   DELETE_PRODUCT: DeleteProductModal,
+  TOPPING: ToppingModal,
 };
 
 export function GlobalModalManager() {
