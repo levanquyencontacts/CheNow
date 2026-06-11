@@ -8,7 +8,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { CategoriesDto } from './dto/entities.dto';
+import { CategoriesDto } from './dto/categoriesDto.dto';
 import { CategoriesService } from './categories.service';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 

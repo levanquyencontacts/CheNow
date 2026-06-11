@@ -17,6 +17,7 @@ export const routes = {
   PRODUCT_CREATE: "/products/create",
   PRODUCT_EDIT: (id: number) => `/products/${id}/edit`,
   TOPPING: "/topping",
+  PRODUCT_SIZE: "/product-size",
 } as const;
 
 // ─── App Constants ────────────────────────────────────────────────────────────

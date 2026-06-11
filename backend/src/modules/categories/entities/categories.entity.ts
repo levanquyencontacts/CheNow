@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Products } from '../../products/entity/products.entity';
 import { CategoryToppings } from '../../category-topppings/entity/category-toppings.entity';
+import { CategorySizes } from '../../category-sizes/entity/category-sizes.entity';
 
 export enum CategoryStatus {
   ACTIVE = 'active',
@@ -40,6 +41,8 @@ export class Category {
     (categoryTopping) => categoryTopping.category,
   )
   categoryToppings: CategoryToppings[];
+  @OneToMany(() => CategorySizes, (categorySize) => categorySize.category)
+  categorySizes: CategorySizes[];
 
   @CreateDateColumn()
   createdAt: Date;

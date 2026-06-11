@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Category } from './entities/categories.entity';
-import { CategoriesDto } from './dto/entities.dto';
-import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
+import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
+import { Category } from './entities/categories.entity';
+import {
+  CategoriesDto,
+  CategoryByIdResponseDto,
+} from './dto/categoriesDto.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -45,14 +48,19 @@ export class CategoriesService {
       message: 'Category created',
     };
   }
-  async getCategoryById(id: number) {
-    const category = await this.categoryRepository.findOne({ where: { id } });
+  async getCategoryById(
+    id: number,
+  ): Promise<CategoryByIdResponseDto | { message: string }> {
+    const category = await this.categoryRepository.findOne({
+      where: { id },
+      relations: ['categorySizes', 'categorySizes.size'],
+    });
     if (!category) {
       return {
         message: 'Category not found',
       };
     }
-    return category;
+    return new CategoryByIdResponseDto(category);
   }
   async updateCategory(id: number, category: CategoriesDto) {
     await this.categoryRepository.update(id, category);

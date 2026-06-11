@@ -6,6 +6,7 @@ import { FileService } from "./file/FileServices";
 import { CategoriesService } from "./controllers/categories/CategoriesService";
 import { ProductsService } from "./controllers/products/ProductsService";
 import { ToppingsService } from "./controllers/toppings/ToppingsService";
+import { CategorySizesService } from "./controllers/category-sizes/CategorySizesService";
 
 class ApiServices {
   public auth: AuthService;
@@ -14,6 +15,7 @@ class ApiServices {
   public categories: CategoriesService;
   public products: ProductsService;
   public toppings: ToppingsService;
+  public categorySizes: CategorySizesService;
   public file: FileService;
 
   constructor() {
@@ -23,6 +25,7 @@ class ApiServices {
     this.categories = new CategoriesService(apiClient);
     this.products = new ProductsService(apiClient);
     this.toppings = new ToppingsService(apiClient);
+    this.categorySizes = new CategorySizesService(apiClient);
     this.file = new FileService(apiClient);
   }
 }

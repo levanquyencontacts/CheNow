@@ -22,6 +22,7 @@ type ModalProps = Override<
   {
     children?: ReactNode;
     closeTitle: string;
+    contentClassName?: string;
     illustration?: IllustrationElement;
     onClose: () => void;
     size?: ModalSize;
@@ -114,6 +115,7 @@ const Modal: React.FC<ModalProps> & {
   children,
   className,
   closeTitle,
+  contentClassName,
   illustration,
   onClose,
   size,
@@ -135,6 +137,15 @@ const Modal: React.FC<ModalProps> & {
 
     return () => {
       document.body.removeChild(node);
+    };
+  }, []);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
     };
   }, []);
 
@@ -191,7 +202,12 @@ const Modal: React.FC<ModalProps> & {
           </button>
 
           {illustration === undefined ? (
-            <div className="flex h-full w-full flex-col overflow-y-auto overflow-x-hidden bg-[#fff8f1]">
+            <div
+              className={clsx(
+                "flex h-full w-full flex-col overflow-y-auto overflow-x-hidden bg-[#fff8f1]",
+                contentClassName,
+              )}
+            >
               {children}
             </div>
           ) : (

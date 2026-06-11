@@ -74,6 +74,7 @@ export interface MessageResponse {
 
 export interface PaginationParams {
   categoryId?: number;
+  categoryIds?: number;
   limit?: number;
   order?: "ASC" | "DESC";
   page?: number;
@@ -146,5 +147,35 @@ export interface Topping extends ToppingBase {
 }
 
 export interface UpdateToppingPayload extends ToppingBase {
+  id: number;
+}
+
+export interface CategorySizeCategory {
+  id: number;
+  categoryName: string;
+  extraPrice: string | number;
+}
+
+export interface CategorySize {
+  id: number;
+  name: string;
+  code: string;
+  category: CategorySizeCategory[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CategorySizeItemPayload {
+  categoryId: number;
+  extraPrice: number;
+}
+
+export interface CategorySizePayload {
+  name: string;
+  code: string;
+  categories: CategorySizeItemPayload[];
+}
+
+export interface UpdateCategorySizePayload extends CategorySizePayload {
   id: number;
 }
