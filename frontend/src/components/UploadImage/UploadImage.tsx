@@ -56,9 +56,12 @@ export function UploadImage({
   const inputRef = useRef<HTMLInputElement>(null);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [imageLoadError, setImageLoadError] = useState(false);
+  const [imageStatus, setImageStatus] = useState<{
+    error: boolean;
+    loading: boolean;
+    url: string | null;
+  }>({ error: false, loading: false, url: null });
   const [isDragActive, setIsDragActive] = useState(false);
-  const [isImageLoading, setIsImageLoading] = useState(false);
 
   const remotePreview =
     typeof value === "string" && value.trim()
@@ -67,23 +70,23 @@ export function UploadImage({
   const previewUrl = localPreview ?? remotePreview;
   const canUpload = !disabled && Boolean(onChange);
   const isSmall = size === "small";
+  const imageLoadError =
+    imageStatus.url === previewUrl ? imageStatus.error : false;
+  const isImageLoading =
+    Boolean(previewUrl) &&
+    (imageStatus.url !== previewUrl || imageStatus.loading);
 
   useEffect(() => {
     if (!(value instanceof File)) {
-      setLocalPreview(null);
+      queueMicrotask(() => setLocalPreview(null));
       return;
     }
 
     const objectUrl = URL.createObjectURL(value);
-    setLocalPreview(objectUrl);
+    queueMicrotask(() => setLocalPreview(objectUrl));
 
     return () => URL.revokeObjectURL(objectUrl);
   }, [value]);
-
-  useEffect(() => {
-    setImageLoadError(false);
-    setIsImageLoading(Boolean(previewUrl));
-  }, [previewUrl]);
 
   const selectFile = (file?: File) => {
     if (!file || !canUpload) {
@@ -101,7 +104,7 @@ export function UploadImage({
     }
 
     setLocalError(null);
-    setImageLoadError(false);
+    setImageStatus({ error: false, loading: Boolean(previewUrl), url: previewUrl });
     onChange?.(file);
   };
 
@@ -122,7 +125,7 @@ export function UploadImage({
     }
 
     setLocalError(null);
-    setImageLoadError(false);
+    setImageStatus({ error: false, loading: false, url: null });
     onChange?.(null);
   };
 
@@ -150,15 +153,25 @@ export function UploadImage({
                 <LoaderCircle className="h-7 w-7 animate-spin text-[#805533]" />
               </div>
             ) : null}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               alt="Image preview"
               className="h-full w-full select-none"
               draggable={false}
               onError={() => {
-                setImageLoadError(true);
-                setIsImageLoading(false);
+                setImageStatus({
+                  error: true,
+                  loading: false,
+                  url: previewUrl,
+                });
               }}
-              onLoad={() => setIsImageLoading(false)}
+              onLoad={() =>
+                setImageStatus({
+                  error: false,
+                  loading: false,
+                  url: previewUrl,
+                })
+              }
               src={previewUrl}
               style={{ objectFit: fit }}
             />

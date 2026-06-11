@@ -2,9 +2,10 @@
 
 import React, {
     forwardRef,
+    useCallback,
     useEffect,
-    useRef,
     useImperativeHandle,
+    useRef,
 } from 'react';
 
 type TextareaAutosizeProps =
@@ -29,7 +30,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextareaAutosizeProps>(
 
         useImperativeHandle(ref, () => textareaRef.current as HTMLTextAreaElement);
 
-        const resizeTextarea = () => {
+        const resizeTextarea = useCallback(() => {
             const textarea = textareaRef.current;
             if (!textarea) return;
 
@@ -49,11 +50,11 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextareaAutosizeProps>(
             textarea.style.height = `${newHeight}px`;
             textarea.style.overflowY =
                 textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
-        };
+        }, [maxRows, minRows]);
 
         useEffect(() => {
             resizeTextarea();
-        }, [value, minRows, maxRows]);
+        }, [value, resizeTextarea]);
 
         useEffect(() => {
             window.addEventListener('resize', resizeTextarea);
@@ -61,7 +62,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextareaAutosizeProps>(
             return () => {
                 window.removeEventListener('resize', resizeTextarea);
             };
-        }, []);
+        }, [resizeTextarea]);
 
         const handleChange = (
             event: React.ChangeEvent<HTMLTextAreaElement>

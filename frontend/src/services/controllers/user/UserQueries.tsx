@@ -16,7 +16,7 @@ export const useUpdateUserMutation = () => {
 
   return useMutation({
     mutationFn: api.user.updateMe,
-    onSuccess: (user) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
       toast.success("Cap nhat thong tin thanh cong.");
     },

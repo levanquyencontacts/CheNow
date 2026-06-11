@@ -31,14 +31,6 @@ export function ProductsFilters({
   onSearchChange,
   searchValue,
 }: ProductsFiltersProps) {
-  const handleLoadMoreCategories = () => {
-    if (!hasMoreCategories || isFetchingMoreCategories) {
-      return;
-    }
-
-    onLoadMoreCategories();
-  };
-
   return (
     <Box className="rounded-md border border-[#eadfd4] bg-white/78 p-3 shadow-[0_8px_18px_rgba(55,36,20,0.04)]">
       <Box className="grid gap-2 md:grid-cols-[minmax(220px,1fr)_160px_135px_auto]">
@@ -56,11 +48,21 @@ export function ProductsFilters({
 
         <Select
           aria-label="Filter category"
-          className="h-10 justify-between rounded-md border-[#eadfd4] bg-[#fffaf5] px-3 text-xs font-semibold text-[#1f2c22]"
+          className="h-10 rounded-md border-[#eadfd4] bg-[#fffaf5] px-3 pr-8 text-xs font-semibold text-[#1f2c22]"
           disabled={isLoadingCategories}
           onChange={(event) => onCategoryChange(event.target.value)}
-          onListboxNeedsMoreItems={handleLoadMoreCategories}
-          onListboxScrollEnd={handleLoadMoreCategories}
+          onListboxNeedsMoreItems={() => {
+            if (!hasMoreCategories || isFetchingMoreCategories) {
+              return;
+            }
+            onLoadMoreCategories?.();
+          }}
+          onListboxScrollEnd={() => {
+            if (!hasMoreCategories || isFetchingMoreCategories) {
+              return;
+            }
+            onLoadMoreCategories?.();
+          }}
           value={categoryValue}
         >
           <Select.Option value="">All Categories</Select.Option>

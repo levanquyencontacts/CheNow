@@ -29,7 +29,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const { mutate: login, isPending, error } = useLoginMutation();
+  const { mutate: login, isPending } = useLoginMutation();
   const {
     register,
     handleSubmit,

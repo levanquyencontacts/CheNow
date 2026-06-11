@@ -1,7 +1,7 @@
 "use client";
 
 import { routes } from "@/common/utils/constant";
-import { Box, Button, Image, Search } from "@/components";
+import { Box, Button, Image } from "@/components";
 import { useModal } from "@/providers";
 import { useLogoutMutation } from "@/services/controllers/auth/AuthQueries";
 import { useMeQuery } from "@/services/controllers/user/UserQueries";
@@ -9,10 +9,11 @@ import api from "@/services/apiServices";
 import {
   Bell,
   ChevronDown,
+  Clock3,
   LogOut,
   type LucideIcon,
   Settings,
-  UserRound
+  UserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -50,13 +51,13 @@ const defaultUserMenuItems: UserMenuItem[] = [
 
 export function PageHeader({
   userMenuItems = defaultUserMenuItems,
-  title,
 }: PageHeaderProps) {
   const router = useRouter();
   const { openModal } = useModal();
   const logoutMutation = useLogoutMutation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [hasAvatarError, setHasAvatarError] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
   const { data: user } = useMeQuery();
   const avatarUrl =
     user?.avatar && !hasAvatarError
@@ -64,18 +65,40 @@ export function PageHeader({
       : null;
 
   useEffect(() => {
-    setHasAvatarError(false);
+    queueMicrotask(() => setHasAvatarError(false));
   }, [user?.avatar]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 60000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const dayNames = [
+    "Chủ nhật",
+    "Thứ 2",
+    "Thứ 3",
+    "Thứ 4",
+    "Thứ 5",
+    "Thứ 6",
+    "Thứ 7",
+  ];
+  const headerDateTime = `${dayNames[currentTime.getDay()]}, ${currentTime.getDate()} tháng ${
+    currentTime.getMonth() + 1
+  } - ${currentTime.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })}`;
 
   const handleProfileClick = () => {
     openModal("ACCOUNT");
     setIsUserMenuOpen(false);
-  }
+  };
   const handleSettingsClick = () => {
     setIsUserMenuOpen(false);
     router.push(routes.SETTINGS);
-  }
-
+  };
 
   const handleUserMenuItemClick = (item: UserMenuItem) => {
     switch (item.actionKey) {
@@ -95,22 +118,35 @@ export function PageHeader({
 
   return (
     <Box
-      className="sticky top-0 z-20 flex min-h-16 flex-col gap-3 border-b border-[#eadfd4] bg-[#fff8f1] px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10"
+      className="sticky top-0 z-20 grid min-h-16 gap-2 border-b border-[#eadfd4] bg-[#fff8f1] px-4 py-3 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:px-6 xl:px-10"
       component="header"
     >
       {/* {title && <Box>
 
         <h1 className="font-serif text-base leading-tight text-[#143d2a]">{title}</h1>
       </Box>} */}
-      <Bell />
-      <Search
+      <Box className="relative flex items-center justify-center md:justify-start md:gap-3">
+        <Bell className="absolute left-0 md:static" />
+        <span className="flex items-center gap-1 rounded-full border border-[#f2d6bd] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-semibold text-[#9b4b16]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
+          CheNow đang mở cửa
+        </span>
+      </Box>
+      {/* <Search
         className="w-full bg-[#fff3e8] lg:w-105"
         placeholder=''
         size="small"
-      />
+      /> */}
 
-      <Box className="flex items-center justify-between gap-4 lg:justify-end">
-        <Box className="flex items-center gap-2">
+      <Box className="flex items-center justify-center whitespace-nowrap">
+        <span className="flex items-center gap-1 text-xs font-medium text-[#4c4038]">
+          <Clock3 aria-hidden="true" className="h-3.5 w-3.5" />
+          {headerDateTime}
+        </span>
+      </Box>
+
+      <Box className="flex items-center justify-between gap-3 md:justify-end">
+        <Box className="flex items-center gap-3">
           <Button
             aria-label="Settings"
             className="h-8 w-8 rounded-md p-0 text-[#143d2a] hover:bg-[#f3e8de]"
@@ -149,12 +185,15 @@ export function PageHeader({
               <span className="block text-xs font-semibold text-[#143d2a]">
                 {user?.fullName}
               </span>
-              <span className="block text-[10px] text-[#8a7867]">Store Manager</span>
+              <span className="block text-[10px] text-[#8a7867]">
+                Store Manager
+              </span>
             </Box>
             <ChevronDown
               aria-hidden="true"
-              className={`h-4 w-4 text-[#805533] transition-transform ${isUserMenuOpen ? "rotate-180" : ""
-                }`}
+              className={`h-4 w-4 text-[#805533] transition-transform ${
+                isUserMenuOpen ? "rotate-180" : ""
+              }`}
             />
           </Button>
 
@@ -171,8 +210,7 @@ export function PageHeader({
                   <Button
                     className="h-10 w-full justify-start gap-3 rounded-sm px-3 text-left text-sm font-semibold text-[#314032] hover:bg-[#eadfd4]"
                     disabled={
-                      item.actionKey === "SIGN_OUT" &&
-                      logoutMutation.isPending
+                      item.actionKey === "SIGN_OUT" && logoutMutation.isPending
                     }
                     key={item.actionKey}
                     onClick={() => handleUserMenuItemClick(item)}

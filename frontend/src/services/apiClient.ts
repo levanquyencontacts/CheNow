@@ -5,10 +5,7 @@ import { clearSession } from "@/services/controllers/auth/AuthSlice";
 import {
   clearStoredTokens,
   getStoredAccessToken,
-  getStoredRefreshToken,
-  setStoredAccessToken,
 } from "@/services/controllers/auth/tokenStorage";
-import AuthService from "@/services/controllers/auth/AuthServices";
 import store from "@/services/store";
 
 const baseURL =
@@ -20,9 +17,6 @@ const apiClient = axios.create({
   timeout: 15000,
 });
 
-const authService = new AuthService(apiClient);
-
-let refreshTokenPromise: Promise<string> | null = null;
 let isLoggingOut = false;
 
 apiClient.interceptors.request.use((config) => {
@@ -52,33 +46,8 @@ apiClient.interceptors.response.use(
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
-
-      if (!refreshTokenPromise) {
-        const refreshToken = getStoredRefreshToken();
-
-        if (!refreshToken) {
-          handleLogout();
-          return Promise.reject(error);
-        }
-
-        refreshTokenPromise = authService
-          .refreshToken(refreshToken)
-          .then((response) => {
-            setStoredAccessToken(response.access_token);
-            return response.access_token;
-          })
-          .finally(() => {
-            refreshTokenPromise = null;
-          });
-      }
-
-      try {
-        await refreshTokenPromise;
-        return apiClient.request(originalRequest);
-      } catch {
-        handleLogout();
-        return Promise.reject(error);
-      }
+      handleLogout();
+      return Promise.reject(error);
     }
 
     if (message) {
