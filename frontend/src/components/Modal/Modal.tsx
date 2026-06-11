@@ -131,7 +131,7 @@ const Modal: React.FC<ModalProps> & {
     const node = document.createElement("div");
     node.setAttribute("id", "modal-root");
     document.body.appendChild(node);
-    setPortalNode(node);
+    queueMicrotask(() => setPortalNode(node));
 
     return () => {
       document.body.removeChild(node);

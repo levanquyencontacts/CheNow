@@ -60,6 +60,7 @@ const Image = React.forwardRef<HTMLImageElement, ImageProps>(
     const hasSrc = Boolean(resolvedSrc);
 
     return (
+      // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
       <img
         className={twMerge(
           clsx(

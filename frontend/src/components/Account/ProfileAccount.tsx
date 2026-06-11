@@ -101,8 +101,10 @@ export function ProfileAccountPanel() {
       fullName: me?.fullName ?? "",
       phone: me?.phone ?? "",
     });
-    setProfileImage(me.avatar ?? null);
-    setProfileImagePreview(null);
+    queueMicrotask(() => {
+      setProfileImage(me.avatar ?? null);
+      setProfileImagePreview(null);
+    });
   }, [me, reset]);
 
   if (isMeLoading) {
