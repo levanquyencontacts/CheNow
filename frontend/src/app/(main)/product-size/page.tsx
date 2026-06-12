@@ -3,10 +3,7 @@
 import { LIMIT_PAGE, LIMIT_PAGE_ARRAY } from "@/common/utils/constant";
 import { Box, Button, PageHeader, TablePagination } from "@/components";
 import { useModal } from "@/providers";
-import {
-  useCategorySizesQuery,
-  useDeleteCategorySizeMutation,
-} from "@/services/controllers/category-sizes/CategorySizesQueries";
+import { useCategorySizesQuery } from "@/services/controllers/category-sizes/CategorySizesQueries";
 import { useInfiniteCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
 import { CirclePlus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -19,7 +16,6 @@ export default function ProductSize() {
   const [limit, setLimit] = useState(LIMIT_PAGE);
   const [searchValue, setSearchValue] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const { mutate: deleteCategorySize } = useDeleteCategorySizeMutation();
 
   const queryParams = useMemo(
     () => ({
@@ -120,7 +116,9 @@ export default function ProductSize() {
             {sizes.map((size) => (
               <ProductSizeCard
                 key={size.id}
-                onDelete={(sizeId) => deleteCategorySize(sizeId)}
+                onDelete={(sizeId, sizeName) =>
+                  openModal("DELETE_PRODUCT_SIZE", { sizeId, sizeName })
+                }
                 onEdit={(sizeId) => openModal("PRODUCT_SIZE", { sizeId })}
                 size={size}
               />

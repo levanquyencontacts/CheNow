@@ -11,6 +11,7 @@ export type ModalType =
   | "ACCOUNT"
   | "CATEGORY"
   | "DELETE_PRODUCT"
+  | "DELETE_PRODUCT_SIZE"
   | "PRODUCT_SIZE"
   | "TOPPING";
 

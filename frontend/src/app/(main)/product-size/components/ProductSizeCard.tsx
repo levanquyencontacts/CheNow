@@ -6,7 +6,7 @@ import { ProductSizeCategoriesModal } from "./ProductSizeCategoriesModal";
 import { ProductSizeCategoryRow } from "./ProductSizeCategoryRow";
 
 interface ProductSizeCardProps {
-  onDelete: (sizeId: number) => void;
+  onDelete: (sizeId: number, sizeName?: string) => void;
   onEdit: (sizeId: number) => void;
   size: CategorySize;
 }
@@ -86,7 +86,7 @@ export function ProductSizeCard({
         <Button
           aria-label={`Delete ${size.name}`}
           className="h-7 rounded-md border border-[#cfc8bd] px-2 text-[#183d2b] hover:bg-[#f6efe8]"
-          onClick={() => onDelete(size.id)}
+          onClick={() => onDelete(size.id, size.name)}
           variant="text"
         >
           <Trash2 aria-hidden="true" className="h-3 w-3" />
