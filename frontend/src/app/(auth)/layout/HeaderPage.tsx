@@ -1,5 +1,7 @@
 "use client";
 
+import { Leaf, UserRound } from "lucide-react";
+import type { ReactNode } from "react";
 import { useLanguage } from "@/common/hook";
 import { Box, Button, Link, Select } from "@/components";
 
@@ -13,36 +15,39 @@ export function HeaderPage() {
 
   return (
     <Box
-      className="flex h-18.5 items-center justify-between px-6 sm:px-12 lg:px-16"
+      className="mt-4 flex min-h-[92px] items-center justify-between rounded-[18px] bg-white/85 px-5 shadow-[0_18px_50px_rgba(63,39,21,0.14)] backdrop-blur-md sm:px-10 lg:px-14"
       component="header"
     >
       <Link
-        className="font-serif text-2xl font-semibold text-[#554d3e]"
+        className="flex items-center gap-4 font-serif text-3xl font-semibold text-[#172d21]"
         href="/"
         underline="none"
       >
-        Sam Sam
+        <LotusLogo />
+        <span>
+          <span className="block leading-none">Sam Sam</span>
+          <span className="mt-2 block font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-[#c78932]">
+            Tinh hoa chè Việt
+          </span>
+        </span>
       </Link>
 
       <Box className="flex items-center gap-3 sm:gap-5 lg:gap-7">
         <Box
-          className="hidden items-center gap-7 text-sm font-medium text-[#675d50] sm:flex"
+          className="hidden items-center gap-9 text-[15px] font-semibold text-[#161713] md:flex"
           component="nav"
         >
-          <Link href="#" underline="none">
-            {t("client_home")}
-          </Link>
-          <Link href="#" underline="none">
-            {t("client_aboutUs")}
-          </Link>
-          <Link href="#" underline="none">
-            {t("client_contact")}
-          </Link>
+          <NavLink active>{t("client_home")}</NavLink>
+          <NavLink>{t("client_aboutUs")}</NavLink>
+          <NavLink>Sản phẩm</NavLink>
+          <NavLink>Tin tức</NavLink>
+          <NavLink>{t("client_contact")}</NavLink>
         </Box>
-        <Box className="flex h-10 items-center gap-2 px-3 text-[#675d50]">
+
+        <Box className="hidden h-12 items-center rounded-lg border border-[#d9cbbb] bg-white/70 px-3 text-[#171915] sm:flex">
           <Select
             aria-label={t("selectLanguage")}
-            className="h-auto pl-0 text-xs font-semibold text-[#675d50]"
+            className="h-auto bg-transparent pl-0 text-sm font-semibold text-[#171915] hover:bg-transparent"
             onChange={handleLanguageChange}
             value={currentLanguage}
             variant="plain"
@@ -54,10 +59,47 @@ export function HeaderPage() {
             ))}
           </Select>
         </Box>
-        <Button className="h-10 px-5 text-white" size="small">
+
+        <Button
+          className="h-12 rounded-xl bg-[#102f22] px-6 text-white shadow-[0_10px_22px_rgba(16,47,34,0.28)] hover:bg-[#0b2419]"
+          size="small"
+        >
+          <UserRound className="h-4 w-4" />
           {t("client_signIn")}
         </Button>
       </Box>
     </Box>
+  );
+}
+
+function NavLink({
+  active = false,
+  children,
+}: {
+  active?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      className={
+        active
+          ? "border-b-2 border-[#d6a23c] pb-4 text-[#171915]"
+          : "pb-4 text-[#171915] hover:text-[#b37a2f]"
+      }
+      href="#"
+      underline="none"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function LotusLogo() {
+  return (
+    <span className="relative flex h-[52px] w-16 items-center justify-center text-[#c98c25]">
+      <Leaf className="h-12 w-12 rotate-[-18deg]" strokeWidth={1.2} />
+      <Leaf className="absolute h-12 w-12 rotate-[18deg]" strokeWidth={1.2} />
+      <Leaf className="absolute h-11 w-11" strokeWidth={1.2} />
+    </span>
   );
 }
