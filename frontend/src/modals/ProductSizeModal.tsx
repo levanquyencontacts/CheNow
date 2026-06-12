@@ -39,7 +39,7 @@ interface ProductSizeModalProps {
 }
 
 export function ProductSizeModal({ sizeId }: ProductSizeModalProps) {
-  const { closeModal } = useModal();
+  const { closeModal, openModal } = useModal();
   const isUpdateMode = Boolean(sizeId);
   const { data: sizeDetail, isLoading: isLoadingDetail } =
     useCategorySizeQuery(sizeId);
@@ -135,6 +135,17 @@ export function ProductSizeModal({ sizeId }: ProductSizeModalProps) {
     }
 
     createSize(payload, { onSuccess: closeModal });
+  };
+
+  const openDeleteSizeModal = () => {
+    if (!sizeId) {
+      return;
+    }
+
+    openModal("DELETE_PRODUCT_SIZE", {
+      sizeId,
+      sizeName: watchedName || sizeDetail?.name,
+    });
   };
 
   return (
@@ -308,6 +319,18 @@ export function ProductSizeModal({ sizeId }: ProductSizeModalProps) {
                   value={`${selectedCategories.length} danh muc`}
                 />
               </Box>
+
+              {isUpdateMode ? (
+                <Button
+                  className="h-10 rounded-md px-3 text-xs font-semibold"
+                  disabled={isSaving}
+                  onClick={openDeleteSizeModal}
+                  type="button"
+                  variant="delete"
+                >
+                  Delete size
+                </Button>
+              ) : null}
             </Box>
           </Box>
         </Box>

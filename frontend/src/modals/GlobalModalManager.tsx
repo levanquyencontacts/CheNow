@@ -5,6 +5,7 @@ import { type ModalType, useModal } from "@/providers";
 import { AccountModal } from "./AccountModal";
 import { CategoryModal } from "./CategoryModal";
 import { DeleteProductModal } from "./DeleteProductModal";
+import { DeleteProductSizeModal } from "./DeleteProductSizeModal";
 import { ProductSizeModal } from "./ProductSizeModal";
 import { ToppingModal } from "./ToppingModal";
 
@@ -12,6 +13,7 @@ const modalComponents: Partial<Record<ModalType, ElementType>> = {
   ACCOUNT: AccountModal,
   CATEGORY: CategoryModal,
   DELETE_PRODUCT: DeleteProductModal,
+  DELETE_PRODUCT_SIZE: DeleteProductSizeModal,
   PRODUCT_SIZE: ProductSizeModal,
   TOPPING: ToppingModal,
 };
