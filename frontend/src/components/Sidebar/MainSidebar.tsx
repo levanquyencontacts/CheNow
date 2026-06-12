@@ -9,6 +9,7 @@ import {
   Grid2X2,
   LayoutDashboard,
   List,
+  Package,
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -40,6 +41,7 @@ const navSections: NavSection[] = [
       { href: routes.PRODUCTS, label: "Products", icon: Coffee },
       { href: routes.CATEGORY, label: "Category", icon: Grid2X2 },
       { href: routes.TOPPING, label: "Topping", icon: List },
+      { href: routes.PRODUCT_SIZE, label: "Size", icon: Package },
     ],
   },
   {
