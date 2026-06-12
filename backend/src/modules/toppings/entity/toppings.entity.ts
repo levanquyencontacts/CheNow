@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { CategoryToppings } from '../../category-topppings/entity/category-toppings.entity';
+import { OrderItemToppings } from '../../orders/entity/order-item-toppings';
 
 @Entity()
 export class Toppings {
@@ -30,6 +31,15 @@ export class Toppings {
     (categoryTopping) => categoryTopping.topping,
   )
   categoryToppings: CategoryToppings[];
+
+  @OneToMany(
+    () => OrderItemToppings,
+    (orderItemTopping) => orderItemTopping.topping,
+    {
+      nullable: false,
+    },
+  )
+  orderItemToppings: OrderItemToppings[];
 
   @CreateDateColumn()
   created_at: Date;

@@ -4,12 +4,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Category } from '../../categories/entities/categories.entity';
 import { ProductStocks } from '../../product-stocks/entities/product-stocks.entity';
+import { OrderItems } from '../../orders/entity/order-items';
 
 @Entity()
 export class Products {
@@ -30,6 +32,10 @@ export class Products {
   imageUrl: string;
   @Column({ nullable: true, type: 'text' })
   description: string;
+  @OneToMany(() => OrderItems, (orderItem) => orderItem.product, {
+    nullable: false,
+  })
+  orderItems: OrderItems[];
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
