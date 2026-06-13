@@ -12,6 +12,7 @@ import { ToppingsModule } from './modules/toppings/toppings.module';
 import { CategoryToppingsModule } from './modules/category-topppings/category-toppings.module';
 import { CategorySizesModule } from './modules/category-sizes/category-sizes.module';
 import { getDatabaseConfig } from './config/database.config';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { getDatabaseConfig } from './config/database.config';
     ToppingsModule,
     CategoryToppingsModule,
     CategorySizesModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

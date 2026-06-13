@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   List,
   Package,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -32,7 +33,7 @@ const navSections: NavSection[] = [
     title: "Tổng quan",
     items: [
       { href: "/home", label: "Dashboard", icon: LayoutDashboard },
-      // { href: routes.ORDERS, label: "Đơn hàng", icon: ShoppingBag, badge: 12 },
+      { href: routes.ORDERS, label: "Orders", icon: ShoppingBag, badge: 12 },
     ],
   },
   {

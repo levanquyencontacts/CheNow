@@ -5,11 +5,13 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Category } from '../../categories/entities/categories.entity';
 import { Sizes } from './sizes.entity';
+import { OrderItems } from '../../orders/entity/order-items';
 
 @Entity('category_sizes')
 @Index(['sizeId', 'categoryId'], { unique: true })
@@ -35,6 +37,11 @@ export class CategorySizes {
 
   @Column()
   categoryId: number;
+
+  @OneToMany(() => OrderItems, (orderItem) => orderItem.categorySize, {
+    nullable: false,
+  })
+  orderItems: OrderItems[];
 
   @CreateDateColumn()
   createdAt: Date;
