@@ -5,6 +5,7 @@ import { routes } from "@/common/utils/constant";
 import { Box, Button } from "@/components";
 import {
   BarChart3,
+  BotMessageSquare,
   Coffee,
   Grid2X2,
   LayoutDashboard,
@@ -34,6 +35,7 @@ const navSections: NavSection[] = [
     items: [
       { href: "/home", label: "Dashboard", icon: LayoutDashboard },
       { href: routes.ORDERS, label: "Orders", icon: ShoppingBag, badge: 12 },
+      { href: routes.AI_ASSISTANT, label: "AI Chat", icon: BotMessageSquare },
     ],
   },
   {
