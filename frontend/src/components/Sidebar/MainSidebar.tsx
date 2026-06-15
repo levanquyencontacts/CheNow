@@ -5,13 +5,11 @@ import { routes } from "@/common/utils/constant";
 import { Box, Button } from "@/components";
 import {
   BarChart3,
-  BotMessageSquare,
   Coffee,
   Grid2X2,
   LayoutDashboard,
   List,
   Package,
-  ShoppingBag,
   ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
