@@ -15,10 +15,22 @@ import nodemailer from 'nodemailer';
 export interface AuthResponse {
   access_token: string;
   refresh_token: string;
+  user: AuthUser;
 }
 
 export interface RefreshTokenResponse {
   access_token: string;
+}
+
+interface AuthUser {
+  id: number;
+  email: string;
+  fullName?: string | null;
+  phone?: string | null;
+  avatar?: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface RefreshTokenPayload {
@@ -176,6 +188,20 @@ export class AuthService {
     return {
       access_token: this.signAccessToken(user),
       refresh_token: refreshToken,
+      user: this.toAuthUser(user),
+    };
+  }
+
+  private toAuthUser(user: Users): AuthUser {
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName ?? null,
+      phone: user.phone ?? null,
+      avatar: user.avatar ?? null,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 

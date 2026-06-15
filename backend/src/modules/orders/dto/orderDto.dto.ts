@@ -17,6 +17,7 @@ import {
   PaymentStatus,
 } from '../../../common/enums/common.enum';
 import { CreateOrderItemDto } from './order-itemDto.dto';
+import { UpdateOrderItemDto } from './order-itemDto.dto';
 
 export class CreateOrderDto {
   @IsInt()
@@ -75,4 +76,34 @@ export class CreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)
   orderItems: CreateOrderItemDto[];
+}
+
+export class UpdateOrderDto {
+  @IsString()
+  @IsOptional()
+  receiverName?: string;
+
+  @IsString()
+  @IsOptional()
+  receiverPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  deliveryAddress?: string;
+
+  @IsString()
+  @IsOptional()
+  note?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateOrderItemDto)
+  @IsOptional()
+  orderItems?: UpdateOrderItemDto[];
+}
+
+export class UpdateOrderStatusDto {
+  @IsEnum(OrderStatus)
+  @IsNotEmpty()
+  status: OrderStatus;
 }

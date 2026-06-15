@@ -7,6 +7,8 @@ import { CategoriesService } from "./controllers/categories/CategoriesService";
 import { ProductsService } from "./controllers/products/ProductsService";
 import { ToppingsService } from "./controllers/toppings/ToppingsService";
 import { CategorySizesService } from "./controllers/category-sizes/CategorySizesService";
+import { OrdersService } from "./controllers/orders/OrdersService";
+import { AiAssistantService } from "./controllers/ai-assistant/AiAssistantService";
 
 class ApiServices {
   public auth: AuthService;
@@ -16,6 +18,8 @@ class ApiServices {
   public products: ProductsService;
   public toppings: ToppingsService;
   public categorySizes: CategorySizesService;
+  public orders: OrdersService;
+  public aiAssistant: AiAssistantService;
   public file: FileService;
 
   constructor() {
@@ -26,6 +30,8 @@ class ApiServices {
     this.products = new ProductsService(apiClient);
     this.toppings = new ToppingsService(apiClient);
     this.categorySizes = new CategorySizesService(apiClient);
+    this.orders = new OrdersService(apiClient);
+    this.aiAssistant = new AiAssistantService(apiClient);
     this.file = new FileService(apiClient);
   }
 }

@@ -2,9 +2,10 @@
 
 import { Box, Button, TextArea, TextInput } from "@/components";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useGenerateProductDescriptionMutation } from "@/services/controllers/ai-assistant/AiAssistantQueries";
 import { useInfiniteCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
 import { useUploadImageMutation } from "@/services/file/FileQueries";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -83,6 +84,8 @@ export function ProductForm({
     resolver: zodResolver(productSchema),
   });
   const categoryId = useWatch({ control, name: "categoryId" });
+  const productName = useWatch({ control, name: "productName" });
+  const price = useWatch({ control, name: "price" });
   const status = useWatch({ control, name: "status" });
   const productImage = useWatch({ control, name: "imageUrl" });
   const isActive = status === "active";
@@ -105,7 +108,9 @@ export function ProductForm({
 
   const { mutateAsync: uploadImage, isPending: isUploadingImage } =
     useUploadImageMutation();
+  const generateDescriptionMutation = useGenerateProductDescriptionMutation();
   const isSubmitting = isSaving || isUploadingImage;
+  const isGeneratingDescription = generateDescriptionMutation.isPending;
   const canSave = mode === "create" ? isValid : isValid && isDirty;
   const title = mode === "create" ? "Add New Product" : "Edit Product";
   const submitLabel = mode === "create" ? "Save Product" : "Update Product";
@@ -125,6 +130,34 @@ export function ProductForm({
       shouldDirty: true,
       shouldValidate: true,
     });
+  };
+
+  const handleGenerateDescription = () => {
+    const trimmedProductName = productName.trim();
+    const selectedCategory = categories.find(
+      (category) => String(category.id) === categoryId,
+    );
+
+    if (!trimmedProductName || isGeneratingDescription) {
+      return;
+    }
+
+    generateDescriptionMutation.mutate(
+      {
+        productName: trimmedProductName,
+        categoryName: selectedCategory?.categoryName,
+        imageUrl: productImage ?? undefined,
+        price: price.trim() || undefined,
+      },
+      {
+        onSuccess: (data) => {
+          setValue("description", data.description.trim(), {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        },
+      },
+    );
   };
 
   const submitProduct = async (values: ProductFormValues) => {
@@ -231,12 +264,28 @@ export function ProductForm({
                 </label>
 
                 <label className="block">
-                  <span className="mb-2 block text-xs font-semibold text-[#4c3d31]">
-                    Product Description
-                  </span>
+                  <Box className="mb-2 flex items-center justify-between gap-3">
+                    <span className="block text-xs font-semibold text-[#4c3d31]">
+                      Product Description
+                    </span>
+                    <Button
+                      className="h-8 rounded-md border-[#d8cbbf] bg-white px-3 text-xs font-semibold text-[#765a45] shadow-none hover:bg-[#fff8f1]"
+                      disabled={
+                        isLoading ||
+                        isGeneratingDescription ||
+                        productName.trim().length === 0
+                      }
+                      onClick={handleGenerateDescription}
+                      type="button"
+                      variant="outlined"
+                    >
+                      <Sparkles aria-hidden="true" className="h-3.5 w-3.5" />
+                      {isGeneratingDescription ? "Generating..." : "AI Generate"}
+                    </Button>
+                  </Box>
                   <TextArea
                     className="min-h-24 w-full resize-none border-0 bg-white px-4 py-3 text-sm text-[#183d2b] outline-none placeholder:text-[#c5bab0] focus:ring-2 focus:ring-[#183d2b]/20"
-                    disabled={isLoading}
+                    disabled={isLoading || isGeneratingDescription}
                     minRows={4}
                     placeholder="Describe flavor, ingredients, and notes..."
                     {...register("description")}

@@ -10,6 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreateOrderItemToppingDto } from './order-item-toppingDto.dto';
+import { UpdateOrderItemToppingDto } from './order-item-toppingDto.dto';
 
 export class CreateOrderItemDto {
   @IsInt()
@@ -53,4 +54,24 @@ export class CreateOrderItemDto {
   @Type(() => CreateOrderItemToppingDto)
   @IsOptional()
   orderItemToppings?: CreateOrderItemToppingDto[];
+}
+
+export class UpdateOrderItemDto {
+  @IsInt()
+  @IsNotEmpty()
+  productId: number;
+
+  @IsInt()
+  @IsNotEmpty()
+  categorySizeId: number;
+
+  @IsInt()
+  @Min(1)
+  quantity: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateOrderItemToppingDto)
+  @IsOptional()
+  orderItemToppings?: UpdateOrderItemToppingDto[];
 }

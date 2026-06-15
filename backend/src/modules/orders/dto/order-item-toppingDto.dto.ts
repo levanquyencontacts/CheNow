@@ -17,3 +17,13 @@ export class CreateOrderItemToppingDto {
   @Min(1)
   quantity: number;
 }
+
+export class UpdateOrderItemToppingDto {
+  @IsInt()
+  @IsNotEmpty()
+  toppingId: number;
+
+  @IsInt()
+  @Min(1)
+  quantity: number;
+}

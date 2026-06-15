@@ -5,6 +5,8 @@ export const routes = {
   CATEGORY: "/category",
   PRODUCTS: "/products",
   ORDERS: "/orders",
+  ORDER_CREATE: "/orders/create",
+  AI_ASSISTANT: "/ai",
   CUSTOMERS: "/customers",
   REPORTS: "/reports",
   SETTINGS: "/settings",

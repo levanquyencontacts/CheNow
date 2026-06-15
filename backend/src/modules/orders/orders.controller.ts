@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { CreateOrderDto } from './dto/orderDto.dto';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseEnumPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
 import { OrdersService } from './orders.service';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
+import { OrderStatus } from '../../common/enums/common.enum';
 
 @Controller('orders')
 export class OrdersController {
@@ -15,5 +25,23 @@ export class OrdersController {
   @Get()
   findAll(@Query() paginationParams: PaginationParamsDto) {
     return this.ordersService.findAll(paginationParams);
+  }
+
+  @Get(':id')
+  findById(@Param('id') id: string) {
+    return this.ordersService.findById(Number(id));
+  }
+
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string,
+    @Body('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
+  ) {
+    return this.ordersService.updateStatus(Number(id), status);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
+    return this.ordersService.update(Number(id), updateOrderDto);
   }
 }

@@ -62,7 +62,7 @@ class AuthService {
   };
 
   getMe = async (token?: string): Promise<AuthUser> => {
-    const { data } = await this.apiClient.get<AuthUser>("/auth/me", {
+    const { data } = await this.apiClient.get<AuthUser>("/auth/profile", {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     return data;

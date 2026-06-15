@@ -151,6 +151,7 @@ export interface UpdateToppingPayload extends ToppingBase {
 }
 
 export interface CategorySizeCategory {
+  categorySizeId: number;
   id: number;
   categoryName: string;
   extraPrice: string | number;
@@ -178,4 +179,130 @@ export interface CategorySizePayload {
 
 export interface UpdateCategorySizePayload extends CategorySizePayload {
   id: number;
+}
+
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "preparing"
+  | "ready"
+  | "completed"
+  | "cancelled";
+
+export type OrderType = "dine_in" | "take_away" | "delivery";
+
+export type PaymentMethod = "cash" | "momo" | "vnpay";
+
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+
+export interface OrderItemTopping {
+  id: number;
+  orderItemId: number;
+  toppingId: number;
+  toppingName: string;
+  price: string | number;
+  quantity: number;
+}
+
+export interface OrderItem {
+  id: number;
+  orderId: number;
+  productId: number;
+  categorySizeId: number;
+  productName: string;
+  sizeName: string;
+  sizeCode: string;
+  sizeExtraPrice: string | number;
+  price: string | number;
+  quantity: number;
+  subtotal: string | number;
+  orderItemToppings?: OrderItemTopping[];
+  product?: Product;
+}
+
+export interface Order {
+  id: number;
+  userId: number;
+  subtotalAmount: string | number;
+  discountAmount: string | number;
+  shippingFee: string | number;
+  totalAmount: string | number;
+  orderType: OrderType;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  status: OrderStatus;
+  receiverName?: string | null;
+  receiverPhone?: string | null;
+  deliveryAddress?: string | null;
+  note?: string | null;
+  orderItems?: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOrderItemToppingPayload {
+  toppingId: number;
+  toppingName: string;
+  price: number;
+  quantity: number;
+}
+
+export interface CreateOrderItemPayload {
+  productId: number;
+  categorySizeId: number;
+  productName: string;
+  sizeName: string;
+  sizeCode: string;
+  sizeExtraPrice: number;
+  price: number;
+  quantity: number;
+  subtotal: number;
+  orderItemToppings?: CreateOrderItemToppingPayload[];
+}
+
+export interface CreateOrderPayload {
+  userId: number;
+  subtotalAmount: number;
+  discountAmount?: number;
+  shippingFee?: number;
+  totalAmount: number;
+  orderType: OrderType;
+  paymentMethod: PaymentMethod;
+  paymentStatus?: PaymentStatus;
+  status?: OrderStatus;
+  receiverName?: string;
+  receiverPhone?: string;
+  deliveryAddress?: string;
+  note?: string;
+  orderItems: CreateOrderItemPayload[];
+}
+
+export interface UpdateOrderStatusPayload {
+  id: number;
+  status: OrderStatus;
+}
+
+export interface AskAiPayload {
+  question: string;
+  model?: string;
+}
+
+export interface AskAiResponse {
+  answer: string;
+  model: string;
+  provider: "ollama-qwen" | "openai" | "gemini" | "local-fallback";
+}
+
+export interface GenerateProductDescriptionPayload {
+  productName: string;
+  categoryName?: string;
+  price?: string;
+  imageUrl?: string;
+  model?: string;
+}
+
+export interface GenerateProductDescriptionResponse {
+  description: string;
+  model: string;
+  provider: "ollama-qwen" | "openai" | "gemini" | "local-fallback";
 }

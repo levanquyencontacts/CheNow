@@ -60,6 +60,7 @@ export class CategorySizesListResponseDto {
       .map(
         (categorySize) =>
           new CategoryNameResponseDto(
+            categorySize.id,
             categorySize.category,
             categorySize.extraPrice,
           ),
@@ -68,10 +69,12 @@ export class CategorySizesListResponseDto {
 }
 
 export class CategoryNameResponseDto {
+  categorySizeId: number;
   id: number;
   categoryName: string;
   extraPrice: number;
-  constructor(category: Category, extraPrice: number) {
+  constructor(categorySizeId: number, category: Category, extraPrice: number) {
+    this.categorySizeId = categorySizeId;
     this.id = category.id;
     this.categoryName = category.categoryName;
     this.extraPrice = extraPrice;
@@ -95,6 +98,7 @@ export class CategorySizesByIdResponseDto {
       .map(
         (categorySize) =>
           new CategoryNameResponseDto(
+            categorySize.id,
             categorySize.category,
             categorySize.extraPrice,
           ),
