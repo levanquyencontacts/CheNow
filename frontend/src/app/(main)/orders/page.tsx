@@ -28,10 +28,7 @@ import {
   useUpdateOrderStatusMutation,
 } from "@/services/controllers/orders/OrdersQueries";
 import { useRouter } from "next/navigation";
-import type {
-  Order as ApiOrder,
-  OrderStatus,
-} from "@/services/types/apiType";
+import type { Order as ApiOrder, OrderStatus } from "@/services/types/apiType";
 
 const LIMIT = 10;
 
@@ -596,7 +593,8 @@ export default function OrdersPage() {
                           </span>
                           <Box>
                             <p className="text-xs font-semibold text-[#183d2b]">
-                              {order.receiverName || `Customer #${order.userId}`}
+                              {order.receiverName ||
+                                `Customer #${order.userId}`}
                             </p>
                             <p className="mt-0.5 text-xs text-[#6f665c]">
                               {order.receiverPhone || "-"}
@@ -678,7 +676,6 @@ export default function OrdersPage() {
             Select an order to view detail.
           </Box>
         )}
-
       </Box>
     </Box>
   );
@@ -892,9 +889,7 @@ function OrderDetail({
       </Box>
 
       <Box className="rounded-lg border border-[#eadfd4] bg-white/90 p-5 shadow-[0_16px_34px_rgba(55,36,20,0.06)]">
-        <h2 className="text-lg font-semibold text-[#183d2b]">
-          Status history
-        </h2>
+        <h2 className="text-lg font-semibold text-[#183d2b]">Status history</h2>
         <Box className="mt-5 space-y-0">
           {timeline.map((status, index) => {
             const meta = statusMeta[status];
