@@ -306,3 +306,7 @@ export interface GenerateProductDescriptionResponse {
   model: string;
   provider: "ollama-qwen" | "openai" | "gemini" | "local-fallback";
 }
+
+export type CartItem = CreateOrderItemPayload & {
+  key: string;
+};
