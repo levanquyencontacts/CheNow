@@ -14,14 +14,24 @@ import {
   X,
 } from "lucide-react";
 
-import { statusMeta, timeline } from "../../../../../common/utils/status";
+import { statusMeta } from "../../../../../common/utils/status";
 import {
   formatCurrency,
   formatDateTime,
   formatOrderCode,
 } from "../ultils/orderFormat";
 import { InfoCard, InfoLine, SummaryLine } from "./OrderInfo";
+import { OrderStatusHistory } from "./OrderStatusHistory";
 import { StatusPill } from "./StatusPill";
+
+const nextStatusByStatus: Partial<
+  Record<OrderStatus, { label: string; status: OrderStatus }>
+> = {
+  confirmed: { label: "Start preparing", status: "preparing" },
+  pending: { label: "Confirm", status: "confirmed" },
+  preparing: { label: "Mark ready", status: "ready" },
+  ready: { label: "Complete", status: "completed" },
+};
 
 export function OrderDetail({
   actionLoading,
@@ -44,6 +54,8 @@ export function OrderDetail({
     (total, item) => total + Number(item.subtotal ?? 0),
     0,
   );
+  const nextStatus = nextStatusByStatus[order.status];
+  const canCancel = !["cancelled", "completed"].includes(order.status);
 
   return (
     <Box className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.9fr)]">
@@ -70,17 +82,19 @@ export function OrderDetail({
               <Download aria-hidden="true" className="h-3.5 w-3.5" />
               Xuat hoa don
             </Button>
-            <Button
-              className="h-8 rounded-md border-[#b8d2bc] bg-[#eef7ef] px-3 text-xs font-semibold text-[#315d3b] shadow-none hover:bg-[#e1f1e4]"
-              disabled={actionLoading || order.status !== "pending"}
-              onClick={() => onUpdateStatus(order.id, "confirmed")}
-            >
-              <Check aria-hidden="true" className="h-3.5 w-3.5" />
-              Confirm
-            </Button>
+            {nextStatus ? (
+              <Button
+                className="h-8 rounded-md border-[#b8d2bc] bg-[#eef7ef] px-3 text-xs font-semibold text-[#315d3b] shadow-none hover:bg-[#e1f1e4]"
+                disabled={actionLoading}
+                onClick={() => onUpdateStatus(order.id, nextStatus.status)}
+              >
+                <Check aria-hidden="true" className="h-3.5 w-3.5" />
+                {nextStatus.label}
+              </Button>
+            ) : null}
             <Button
               className="h-8 rounded-md px-3 text-xs font-semibold"
-              disabled={actionLoading || order.status === "cancelled"}
+              disabled={actionLoading || !canCancel}
               onClick={() => onUpdateStatus(order.id, "cancelled")}
               variant="delete"
             >
@@ -230,65 +244,7 @@ export function OrderDetail({
         </Box>
       </Box>
 
-      <Box className="rounded-lg border border-[#eadfd4] bg-white/90 p-5 shadow-[0_16px_34px_rgba(55,36,20,0.06)]">
-        <h2 className="text-lg font-semibold text-[#183d2b]">Status history</h2>
-        <Box className="mt-5 space-y-0">
-          {timeline.map((status, index) => {
-            const meta = statusMeta[status];
-            const Icon = meta.icon;
-            const reached =
-              timeline.indexOf(order.status) >= index &&
-              order.status !== "cancelled";
-            const active = order.status === status;
-
-            return (
-              <Box
-                className="grid grid-cols-[48px_1fr_auto] gap-3"
-                key={status}
-              >
-                <Box className="flex flex-col items-center">
-                  <span
-                    className={[
-                      "flex h-9 w-9 items-center justify-center rounded-full border",
-                      reached
-                        ? `${meta.badgeClass} shadow-[0_6px_12px_rgba(55,36,20,0.06)]`
-                        : "border-[#d8cbbf] bg-[#f1ece6] text-[#8a7867]",
-                    ].join(" ")}
-                  >
-                    <Icon aria-hidden="true" className="h-4 w-4" />
-                  </span>
-                  {index < timeline.length - 1 ? (
-                    <span
-                      className={[
-                        "h-11 border-l border-dashed",
-                        reached ? "border-[#c99545]" : "border-[#d8cbbf]",
-                      ].join(" ")}
-                    />
-                  ) : null}
-                </Box>
-                <Box className="pb-4 pt-1">
-                  <p
-                    className={[
-                      "text-xs font-bold",
-                      active ? "text-[#9b4b16]" : "text-[#5c554c]",
-                    ].join(" ")}
-                  >
-                    {meta.label}
-                  </p>
-                  <p className="mt-1 text-xs text-[#6f665c]">
-                    {meta.description}
-                  </p>
-                </Box>
-                {active ? (
-                  <span className="pt-1 text-xs font-semibold text-[#6f665c]">
-                    {formatDateTime(order.updatedAt || order.createdAt)}
-                  </span>
-                ) : null}
-              </Box>
-            );
-          })}
-        </Box>
-      </Box>
+      <OrderStatusHistory order={order} />
     </Box>
   );
 }

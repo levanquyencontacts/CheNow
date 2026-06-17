@@ -9,6 +9,7 @@ import { ToppingsService } from "./controllers/toppings/ToppingsService";
 import { CategorySizesService } from "./controllers/category-sizes/CategorySizesService";
 import { OrdersService } from "./controllers/orders/OrdersService";
 import { AiAssistantService } from "./controllers/ai-assistant/AiAssistantService";
+import { DashboardService } from "./controllers/dashboard/DashboardService";
 
 class ApiServices {
   public auth: AuthService;
@@ -19,6 +20,7 @@ class ApiServices {
   public toppings: ToppingsService;
   public categorySizes: CategorySizesService;
   public orders: OrdersService;
+  public dashboard: DashboardService;
   public aiAssistant: AiAssistantService;
   public file: FileService;
 
@@ -31,6 +33,7 @@ class ApiServices {
     this.toppings = new ToppingsService(apiClient);
     this.categorySizes = new CategorySizesService(apiClient);
     this.orders = new OrdersService(apiClient);
+    this.dashboard = new DashboardService(apiClient);
     this.aiAssistant = new AiAssistantService(apiClient);
     this.file = new FileService(apiClient);
   }
