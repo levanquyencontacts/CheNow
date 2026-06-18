@@ -1,7 +1,7 @@
 "use client";
 
 import { LIMIT_PAGE, routes } from "@/common/utils/constant";
-import { Box, Button } from "@/components";
+import { Box, Button, PageHeader } from "@/components";
 import {
   useOrderQuery,
   useOrdersQuery,
@@ -17,6 +17,7 @@ import { printInvoice } from "./components/invoice/Invoice";
 import { OrderDetail } from "./components/order/OrderDetail";
 import { OrderStatusTabs } from "./components/order/OrderStatusTabs";
 import { OrdersTable } from "./components/order/OrdersTable";
+import { HeaderPage } from "@/app/(auth)/layout/HeaderPage";
 
 const orderCountQueryParams = {
   limit: 1,
@@ -116,62 +117,66 @@ export default function OrdersPage() {
   };
 
   return (
-    <Box className="bg-[#fff8f1] px-4 py-4 text-[#143d2a] sm:px-6 lg:px-8">
-      <Box className="mx-auto flex w-full max-w-7xl flex-col gap-4">
-        <Box className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <Box>
-            <h1 className="text-2xl font-semibold tracking-normal text-[#183d2b]">
-              Orders
-            </h1>
-            <p className="mt-0.5 text-xs text-[#4d5b4f]">
-              Track order progress, payment, and delivery details.
-            </p>
+    <>
+      <PageHeader />
+
+      <Box className="bg-[#fff8f1] px-4 py-4 text-[#143d2a] sm:px-6 lg:px-8">
+        <Box className="mx-auto flex w-full max-w-7xl flex-col gap-4">
+          <Box className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <Box>
+              <h1 className="text-2xl font-semibold tracking-normal text-[#183d2b]">
+                Orders
+              </h1>
+              <p className="mt-0.5 text-xs text-[#4d5b4f]">
+                Track order progress, payment, and delivery details.
+              </p>
+            </Box>
+
+            <Button
+              className="h-9 w-fit rounded-md bg-[#183d2b] px-4 text-xs font-semibold text-white shadow-[0_6px_12px_rgba(24,61,43,0.14)] hover:bg-[#102f21]"
+              onClick={() => router.push(routes.ORDER_CREATE)}
+            >
+              <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+              Create order
+            </Button>
           </Box>
 
-          <Button
-            className="h-9 w-fit rounded-md bg-[#183d2b] px-4 text-xs font-semibold text-white shadow-[0_6px_12px_rgba(24,61,43,0.14)] hover:bg-[#102f21]"
-            onClick={() => router.push(routes.ORDER_CREATE)}
-          >
-            <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-            Create order
-          </Button>
-        </Box>
-
-        <OrderStatusTabs
-          onChange={handleStatusChange}
-          selectedStatus={selectedStatus}
-          statusCounts={statusCounts}
-        />
-
-        <OrdersTable
-          isError={isError}
-          isLoading={isLoading}
-          onPageChange={handlePageChange}
-          onPrintInvoice={printInvoice}
-          onSearchChange={handleSearchChange}
-          onSelectOrder={setSelectedOrderId}
-          orders={orders}
-          page={page}
-          pagination={pagination}
-          searchValue={searchValue}
-          selectedOrder={selectedOrder}
-        />
-
-        {selectedOrder && selectedMeta ? (
-          <OrderDetail
-            actionLoading={updateOrderStatusMutation.isPending}
-            isFetchingDetail={isFetchingDetail}
-            onPrintInvoice={printInvoice}
-            onUpdateStatus={handleUpdateStatus}
-            order={selectedOrder}
-            selectedMeta={selectedMeta}
+          <OrderStatusTabs
+            onChange={handleStatusChange}
+            selectedStatus={selectedStatus}
+            statusCounts={statusCounts}
           />
-        ) : (
-          <Box className="rounded-lg border border-[#eadfd4] bg-white/80 p-6 text-sm text-[#6f665c]">
-            Select an order to view detail.
-          </Box>
-        )}
+
+          <OrdersTable
+            isError={isError}
+            isLoading={isLoading}
+            onPageChange={handlePageChange}
+            onPrintInvoice={printInvoice}
+            onSearchChange={handleSearchChange}
+            onSelectOrder={setSelectedOrderId}
+            orders={orders}
+            page={page}
+            pagination={pagination}
+            searchValue={searchValue}
+            selectedOrder={selectedOrder}
+          />
+
+          {selectedOrder && selectedMeta ? (
+            <OrderDetail
+              actionLoading={updateOrderStatusMutation.isPending}
+              isFetchingDetail={isFetchingDetail}
+              onPrintInvoice={printInvoice}
+              onUpdateStatus={handleUpdateStatus}
+              order={selectedOrder}
+              selectedMeta={selectedMeta}
+            />
+          ) : (
+            <Box className="rounded-lg border border-[#eadfd4] bg-white/80 p-6 text-sm text-[#6f665c]">
+              Select an order to view detail.
+            </Box>
+          )}
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 }

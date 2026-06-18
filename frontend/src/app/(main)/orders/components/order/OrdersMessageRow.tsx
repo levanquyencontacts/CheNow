@@ -1,3 +1,5 @@
+import { TableCell, TableRow } from "@/components";
+
 export function OrdersMessageRow({
   danger = false,
   message,
@@ -6,8 +8,8 @@ export function OrdersMessageRow({
   message: string;
 }) {
   return (
-    <tr>
-      <td
+    <TableRow>
+      <TableCell
         className={[
           "px-4 py-8 text-center text-sm",
           danger ? "text-[#b12f1d]" : "text-[#6f665c]",
@@ -15,7 +17,7 @@ export function OrdersMessageRow({
         colSpan={7}
       >
         {message}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }

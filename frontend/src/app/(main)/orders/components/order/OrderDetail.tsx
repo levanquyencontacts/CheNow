@@ -15,11 +15,7 @@ import {
 } from "lucide-react";
 
 import { statusMeta, timeline } from "../../../../../common/utils/status";
-import {
-  formatCurrency,
-  formatDateTime,
-  formatOrderCode,
-} from "../ultils/orderFormat";
+import { formatCurrency, formatDateTime } from "../ultils/orderFormat";
 import { InfoCard, InfoLine, SummaryLine } from "./OrderInfo";
 import { StatusPill } from "./StatusPill";
 
@@ -51,7 +47,7 @@ export function OrderDetail({
         <Box className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Box className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold text-[#183d2b]">
-              Order detail #{formatOrderCode(order.id)}
+              Order detail #{order.invoiceCode}
             </h2>
             <StatusPill meta={selectedMeta} />
             {isFetchingDetail ? (

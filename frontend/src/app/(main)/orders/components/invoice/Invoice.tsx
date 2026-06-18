@@ -1,13 +1,17 @@
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@/components";
 import type { Order as ApiOrder } from "@/services/types/apiType";
 import type { CSSProperties, ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { statusMeta } from "../../../../../common/utils/status";
-import {
-  formatCurrency,
-  formatDateTime,
-  formatOrderCode,
-} from "../ultils/orderFormat";
+import { formatCurrency, formatDateTime } from "../ultils/orderFormat";
 
 const styles = {
   body: {
@@ -140,52 +144,68 @@ function DocumentShell({
 
 function InvoiceHeader({ order }: { order: ApiOrder }) {
   return (
-    <div style={styles.header}>
-      <div>
-        <h1 style={styles.title}>HOA DON</h1>
-        <p style={styles.brand}>Sam Sam Dessert</p>
-      </div>
-      <div style={styles.code}>
-        <p style={{ margin: 0 }}>
-          <strong>{formatOrderCode(order.id)}</strong>
-        </p>
-        <p style={{ margin: 0 }}>Ngay tao: {formatDateTime(order.createdAt)}</p>
-        <p style={{ margin: 0 }}>
+    <Box style={styles.header}>
+      <Box>
+        <Box component="h1" style={styles.title}>
+          HOA DON
+        </Box>
+        <Box component="p" style={styles.brand}>
+          Sam Sam Dessert
+        </Box>
+      </Box>
+      <Box style={styles.code}>
+        <Box component="p" style={{ margin: 0 }}>
+          <strong>{order.invoiceCode}</strong>
+        </Box>
+        <Box component="p" style={{ margin: 0 }}>
+          Ngay tao: {formatDateTime(order.createdAt)}
+        </Box>
+        <Box component="p" style={{ margin: 0 }}>
           Trang thai: {statusMeta[order.status].label}
-        </p>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 
 function InvoiceInfoSection({ order }: { order: ApiOrder }) {
   return (
-    <section style={styles.section}>
+    <Box component="section" style={styles.section}>
       <InfoBox title="Khach hang">
-        <p style={styles.line}>
+        <Box component="p" style={styles.line}>
           Ten: {order.receiverName || `Customer #${order.userId}`}
-        </p>
-        <p style={styles.line}>Dien thoai: {order.receiverPhone || "-"}</p>
-        <p style={styles.line}>Dia chi: {order.deliveryAddress || "-"}</p>
+        </Box>
+        <Box component="p" style={styles.line}>
+          Dien thoai: {order.receiverPhone || "-"}
+        </Box>
+        <Box component="p" style={styles.line}>
+          Dia chi: {order.deliveryAddress || "-"}
+        </Box>
       </InfoBox>
 
       <InfoBox title="Thanh toan">
-        <p style={styles.line}>
+        <Box component="p" style={styles.line}>
           Phuong thuc: {order.paymentMethod.toUpperCase()}
-        </p>
-        <p style={styles.line}>Trang thai: {order.paymentStatus}</p>
-        <p style={styles.line}>Ghi chu: {order.note || "-"}</p>
+        </Box>
+        <Box component="p" style={styles.line}>
+          Trang thai: {order.paymentStatus}
+        </Box>
+        <Box component="p" style={styles.line}>
+          Ghi chu: {order.note || "-"}
+        </Box>
       </InfoBox>
-    </section>
+    </Box>
   );
 }
 
 function InfoBox({ children, title }: { children: ReactNode; title: string }) {
   return (
-    <div style={styles.box}>
-      <h2 style={styles.boxTitle}>{title}</h2>
+    <Box style={styles.box}>
+      <Box component="h2" style={styles.boxTitle}>
+        {title}
+      </Box>
       {children}
-    </div>
+    </Box>
   );
 }
 
@@ -193,26 +213,26 @@ function InvoiceItemsTable({ order }: { order: ApiOrder }) {
   const items = order.orderItems ?? [];
 
   return (
-    <table style={styles.table}>
-      <thead>
-        <tr>
-          <th style={styles.tableHead}>#</th>
-          <th style={styles.tableHead}>San pham</th>
-          <th style={styles.tableHead}>Don gia</th>
-          <th style={styles.tableHead}>SL</th>
-          <th style={styles.tableHead}>Thanh tien</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table style={styles.table}>
+      <TableHead>
+        <TableRow>
+          <TableCell style={styles.tableHead}>#</TableCell>
+          <TableCell style={styles.tableHead}>San pham</TableCell>
+          <TableCell style={styles.tableHead}>Don gia</TableCell>
+          <TableCell style={styles.tableHead}>SL</TableCell>
+          <TableCell style={styles.tableHead}>Thanh tien</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
         {items.length === 0 ? (
-          <tr>
-            <td
+          <TableRow>
+            <TableCell
               colSpan={5}
               style={{ ...styles.tableCell, textAlign: "center" }}
             >
               Khong co san pham.
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
         ) : null}
 
         {items.map((item, index) => {
@@ -227,27 +247,31 @@ function InvoiceItemsTable({ order }: { order: ApiOrder }) {
               .join(", ") || "-";
 
           return (
-            <tr key={item.id}>
-              <td style={styles.tableCell}>{index + 1}</td>
-              <td style={styles.tableCell}>
+            <TableRow key={item.id}>
+              <TableCell style={styles.tableCell}>{index + 1}</TableCell>
+              <TableCell style={styles.tableCell}>
                 <strong>{item.productName}</strong>
                 <span style={styles.productMeta}>Size {item.sizeName}</span>
                 <small style={styles.productMeta}>{toppings}</small>
-              </td>
-              <td style={styles.tableCell}>{formatCurrency(item.price)}</td>
-              <td style={styles.tableCell}>{item.quantity}</td>
-              <td style={styles.tableCell}>{formatCurrency(item.subtotal)}</td>
-            </tr>
+              </TableCell>
+              <TableCell style={styles.tableCell}>
+                {formatCurrency(item.price)}
+              </TableCell>
+              <TableCell style={styles.tableCell}>{item.quantity}</TableCell>
+              <TableCell style={styles.tableCell}>
+                {formatCurrency(item.subtotal)}
+              </TableCell>
+            </TableRow>
           );
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   );
 }
 
 function InvoiceSummary({ order }: { order: ApiOrder }) {
   return (
-    <section style={styles.summary}>
+    <Box component="section" style={styles.summary}>
       <SummaryRow
         label="Tam tinh"
         value={formatCurrency(order.subtotalAmount)}
@@ -260,33 +284,35 @@ function InvoiceSummary({ order }: { order: ApiOrder }) {
         label="Phi giao hang"
         value={formatCurrency(order.shippingFee)}
       />
-      <div style={styles.totalRow}>
+      <Box style={styles.totalRow}>
         <span>Tong cong</span>
         <strong>{formatCurrency(order.totalAmount)}</strong>
-      </div>
-    </section>
+      </Box>
+    </Box>
   );
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div style={styles.summaryRow}>
+    <Box style={styles.summaryRow}>
       <span>{label}</span>
       <strong>{value}</strong>
-    </div>
+    </Box>
   );
 }
 
 function InvoiceDocument({ order }: { order: ApiOrder }) {
   return (
-    <DocumentShell title={`Invoice ${formatOrderCode(order.id)}`}>
-      <main style={styles.invoice}>
+    <DocumentShell title={`Invoice ${order.invoiceCode}`}>
+      <Box component="main" style={styles.invoice}>
         <InvoiceHeader order={order} />
         <InvoiceInfoSection order={order} />
         <InvoiceItemsTable order={order} />
         <InvoiceSummary order={order} />
-        <p style={styles.note}>Cam on quy khach.</p>
-      </main>
+        <Box component="p" style={styles.note}>
+          Cam on quy khach.
+        </Box>
+      </Box>
     </DocumentShell>
   );
 }

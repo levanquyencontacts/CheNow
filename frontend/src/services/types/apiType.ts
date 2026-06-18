@@ -222,6 +222,7 @@ export interface OrderItem {
 
 export interface Order {
   id: number;
+  invoiceCode?: string | null;
   userId: number;
   subtotalAmount: string | number;
   discountAmount: string | number;
@@ -280,6 +281,57 @@ export interface CreateOrderPayload {
 export interface UpdateOrderStatusPayload {
   id: number;
   status: OrderStatus;
+}
+
+export interface DashboardStats {
+  summary: DashboardSummary;
+  revenueByDay: DashboardRevenuePoint[];
+  topProducts: DashboardTopProduct[];
+  recentOrders: DashboardRecentOrder[];
+  statusCounts: Record<OrderStatus | "all", number>;
+}
+
+export interface DashboardSummary {
+  revenue: DashboardSummaryMetric;
+  orders: DashboardSummaryMetric;
+  customers: DashboardSummaryMetric;
+  cancelled: DashboardSummaryMetric;
+}
+
+export interface DashboardSummaryMetric {
+  value: number;
+  changePercent: number;
+}
+
+export type DashboardSummaryRange = "month" | "today" | "week" | "year";
+
+export interface DashboardRevenuePoint {
+  date: string;
+  label: string;
+  revenue: number;
+}
+
+export interface DashboardTopProduct {
+  productId: number;
+  productName: string;
+  quantity: number;
+  revenue: number;
+  rank: number;
+}
+
+export interface DashboardRecentOrder {
+  id: number;
+  code: string;
+  customer: string;
+  item: string;
+  status: OrderStatus;
+  createdAt: string;
+  totalAmount: number;
+}
+
+export interface DashboardRecentOrdersResponse {
+  items: DashboardRecentOrder[];
+  statusCounts: Record<OrderStatus | "all", number>;
 }
 
 export interface AskAiPayload {

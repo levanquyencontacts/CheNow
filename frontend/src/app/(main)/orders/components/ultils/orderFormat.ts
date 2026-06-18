@@ -12,10 +12,6 @@ export const formatDateTime = (value?: string | null) => {
     year: "numeric",
   }).format(new Date(value));
 };
-
-export const formatOrderCode = (id: number) =>
-  `ORD${String(id).padStart(6, "0")}`;
-
 export const escapeHtml = (value: string | number | null | undefined) =>
   String(value ?? "")
     .replaceAll("&", "&amp;")

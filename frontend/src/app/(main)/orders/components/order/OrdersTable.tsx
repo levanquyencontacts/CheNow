@@ -1,14 +1,20 @@
-import { Box, Pagination } from "@/components";
+import {
+  Box,
+  Button,
+  Pagination,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@/components";
 import type { Order as ApiOrder } from "@/services/types/apiType";
 import { Eye, MoreHorizontal, UserRound } from "lucide-react";
 
 import { LIMIT_PAGE } from "../../../../../common/utils/constant";
 import { statusMeta } from "../../../../../common/utils/status";
-import {
-  formatCurrency,
-  formatDateTime,
-  formatOrderCode,
-} from "../ultils/orderFormat";
+import { formatCurrency, formatDateTime } from "../ultils/orderFormat";
 import { OrdersFilterBar } from "./OrdersFilterBar";
 import { OrdersMessageRow } from "./OrdersMessageRow";
 import { StatusPill } from "./StatusPill";
@@ -52,20 +58,22 @@ export function OrdersTable({
         selectedOrder={selectedOrder}
       />
 
-      <Box className="overflow-x-auto">
-        <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-          <thead>
-            <tr className="h-12 border-b border-[#eadfd4] bg-white/70 text-xs font-semibold text-[#5c554c]">
-              <th className="px-4">Order code</th>
-              <th className="px-4">Customer</th>
-              <th className="px-4">Total</th>
-              <th className="px-4">Status</th>
-              <th className="px-4">Payment</th>
-              <th className="px-4">Created</th>
-              <th className="px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <TableContainer>
+        <Table className="min-w-[980px] text-sm" size="small">
+          <TableHead>
+            <TableRow className="h-12 border-b border-[#eadfd4] bg-white/70 text-xs font-semibold text-[#5c554c]">
+              <TableCell className="px-4">Order code</TableCell>
+              <TableCell className="px-4">Customer</TableCell>
+              <TableCell className="px-4">Total</TableCell>
+              <TableCell className="px-4">Status</TableCell>
+              <TableCell className="px-4">Payment</TableCell>
+              <TableCell className="px-4">Created</TableCell>
+              <TableCell align="right" className="px-4">
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {isLoading ? (
               <OrdersMessageRow message="Loading orders..." />
             ) : null}
@@ -80,7 +88,7 @@ export function OrdersTable({
               const meta = statusMeta[order.status];
 
               return (
-                <tr
+                <TableRow
                   className={[
                     "h-16 cursor-pointer border-b border-[#eadfd4] bg-white/70 text-[#183d2b] transition last:border-b-0 hover:bg-[#fff8f1]",
                     selectedOrder?.id === order.id ? "bg-[#fff3e8]" : "",
@@ -88,10 +96,10 @@ export function OrdersTable({
                   key={order.id}
                   onClick={() => onSelectOrder(order.id)}
                 >
-                  <td className="px-4 text-xs font-semibold text-[#1f2c22]">
-                    {formatOrderCode(order.id)}
-                  </td>
-                  <td className="px-4">
+                  <TableCell className="px-4 text-xs font-semibold text-[#1f2c22]">
+                    {order.invoiceCode}
+                  </TableCell>
+                  <TableCell className="px-4">
                     <Box className="flex items-center gap-3">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f3e8de] text-[#6b5a49]">
                         <UserRound aria-hidden="true" className="h-4 w-4" />
@@ -105,48 +113,50 @@ export function OrdersTable({
                         </p>
                       </Box>
                     </Box>
-                  </td>
-                  <td className="px-4 text-xs font-semibold">
+                  </TableCell>
+                  <TableCell className="px-4 text-xs font-semibold">
                     {formatCurrency(order.totalAmount)}
-                  </td>
-                  <td className="px-4">
+                  </TableCell>
+                  <TableCell className="px-4">
                     <StatusPill meta={meta} />
-                  </td>
-                  <td className="px-4 text-xs font-semibold text-[#314032]">
+                  </TableCell>
+                  <TableCell className="px-4 text-xs font-semibold text-[#314032]">
                     {order.paymentMethod.toUpperCase()}
-                  </td>
-                  <td className="px-4 text-xs text-[#314032]">
+                  </TableCell>
+                  <TableCell className="px-4 text-xs text-[#314032]">
                     {formatDateTime(order.createdAt)}
-                  </td>
-                  <td className="px-4">
+                  </TableCell>
+                  <TableCell align="right" className="px-4">
                     <Box className="flex justify-end gap-2">
-                      <button
-                        className="flex h-8 w-8 items-center justify-center rounded-md border border-[#eadfd4] bg-white text-[#183d2b] hover:bg-[#fff8f1]"
+                      <Button
+                        aria-label="View order"
+                        className="h-8 w-8 rounded-md border-[#eadfd4] bg-white p-0 text-[#183d2b] shadow-none hover:bg-[#fff8f1]"
                         onClick={(event) => {
                           event.stopPropagation();
                           onSelectOrder(order.id);
                         }}
-                        type="button"
+                        variant="outlined"
                       >
                         <Eye aria-hidden="true" className="h-4 w-4" />
-                      </button>
-                      <button
-                        className="flex h-8 w-8 items-center justify-center rounded-md border border-[#eadfd4] bg-white text-[#183d2b] hover:bg-[#fff8f1]"
-                        type="button"
+                      </Button>
+                      <Button
+                        aria-label="More actions"
+                        className="h-8 w-8 rounded-md border-[#eadfd4] bg-white p-0 text-[#183d2b] shadow-none hover:bg-[#fff8f1]"
+                        variant="outlined"
                       >
                         <MoreHorizontal
                           aria-hidden="true"
                           className="h-4 w-4"
                         />
-                      </button>
+                      </Button>
                     </Box>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
-      </Box>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Box className="flex flex-col gap-3 border-t border-[#eadfd4] bg-[#fffaf5] px-5 py-4 text-xs font-semibold text-[#314032] sm:flex-row sm:items-center sm:justify-between">
         <span>
