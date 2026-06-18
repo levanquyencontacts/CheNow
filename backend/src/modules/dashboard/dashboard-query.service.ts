@@ -6,8 +6,12 @@ import { OrderItems } from '../orders/entity/order-items';
 import { Orders } from '../orders/entity/orders.entity';
 import {
   addDays,
+  addMonths,
   formatChartLabel,
+  formatMonthLabel,
+  startOfMonth,
   toDateKey,
+  toMonthKey,
 } from './ultil/dashboard-date.util';
 
 @Injectable()
@@ -51,6 +55,34 @@ export class DashboardQueryService {
       orders: Number(raw?.orders ?? 0),
       revenue: Number(raw?.revenue ?? 0),
     };
+  }
+
+  async getRevenueByMonth(startDate: Date, endDate: Date) {
+    const rows = await this.ordersRepository
+      .createQueryBuilder('order')
+      .select("TO_CHAR(order.createdAt, 'YYYY-MM')", 'month')
+      .addSelect('COALESCE(SUM(order.totalAmount), 0)', 'revenue')
+      .where('order.createdAt >= :startDate', { startDate })
+      .andWhere('order.createdAt < :endDate', { endDate })
+      .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+      .groupBy("TO_CHAR(order.createdAt, 'YYYY-MM')")
+      .orderBy('month', 'ASC')
+      .getRawMany<{ month: string; revenue: string }>();
+
+    const revenueMap = new Map(
+      rows.map((row) => [row.month, Number(row.revenue ?? 0)]),
+    );
+
+    return Array.from({ length: 12 }, (_, index) => {
+      const date = addMonths(startOfMonth(startDate), index);
+      const key = toMonthKey(date);
+
+      return {
+        date: key,
+        label: formatMonthLabel(date.getMonth()),
+        revenue: revenueMap.get(key) ?? 0,
+      };
+    });
   }
 
   async getRevenueByDay(startDate: Date, endDate: Date, days: number) {

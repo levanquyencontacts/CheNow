@@ -6,6 +6,7 @@ import type {
   DashboardTopProduct,
   DashboardTopProductsRange,
   DashboardTopProductsSortBy,
+  DashboardRevenuePoint,
 } from "@/services/types/apiType";
 import type { AxiosInstance } from "axios";
 
@@ -18,6 +19,13 @@ export class DashboardService {
 
   async getStats(): Promise<DashboardStats> {
     const { data } = await this.apiClient.get("/dashboard");
+    return data;
+  }
+
+  async getRevenue(range = "week", date?: string): Promise<{ points: DashboardRevenuePoint[] }> {
+    const { data } = await this.apiClient.get("/dashboard/revenue", {
+      params: { range, ...(date ? { date } : {}) },
+    });
     return data;
   }
 

@@ -39,3 +39,10 @@ export const useDashboardRecentOrdersQuery = (limit = 10) => {
     queryFn: () => api.dashboard.getRecentOrders(limit),
   });
 };
+
+export const useDashboardRevenueQuery = (range = "week", date?: string) => {
+  return useQuery({
+    queryKey: ["dashboard", "revenue", range, date],
+    queryFn: () => api.dashboard.getRevenue(range, date),
+  });
+};
