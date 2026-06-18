@@ -1,27 +1,23 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
-import { Orders } from './entity/orders.entity';
-import { OrderItems } from './entity/order-items';
-import { OrderItemToppings } from './entity/order-item-toppings';
-import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
+import { OrderStatus } from '../../common/enums/common.enum';
 import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
-import { OrderStatus } from '../../common/enums/common.enum';
-import { Products } from '../products/entity/products.entity';
 import { CategorySizes } from '../category-sizes/entity/category-sizes.entity';
+import { Products } from '../products/entity/products.entity';
 import { Toppings } from '../toppings/entity/toppings.entity';
+import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
+import { OrderItemToppings } from './entity/order-item-toppings';
+import { OrderItems } from './entity/order-items';
+import { Orders } from './entity/orders.entity';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Orders)
     private ordersRepository: Repository<Orders>,
-    @InjectRepository(OrderItems)
-    private orderItemsRepository: Repository<OrderItems>,
-    @InjectRepository(OrderItemToppings)
-    private orderItemToppingsRepository: Repository<OrderItemToppings>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -34,9 +30,11 @@ export class OrdersService {
     } = createOrderDto;
 
     return this.dataSource.transaction(async (manager) => {
+      const invoiceCode = await this.generateInvoiceCode(manager);
       const order = manager.create(Orders, {
         ...orderData,
         discountAmount,
+        invoiceCode,
         shippingFee,
       });
       const savedOrder = await manager.save(Orders, order);
@@ -86,6 +84,7 @@ export class OrdersService {
       paginationOptions,
       [
         'id',
+        'invoiceCode',
         'userId',
         'subtotalAmount',
         'discountAmount',
@@ -264,5 +263,43 @@ export class OrdersService {
 
   private toNumber(value: number | string | null | undefined) {
     return Number(value ?? 0);
+  }
+
+  private async generateInvoiceCode(manager: EntityManager) {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
+
+    const dateKey = this.toInvoiceDateKey(today);
+    const prefix = `HD${dateKey}`;
+    const latestOrder = await manager
+      .getRepository(Orders)
+      .createQueryBuilder('order')
+      .select(['order.invoiceCode'])
+      .where('order.createdAt >= :startDate', { startDate })
+      .andWhere('order.createdAt < :endDate', { endDate })
+      .andWhere('order.invoiceCode LIKE :prefix', { prefix: `${prefix}%` })
+      .orderBy('order.invoiceCode', 'DESC')
+      .getOne();
+
+    const latestSequence = latestOrder?.invoiceCode
+      ? Number(latestOrder.invoiceCode.slice(prefix.length))
+      : 0;
+    const nextSequence = Number.isFinite(latestSequence)
+      ? latestSequence + 1
+      : 1;
+
+    return `${prefix}${String(nextSequence).padStart(2, '0')}`;
+  }
+
+  private toInvoiceDateKey(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}${month}${day}`;
   }
 }
