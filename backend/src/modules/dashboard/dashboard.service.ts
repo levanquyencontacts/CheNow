@@ -30,7 +30,7 @@ export class DashboardService {
   }
 
   async getSummary(range = 'today') {
-    const { days, endDate, startDate } = getDateWindow(range);
+    const { days = 1, endDate, startDate } = getDateWindow(range);
     const previousStartDate = addDays(startDate, -days);
     const [currentSummary, previousSummary] = await Promise.all([
       this.dashboardQueryService.getSummaryByRange(startDate, endDate),
@@ -72,14 +72,23 @@ export class DashboardService {
     };
   }
 
-  async getRevenue(range = 'week') {
-    const { days, endDate, startDate } = getDateWindow(range);
+  async getRevenue(range = 'week', date?: string) {
+    const window = getDateWindow(range, date);
+
+    if (range === 'year') {
+      return {
+        points: await this.dashboardQueryService.getRevenueByMonth(
+          window.startDate,
+          window.endDate,
+        ),
+      };
+    }
 
     return {
       points: await this.dashboardQueryService.getRevenueByDay(
-        startDate,
-        endDate,
-        days,
+        window.startDate,
+        window.endDate,
+        window.days,
       ),
     };
   }

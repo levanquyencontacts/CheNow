@@ -2,7 +2,6 @@
 
 import { Box } from "@/components";
 import { MainHeader } from "@/components/Header/MainHeader";
-import { useDashboardStatsQuery } from "@/services/controllers/dashboard/DashboardQueries";
 
 import { DashboardRecentOrders } from "./components/DashboardRecentOrders";
 import { DashboardRevenueSection } from "./components/DashboardRevenueSection";
@@ -10,7 +9,6 @@ import { DashboardSummaryCards } from "./components/DashboardSummaryCards";
 import { DashboardTopProducts } from "./components/DashboardTopProducts";
 
 export default function Home() {
-  const { data, isLoading } = useDashboardStatsQuery();
 
   return (
     <Box className="flex min-h-full flex-col">
@@ -49,10 +47,7 @@ export default function Home() {
         <DashboardSummaryCards />
 
         <Box className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-          <DashboardRevenueSection
-            isLoading={isLoading}
-            points={data?.revenueByDay ?? []}
-          />
+          <DashboardRevenueSection />
           <DashboardTopProducts />
         </Box>
 

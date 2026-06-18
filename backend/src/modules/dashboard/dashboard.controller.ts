@@ -16,8 +16,8 @@ export class DashboardController {
   }
 
   @Get('revenue')
-  getRevenue(@Query('range') range?: string) {
-    return this.dashboardService.getRevenue(range);
+  getRevenue(@Query('range') range?: string, @Query('date') date?: string) {
+    return this.dashboardService.getRevenue(range, date);
   }
 
   @Get('top-products')

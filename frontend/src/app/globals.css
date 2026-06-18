@@ -25,3 +25,59 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.chenow-datepicker {
+  border: 1px solid #eadfd4 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 14px 32px rgba(67, 32, 16, 0.14) !important;
+  color: #432010;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
+.chenow-datepicker .react-datepicker__header {
+  background: #fffaf5;
+  border-bottom: 1px solid #eadfd4;
+}
+
+.chenow-datepicker .react-datepicker__day-name,
+.chenow-datepicker .react-datepicker__day,
+.chenow-datepicker .react-datepicker__month-text,
+.chenow-datepicker .react-datepicker__year-text {
+  color: #5f5148;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chenow-datepicker .react-datepicker__day:hover,
+.chenow-datepicker .react-datepicker__month-text:hover,
+.chenow-datepicker .react-datepicker__year-text:hover {
+  background: #f5ede4;
+}
+
+.chenow-datepicker .react-datepicker__day--in-selecting-range,
+.chenow-datepicker .react-datepicker__day--in-range,
+.chenow-datepicker .react-datepicker__day--selected,
+.chenow-datepicker .react-datepicker__month-text--selected,
+.chenow-datepicker .react-datepicker__year-text--selected {
+  background: #432010 !important;
+  color: #ffffff !important;
+}
+
+.chenow-datepicker .react-datepicker__day--keyboard-selected,
+.chenow-datepicker .react-datepicker__month-text--keyboard-selected,
+.chenow-datepicker .react-datepicker__year-text--keyboard-selected {
+  background: #f5ede4;
+  color: #432010;
+}
+
+.chenow-datepicker .react-datepicker__day--disabled,
+.chenow-datepicker .react-datepicker__month-text--disabled,
+.chenow-datepicker .react-datepicker__year-text--disabled {
+  color: #c9b9ac !important;
+}
+
+.chenow-echart-tooltip {
+  border-radius: 6px !important;
+  box-shadow: 0 10px 24px rgba(24, 61, 43, 0.22) !important;
+}
