@@ -1,5 +1,7 @@
 "use client";
 
+import { LIMIT_PAGE, LIMIT_PAGE_ARRAY, routes } from "@/common/utils/constant";
+import { formatDate } from "@/common/utils/formatDate";
 import {
   Box,
   Button,
@@ -13,8 +15,6 @@ import {
   TablePagination,
   TableRow,
 } from "@/components";
-import { LIMIT_PAGE, LIMIT_PAGE_ARRAY, routes } from "@/common/utils/constant";
-import { formatDate } from "@/common/utils/formatDate";
 import { useInfiniteCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
 import { useProductsQuery } from "@/services/controllers/products/ProductsQueries";
 import { PaginationParams } from "@/services/types/apiType";
