@@ -23,13 +23,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProductsFilters } from "./filter/ProductsFilters";
 
-/** Format price with Vietnamese đồng currency style */
-const formatPrice = (price: number) => price.toLocaleString("vi-VN") + "đ";
-
-/** Truncate text to maxLen characters with ellipsis */
-const truncateText = (text: string, maxLen = 50) =>
-  text.length > maxLen ? text.slice(0, maxLen) + "…" : text;
-
 export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(LIMIT_PAGE);
