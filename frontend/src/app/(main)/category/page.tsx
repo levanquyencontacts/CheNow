@@ -34,15 +34,14 @@ export default function CategoryPage() {
     const [searchValue, setSearchValue] = useState('');
     const [statusValue, setStatusValue] = useState("");
 
-    const paginationPrams: PaginationParams = {
+    const paginationParams: PaginationParams = {
         page: page,
         limit,
         order: 'ASC',
         searchValue,
         ...(statusValue ? { status: statusValue } : {}),
-
-    }
-    const { data, isError, isLoading } = useCategoriesQuery(paginationPrams);
+    };
+    const { data, isError, isLoading } = useCategoriesQuery(paginationParams);
     const categories = data?.data ?? [];
     const pagination = data?.metadata.pagination;
     const totalPages = pagination?.totalPages ?? 1;
