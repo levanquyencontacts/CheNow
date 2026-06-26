@@ -14,11 +14,13 @@ import { CategorySizesModule } from './modules/category-sizes/category-sizes.mod
 import { getDatabaseConfig } from './config/database.config';
 import { OrdersModule } from './modules/orders/orders.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { UserAddressesModule } from './modules/user-addresses/user-addresses.module';
 
 @Module({
   imports: [
     FileModule,
-    UsersModule,
     CategoriesModule,
     TypeOrmModule.forRoot(getDatabaseConfig()),
     UsersModule,
@@ -30,6 +32,9 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     CategorySizesModule,
     OrdersModule,
     DashboardModule,
+    CustomersModule,
+    RolesModule,
+    UserAddressesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,23 +4,15 @@ import {
   ForbiddenException,
   Get,
   Param,
+  ParseIntPipe,
   Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
-import { Users } from './users.entities';
 import { UsersService } from './users.service';
-interface AuthRequest {
-  user: Users;
-}
-
-interface UpdateProfilePayload {
-  email?: string;
-  fullName?: string;
-  phone?: string;
-  avatar?: string | null;
-}
+import type { AuthRequest } from '../../common/interfaces';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -29,22 +21,21 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getProfile(@Request() request: AuthRequest) {
-    return request.user;
+    return this.usersService.getMe(request.user.id);
   }
+
   @Get(':id')
-  getProfileById(@Param('id') id: string) {
-    return this.usersService.getMe(Number(id));
+  getProfileById(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.getMe(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   updateProfile(
-    @Param('id') id: string,
-    @Body() profile: UpdateProfilePayload,
+    @Param('id', ParseIntPipe) userId: number,
+    @Body() profile: UpdateUserDto,
     @Request() request: AuthRequest,
   ) {
-    const userId = Number(id);
-
     if (request.user.id !== userId) {
       throw new ForbiddenException();
     }

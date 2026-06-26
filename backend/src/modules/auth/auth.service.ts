@@ -5,45 +5,20 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { Users } from '../users/users.entities';
+import { Users } from '../users/entity/users.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { RefreshToken } from './refresh-token.entity';
 import * as bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
-
-export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
-  user: AuthUser;
-}
-
-export interface RefreshTokenResponse {
-  access_token: string;
-}
-
-interface AuthUser {
-  id: number;
-  email: string;
-  fullName?: string | null;
-  phone?: string | null;
-  avatar?: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface RefreshTokenPayload {
-  email: string;
-  sub: number;
-  type: 'refresh';
-}
-
-interface PasswordResetPayload {
-  email: string;
-  sub: number;
-  type: 'password-reset';
-}
+import type {
+  AuthResponse,
+  AuthUser,
+  CreateUserInput,
+  PasswordResetPayload,
+  RefreshTokenPayload,
+  RefreshTokenResponse,
+} from '../../common/interfaces';
 
 const REFRESH_TOKEN_EXPIRES_IN = '7d';
 const REFRESH_TOKEN_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
@@ -77,7 +52,7 @@ export class AuthService {
     return validatedUser;
   }
 
-  async register(user: Partial<Users>): Promise<AuthResponse> {
+  async register(user: CreateUserInput): Promise<AuthResponse> {
     const newUser = await this.usersService.create(user);
     return this.login(newUser);
   }
@@ -171,7 +146,13 @@ export class AuthService {
   }
 
   private async issueTokenPair(user: Users): Promise<AuthResponse> {
-    const payload = { email: user.email, sub: user.id };
+    const tokenUser =
+      (await this.usersService.findProfileById(user.id)) ?? user;
+    const payload = {
+      email: tokenUser.email,
+      sub: tokenUser.id,
+      roles: this.getRoleCodes(tokenUser),
+    };
     const refreshToken = this.jwtService.sign(
       { ...payload, type: 'refresh' },
       { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
@@ -186,9 +167,9 @@ export class AuthService {
     );
 
     return {
-      access_token: this.signAccessToken(user),
+      access_token: this.signAccessToken(tokenUser),
       refresh_token: refreshToken,
-      user: this.toAuthUser(user),
+      user: this.toAuthUser(tokenUser),
     };
   }
 
@@ -198,8 +179,10 @@ export class AuthService {
       email: user.email,
       fullName: user.fullName ?? null,
       phone: user.phone ?? null,
-      avatar: user.avatar ?? null,
+      avatar: user.customerProfile?.avatar ?? user.avatar ?? null,
+      roles: this.getRoleCodes(user),
       isActive: user.isActive,
+      customerProfile: user.customerProfile ?? null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -222,7 +205,15 @@ export class AuthService {
   }
 
   private signAccessToken(user: Users): string {
-    return this.jwtService.sign({ email: user.email, sub: user.id });
+    return this.jwtService.sign({
+      email: user.email,
+      sub: user.id,
+      roles: this.getRoleCodes(user),
+    });
+  }
+
+  private getRoleCodes(user: Users) {
+    return user.userRoles?.map((userRole) => userRole.role.code) ?? [];
   }
 
   private verifyPasswordResetToken(token: string): PasswordResetPayload {

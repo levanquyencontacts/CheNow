@@ -7,17 +7,35 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Users } from '../users/users.entities';
 import { LocalAuthGuard } from '../../guards/localauth.guard';
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
+import type { AuthRequest, RefreshTokenRequest } from '../../common/interfaces';
 
-interface AuthRequest {
-  user: Users;
-}
+class RegisterDto {
+  @IsEmail()
+  email: string;
 
-interface RefreshTokenRequest {
-  refresh_token: string;
+  @MinLength(8)
+  password: string;
+
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  avatar?: string | null;
 }
 
 class ForgotPasswordDto {
@@ -38,7 +56,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  register(@Body() user: Partial<Users>) {
+  register(@Body() user: RegisterDto) {
     return this.authService.register(user);
   }
 
