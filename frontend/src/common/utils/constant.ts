@@ -9,6 +9,7 @@ export const routes = {
   AI_ASSISTANT: "/ai",
   CUSTOMERS: "/customers",
   REPORTS: "/reports",
+  PROMOTIONS: "/promotions",
   SETTINGS: "/settings",
   SUPPORT: "/support",
   LOGIN: "/login",

@@ -5,6 +5,7 @@ import { routes } from "@/common/utils/constant";
 import { Box, Button } from "@/components";
 import {
   BarChart3,
+  BadgePercent,
   Coffee,
   Grid2X2,
   LayoutDashboard,
@@ -50,6 +51,7 @@ const navSections: NavSection[] = [
     items: [
       // { href: routes.CUSTOMERS, label: "Khách hàng", icon: UsersRound },
       { href: routes.REPORTS, label: "Reports", icon: BarChart3 },
+      { href: routes.PROMOTIONS, label: "Promotions", icon: BadgePercent },
       // { href: "/promotions", label: "Khuyến mãi", icon: BadgePercent },
     ],
   },
