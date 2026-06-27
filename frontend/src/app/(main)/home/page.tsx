@@ -1,6 +1,6 @@
 "use client";
 
-import { Box } from "@/components";
+import { Box, PageHeader } from "@/components";
 import { MainHeader } from "@/components/Header/MainHeader";
 
 import { DashboardRecentOrders } from "./components/DashboardRecentOrders";
@@ -12,7 +12,7 @@ export default function Home() {
 
   return (
     <Box className="flex min-h-full flex-col">
-      <MainHeader />
+      <PageHeader />
 
       <Box className="flex-1 px-4 py-5 sm:px-6 md:px-8 lg:px-10">
         <Box className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
