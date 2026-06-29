@@ -11,6 +11,7 @@ import { Users } from '../users/users.entities';
 import { LocalAuthGuard } from '../../guards/localauth.guard';
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { UsersService } from '../users/users.service';
 
 interface AuthRequest {
   user: Users;
@@ -35,7 +36,10 @@ class ResetPasswordDto {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post('register')
   register(@Body() user: Partial<Users>) {
@@ -71,6 +75,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() request: AuthRequest) {
-    return request.user;
+    return this.usersService.toProfileResponse(request.user);
   }
 }

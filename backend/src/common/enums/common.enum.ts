@@ -3,6 +3,25 @@ export enum Order {
   DESC = 'DESC',
 }
 
+export enum RoleCode {
+  ADMIN = 'admin',
+  STAFF = 'staff',
+  CUSTOMER = 'customer',
+}
+
+export enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other',
+}
+
+export enum CustomerRank {
+  BRONZE = 'bronze',
+  SILVER = 'silver',
+  GOLD = 'gold',
+  DIAMOND = 'diamond',
+}
+
 export enum OrderType {
   DINE_IN = 'dine_in',
   TAKEAWAY = 'take_away',

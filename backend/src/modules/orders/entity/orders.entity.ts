@@ -45,26 +45,26 @@ export class Orders {
 
   @Column({
     type: 'enum',
-    enum: OrderType,
+    enum: Object.values(OrderType),
   })
   orderType: OrderType;
 
   @Column({
     type: 'enum',
-    enum: PaymentMethod,
+    enum: Object.values(PaymentMethod),
   })
   paymentMethod: PaymentMethod;
 
   @Column({
     type: 'enum',
-    enum: PaymentStatus,
+    enum: Object.values(PaymentStatus),
     default: PaymentStatus.PENDING,
   })
   paymentStatus: PaymentStatus;
 
   @Column({
     type: 'enum',
-    enum: OrderStatus,
+    enum: Object.values(OrderStatus),
     default: OrderStatus.PENDING,
   })
   status: OrderStatus;
