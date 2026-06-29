@@ -3,6 +3,7 @@
 import { Box, Button, Modal } from "@/components";
 import { useModal } from "@/providers";
 import { useDeleteProductMutation } from "@/services/controllers/products/ProductsQueries";
+import { routes } from "@/common/utils/constant";
 import { useRouter } from "next/navigation";
 
 interface DeleteProductModalProps {
@@ -22,7 +23,7 @@ export function DeleteProductModal({
   const handleDeleteProduct = async () => {
     await deleteProduct(productId);
     closeModal();
-    router.push("/products");
+    router.push(routes.PRODUCTS);
   };
 
   return (
