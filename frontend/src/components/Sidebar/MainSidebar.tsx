@@ -32,7 +32,7 @@ const navSections: NavSection[] = [
   {
     title: "Tổng quan",
     items: [
-      { href: "/home", label: "Dashboard", icon: LayoutDashboard },
+      { href: routes.ADMIN_HOME, label: "Dashboard", icon: LayoutDashboard },
       { href: routes.ORDERS, label: "Orders", icon: ShoppingBag, badge: 12 },
     ],
   },
@@ -66,7 +66,7 @@ export function MainSidebar() {
     >
       <Box
         className="flex h-16 cursor-pointer items-center gap-2 px-3"
-        onClick={() => router.push("/home")}
+        onClick={() => router.push(routes.ADMIN_HOME)}
       >
         <Box className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-transparent">
           <Image

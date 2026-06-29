@@ -5,7 +5,15 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { routes } from "@/common/utils/constant";
-import { clearSession, setSession } from "@/services/controllers/auth/AuthSlice";
+import {
+  clearSession,
+  setActiveWorkspace,
+  setSession,
+} from "@/services/controllers/auth/AuthSlice";
+import {
+  getPostLoginRedirect,
+  getSingleWorkspace,
+} from "@/common/utils/workspace";
 import {
   clearStoredTokens,
   setStoredAccessToken,
@@ -23,8 +31,9 @@ export const useLoginMutation = () => {
       setStoredAccessToken(response.access_token);
       setStoredRefreshToken(response.refresh_token);
       store.dispatch(setSession(response));
+      store.dispatch(setActiveWorkspace(getSingleWorkspace(response.user)));
       toast.success("Đăng nhập thành công!");
-      router.push(routes.HOME);
+      router.push(getPostLoginRedirect(response.user));
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Đăng nhập thất bại."));
@@ -41,8 +50,9 @@ export const useSignupMutation = () => {
       setStoredAccessToken(response.access_token);
       setStoredRefreshToken(response.refresh_token);
       store.dispatch(setSession(response));
+      store.dispatch(setActiveWorkspace(getSingleWorkspace(response.user)));
       toast.success("Đăng ký thành công!");
-      router.push(routes.HOME);
+      router.push(getPostLoginRedirect(response.user));
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Đăng ký thất bại."));
