@@ -29,7 +29,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getProfile(@Request() request: AuthRequest) {
-    return request.user;
+    return this.usersService.toProfileResponse(request.user);
   }
   @Get(':id')
   getProfileById(@Param('id') id: string) {

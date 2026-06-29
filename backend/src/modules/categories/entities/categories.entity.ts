@@ -28,7 +28,7 @@ export class Category {
 
   @Column({
     default: CategoryStatus.ACTIVE,
-    enum: CategoryStatus,
+    enum: Object.values(CategoryStatus),
     type: 'enum',
   })
   status: CategoryStatus;

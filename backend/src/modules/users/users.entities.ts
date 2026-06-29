@@ -6,7 +6,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  OneToOne,
 } from 'typeorm';
+import { CustomerProfile } from '../customers/entities/customer-profile.entity';
+import { UserRole } from '../roles/entities/user-role.entity';
 
 @Entity('users')
 export class Users {
@@ -22,7 +26,7 @@ export class Users {
   @Column({ nullable: true })
   phone?: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @Column({
@@ -32,6 +36,12 @@ export class Users {
 
   @Column({ type: 'varchar', nullable: true })
   avatar?: string | null;
+
+  @OneToMany(() => UserRole, (userRole) => userRole.user)
+  userRoles: UserRole[];
+
+  @OneToOne(() => CustomerProfile, (customerProfile) => customerProfile.user)
+  customerProfile?: CustomerProfile;
 
   @CreateDateColumn()
   createdAt: Date;

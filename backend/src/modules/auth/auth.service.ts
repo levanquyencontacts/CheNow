@@ -11,27 +11,13 @@ import { IsNull, Repository } from 'typeorm';
 import { RefreshToken } from './refresh-token.entity';
 import * as bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
-
-export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
-  user: AuthUser;
-}
-
-export interface RefreshTokenResponse {
-  access_token: string;
-}
-
-interface AuthUser {
-  id: number;
-  email: string;
-  fullName?: string | null;
-  phone?: string | null;
-  avatar?: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { RoleCode } from '../../common/enums/common.enum';
+import { RolesService } from '../roles/roles.service';
+import { CustomersService } from '../customers/customers.service';
+import {
+  AuthResponse,
+  RefreshTokenResponse,
+} from '../../common/types/user-response.type';
 
 interface RefreshTokenPayload {
   email: string;
@@ -59,6 +45,8 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly rolesService: RolesService,
+    private readonly customersService: CustomersService,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
   ) {}
@@ -79,11 +67,26 @@ export class AuthService {
 
   async register(user: Partial<Users>): Promise<AuthResponse> {
     const newUser = await this.usersService.create(user);
-    return this.login(newUser);
+    await this.rolesService.assignRoleToUser(newUser.id, RoleCode.CUSTOMER);
+    await this.customersService.createProfileForUser(newUser.id);
+
+    const createdUser = await this.usersService.findProfileById(newUser.id);
+
+    if (!createdUser) {
+      throw new BadRequestException('Tao tai khoan khong thanh cong');
+    }
+
+    return this.login(createdUser);
   }
 
   async login(user: Users): Promise<AuthResponse> {
-    return this.issueTokenPair(user);
+    const authUser = await this.usersService.findProfileById(user.id);
+
+    if (!authUser) {
+      throw new UnauthorizedException('Tai khoan khong hop le');
+    }
+
+    return this.issueTokenPair(authUser);
   }
 
   async refresh(refreshToken?: string): Promise<RefreshTokenResponse> {
@@ -188,20 +191,7 @@ export class AuthService {
     return {
       access_token: this.signAccessToken(user),
       refresh_token: refreshToken,
-      user: this.toAuthUser(user),
-    };
-  }
-
-  private toAuthUser(user: Users): AuthUser {
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName ?? null,
-      phone: user.phone ?? null,
-      avatar: user.avatar ?? null,
-      isActive: user.isActive,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      user: this.usersService.toProfileResponse(user),
     };
   }
 

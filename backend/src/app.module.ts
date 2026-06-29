@@ -14,6 +14,8 @@ import { CategorySizesModule } from './modules/category-sizes/category-sizes.mod
 import { getDatabaseConfig } from './config/database.config';
 import { OrdersModule } from './modules/orders/orders.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { CustomersModule } from './modules/customers/customers.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     CategoriesModule,
     TypeOrmModule.forRoot(getDatabaseConfig()),
     UsersModule,
+    RolesModule,
+    CustomersModule,
     AuthModule,
     ProductsModule,
     ProductStocksModule,

@@ -14,8 +14,19 @@ export interface AuthUser {
   email: string;
   fullName: string | null;
   phone: string | null;
-  avatar: string | null;
   isActive: boolean;
+  avatar: string | null;
+  userRoles: Array<{
+    id: number;
+    code: "admin" | "staff" | "customer";
+    name: string;
+  }>;
+  customerProfile: {
+    id: number;
+    gender: "male" | "female" | "other" | null;
+    points: number;
+    rank: "bronze" | "silver" | "gold" | "diamond";
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
