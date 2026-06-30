@@ -17,10 +17,9 @@ class UserService {
     id,
     ...payload
   }: UpdateUserPayload): Promise<AuthUser> => {
-    const { data } = await this.apiClient.put<AuthUser>(
-      `/users/${id}`,
-      payload,
-    );
+    void id;
+
+    const { data } = await this.apiClient.put<AuthUser>("/users/me", payload);
 
     return data;
   };

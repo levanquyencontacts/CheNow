@@ -39,6 +39,7 @@ export interface ProductSubmitPayload {
   minQuantity: number;
   price: number;
   productName: string;
+  status: "active" | "inactive";
   quantity: number;
 }
 
@@ -165,6 +166,7 @@ export function ProductForm({
       categoryId: Number(values.categoryId),
       productName: values.productName.trim(),
       price: Number(values.price),
+      status: values.status,
       quantity: values.quantity,
       minQuantity: values.minQuantity,
       imageUrl: values.imageUrl,

@@ -92,8 +92,11 @@ export interface PaginationParams {
   searchValue?: string;
   sort?: string;
   status?: string;
+  availability?: string;
 }
 export type CategoryStatus = "active" | "inactive";
+export type ProductStatus = "active" | "inactive";
+export type ProductAvailability = "in_stock" | "low_stock" | "out_of_stock";
 
 export interface Category extends CategoryBase {
   id: number;
@@ -118,6 +121,8 @@ export interface Product {
   price: string;
   imageUrl: string | null;
   description: string | null;
+  status: ProductStatus;
+  availability: ProductAvailability;
   categoryName: string;
   quantity: number;
   minQuantity: number;
@@ -131,6 +136,7 @@ export interface CreateProductPayload {
   price: number;
   imageUrl?: string | null;
   description?: string | null;
+  status: ProductStatus;
   quantity: number;
   minQuantity: number;
 }

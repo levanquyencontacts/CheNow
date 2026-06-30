@@ -12,6 +12,7 @@ import {
 import { Category } from '../../categories/entities/categories.entity';
 import { ProductStocks } from '../../product-stocks/entities/product-stocks.entity';
 import { OrderItems } from '../../orders/entity/order-items';
+import { ProductStatus } from '../../../common/enums/common.enum';
 
 @Entity()
 export class Products {
@@ -32,6 +33,13 @@ export class Products {
   imageUrl: string;
   @Column({ nullable: true, type: 'text' })
   description: string;
+  @Column({
+    type: 'enum',
+    enumName: 'products_status_enum',
+    enum: Object.values(ProductStatus),
+    default: ProductStatus.ACTIVE,
+  })
+  status: ProductStatus;
   @OneToMany(() => OrderItems, (orderItem) => orderItem.product, {
     nullable: false,
   })

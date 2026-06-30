@@ -72,6 +72,10 @@ export function RequireAuth({ allowedWorkspaces, children }: RequireAuthProps) {
     const singleWorkspace = getSingleWorkspace(authUser);
     if (singleWorkspace && !activeWorkspace) {
       store.dispatch(setActiveWorkspace(singleWorkspace));
+      if (!allowedWorkspaces.includes(singleWorkspace)) {
+        const [workspace] = getAvailableWorkspaces(authUser);
+        router.replace(workspace?.href ?? routes.LOGIN);
+      }
       return;
     }
 
