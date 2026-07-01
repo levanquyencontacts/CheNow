@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Thực đơn - ZenTea Premium Organic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;500;700&amp;family=Sora:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .organic-blob {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: -1;
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .product-card-hover:hover .product-img {
+            transform: scale(1.08) translateY(-8px);
+        }
+
+        .product-img {
+            transition: transform 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#002113",
+                        "surface-container": "#e8f0e9",
+                        "surface": "#f4fbf4",
+                        "tertiary-fixed": "#ffdad7",
+                        "background": "#f4fbf4",
+                        "inverse-surface": "#2b322d",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-tertiary-container": "#711419",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#4edea3",
+                        "surface-container-high": "#e3eae3",
+                        "surface-bright": "#f4fbf4",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#dde4dd",
+                        "on-background": "#161d19",
+                        "emerald": "#10B981",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#a43a3a",
+                        "on-secondary-container": "#684000",
+                        "on-secondary-fixed": "#2a1700",
+                        "on-secondary-fixed-variant": "#653e00",
+                        "outline": "#6c7a71",
+                        "on-tertiary-fixed": "#410005",
+                        "amber": "#F59E0B",
+                        "charcoal-black": "#1A1A1A",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#fea619",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#ffddb8",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#00422b",
+                        "surface-variant": "#dde4dd",
+                        "inverse-on-surface": "#ebf3eb",
+                        "on-surface-variant": "#3c4a42",
+                        "secondary-fixed-dim": "#ffb95f",
+                        "primary-container": "#10b981",
+                        "tea-wash": "#ECFDF5",
+                        "primary": "#006c49",
+                        "primary-fixed": "#6ffbbe",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "outline-variant": "#bbcabf",
+                        "surface-tint": "#006c49",
+                        "surface-container-low": "#eef6ee",
+                        "surface-dim": "#d4dcd5",
+                        "secondary": "#855300",
+                        "tertiary-container": "#fc7c78",
+                        "on-primary": "#ffffff",
+                        "cream-white": "#FAF9F6",
+                        "on-surface": "#161d19",
+                        "tertiary-fixed-dim": "#ffb3af"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "section-gap": "120px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-caps": ["Sora"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "title-md": ["Plus Jakarta Sans"],
+                        "body-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["56px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-lg": ["40px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "title-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-cream-white text-on-surface font-body-lg overflow-x-hidden selection:bg-emerald/30">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface/40 backdrop-blur-xl shadow-sm shadow-emerald/5 transition-all duration-300">
+<nav class="max-w-container-max mx-auto px-gutter py-4 flex justify-between items-center">
+<div class="flex items-center gap-8">
+<a class="font-display-lg text-title-md font-extrabold text-emerald dark:text-inverse-primary tracking-tighter" href="/">ZenTea</a>
+<div class="hidden md:flex gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg" href="#">Trang chủ</a>
+<a class="text-primary font-bold border-b-2 border-primary transition-colors font-body-lg" href="#">Thực đơn</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg" href="#">Tin tức</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg" href="#">Giới thiệu</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
+<input class="pl-10 pr-4 py-2 bg-white/50 border-none rounded-full focus:ring-2 focus:ring-emerald/20 text-body-sm w-48 md:w-64 transition-all" placeholder="Tìm kiếm trà sữa..." type="text"/>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all relative" id="cart-btn">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute top-1 right-1 w-4 h-4 bg-amber text-[10px] text-charcoal-black font-bold flex items-center justify-center rounded-full">2</span>
+</button>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-caps text-label-caps hover:scale-95 active:scale-90 transition-transform shadow-lg shadow-primary/10">ĐẶT HÀNG</button>
+</div>
+</nav>
+</header>
+<main class="pt-32">
+<!-- Floating Organic Background Blobs -->
+<div class="absolute top-0 right-[-10%] w-[500px] h-[500px] bg-emerald organic-blob animate-float"></div>
+<div class="absolute top-[40%] left-[-15%] w-[600px] h-[600px] bg-amber organic-blob" style="animation-delay: -2s;"></div>
+<!-- Menu Hero Section -->
+<section class="max-w-container-max mx-auto px-gutter mb-section-gap">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="font-label-caps text-label-caps text-amber mb-4 block uppercase tracking-widest">Premium Selection</span>
+<h1 class="font-display-lg text-display-lg md:text-display-lg mb-6 leading-[1.1] text-charcoal-black">Tinh hoa trà Việt,<br/><span class="text-emerald">đậm vị tự nhiên.</span></h1>
+<p class="text-on-surface-variant text-body-lg leading-relaxed">Khám phá bộ sưu tập thức uống đặc sắc từ nguồn trà hữu cơ, kết hợp hài hòa giữa truyền thống và sự phá cách hiện đại.</p>
+</div>
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Sidebar Navigation -->
+<aside class="w-full lg:w-64 flex-shrink-0">
+<div class="sticky top-32 bg-white rounded-3xl shadow-sm p-6">
+<h3 class="font-bold text-title-md text-charcoal-black mb-6">Danh mục</h3>
+<ul class="space-y-4">
+<li>
+<a class="flex items-center justify-between text-primary font-bold bg-emerald/10 px-4 py-2 rounded-xl transition-colors" href="#">
+                        Món Nổi Bật
+                        <span class="bg-primary text-white text-xs px-2 py-1 rounded-full">45</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between text-on-surface-variant hover:text-primary hover:bg-emerald/5 px-4 py-2 rounded-xl transition-colors" href="#">
+                        Trà Sữa
+                        <span class="bg-surface-container text-on-surface text-xs px-2 py-1 rounded-full">22</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between text-on-surface-variant hover:text-primary hover:bg-emerald/5 px-4 py-2 rounded-xl transition-colors" href="#">
+                        Fresh Fruit Tea
+                        <span class="bg-surface-container text-on-surface text-xs px-2 py-1 rounded-full">15</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between text-on-surface-variant hover:text-primary hover:bg-emerald/5 px-4 py-2 rounded-xl transition-colors" href="#">
+                        Macchiato Cream Cheese
+                        <span class="bg-surface-container text-on-surface text-xs px-2 py-1 rounded-full">3</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between text-on-surface-variant hover:text-primary hover:bg-emerald/5 px-4 py-2 rounded-xl transition-colors" href="#">
+                        Special Menu
+                        <span class="bg-surface-container text-on-surface text-xs px-2 py-1 rounded-full">14</span>
+</a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Products Area -->
+<div class="flex-grow">
+<!-- Filters -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+<h2 class="font-headline-lg text-title-md text-charcoal-black">Món Nổi Bật</h2>
+<div class="flex items-center gap-4 w-full md:w-auto">
+<div class="flex items-center gap-2 px-4 py-3 bg-surface-container-high rounded-xl text-body-sm text-on-surface-variant cursor-pointer group">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+<span class="font-medium">Lọc theo giá</span>
+<span class="material-symbols-outlined text-lg group-hover:translate-y-0.5 transition-transform">keyboard_arrow_down</span>
+</div>
+<div class="flex items-center gap-2 px-4 py-3 bg-surface-container-high rounded-xl text-body-sm text-on-surface-variant cursor-pointer group">
+<span class="material-symbols-outlined text-lg">sort</span>
+<span class="font-medium">Sắp xếp</span>
+<span class="material-symbols-outlined text-lg group-hover:translate-y-0.5 transition-transform">keyboard_arrow_down</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Products -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
+<!-- Product 1 -->
+<div class="product-card-hover group cursor-pointer relative bg-white rounded-[32px] p-4 shadow-sm hover:shadow-xl transition-all duration-300">
+<div class="absolute -top-3 -right-3 z-10 bg-amber text-charcoal-black font-label-caps text-[10px] px-3 py-1 rounded-full shadow-lg shadow-amber/20">NEW</div>
+<div class="bg-tea-wash rounded-3xl aspect-[4/5] mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="Xanh Nhài Mơ Mặn" class="product-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvFqOp7_XqoXS1BksaF-_LnSZR1CP6C2razOqyKL1OwHcKUz53dRa0Y3EWJa-Ewf0VcLxniOUrw6GbMRS1ASwn0PnuYlH6hQjl_5lj4xUbANEeCcTGdm2HLs2zxEes2GNupEtErPMO3W4PaGxbD4UTOMg_mrmKpdrz_tR6Wuy9xDUspq61JsVZT8l3PyHlSYnqRh-TuNR5Ha5Ogg_B47JtRtdU5qZ0kovOYfro7Y3cDzU1wiUrNkdw9VA"/>
+</div>
+<div class="text-center px-2">
+<h3 class="font-headline-lg text-body-lg font-bold text-charcoal-black mb-1 line-clamp-2">Xanh Nhài Mơ Mặn</h3>
+<div class="flex items-center justify-center gap-2 mb-4">
+<span class="text-primary font-bold text-title-md">33.000đ</span>
+</div>
+<button class="w-full py-3 bg-emerald/10 text-primary hover:bg-emerald hover:text-white rounded-xl font-label-caps text-label-caps transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">add</span> THÊM VÀO GIỎ
+                    </button>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="product-card-hover group cursor-pointer relative bg-white rounded-[32px] p-4 shadow-sm hover:shadow-xl transition-all duration-300">
+<div class="absolute -top-3 -right-3 z-10 bg-emerald text-on-primary font-label-caps text-[10px] px-3 py-1 rounded-full shadow-lg shadow-emerald/20">BEST SELLER</div>
+<div class="bg-[#FFF8E1] rounded-3xl aspect-[4/5] mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="Ô Long Dứa Băng Tuyết" class="product-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvWLr45mV8MfC8Vi58auOx5Wb9biqSslze1w_jBOWpPL7Xw-5ew0sBjy2pPZk0Cf3EP7fNMDlF29PYAPBgHa1ORcPQcE8a5zJTcCfO5h0LvIKZX5fUX1553adyisFvBll6kU53yUVHhVn5tO3m_cO-pmAEpYzUnx5Ko4LQ-duI6rB7ggxqxP4QaeLgWPtIVr-odikeDNcNkkDuRJLWvT6AEsc_QDa9lisX6MO1FjRfzPc1usOJ5X23MTQ"/>
+</div>
+<div class="text-center px-2">
+<h3 class="font-headline-lg text-body-lg font-bold text-charcoal-black mb-1 line-clamp-2">Ô Long Dứa Băng Tuyết</h3>
+<div class="flex items-center justify-center gap-2 mb-4">
+<span class="text-primary font-bold text-title-md">30.000đ</span>
+</div>
+<button class="w-full py-3 bg-emerald/10 text-primary hover:bg-emerald hover:text-white rounded-xl font-label-caps text-label-caps transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">add</span> THÊM VÀO GIỎ
+                    </button>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="product-card-hover group cursor-pointer relative bg-white rounded-[32px] p-4 shadow-sm hover:shadow-xl transition-all duration-300">
+<div class="absolute -top-3 -right-3 z-10 bg-amber text-charcoal-black font-label-caps text-[10px] px-3 py-1 rounded-full shadow-lg shadow-amber/20">NEW</div>
+<div class="bg-[#F0FDF4] rounded-3xl aspect-[4/5] mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="Xanh Nhài Matcha Tươi Kem Phô Mai" class="product-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvp46gux7fWNv1KYdINSrG9GJClA-adlfW9GvwnFdL7FGEuTfSnhGSwLe5AikZ_wSXiYhqeXhKv6Ap2MB52RO2v1E2zFTuxWwL6HsX9ktk_k_U5KZbmDXkYdhsaAnsiy1ebRjRCEeHwsi5TUZGHOauorTrhf11hLty1wummqo8H6vJvEt8povBAmaeN2XTmUUX7aJnhjHBN50L9mYLO6WhXAIZN0rG8e1wfedJ402IYw8_0JjdC1SR40Q"/>
+</div>
+<div class="text-center px-2">
+<h3 class="font-headline-lg text-body-lg font-bold text-charcoal-black mb-1 line-clamp-2">Xanh Nhài Matcha Tươi Kem Phô Mai</h3>
+<div class="flex items-center justify-center gap-2 mb-4">
+<span class="text-primary font-bold text-title-md">35.000đ</span>
+</div>
+<button class="w-full py-3 bg-emerald/10 text-primary hover:bg-emerald hover:text-white rounded-xl font-label-caps text-label-caps transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">add</span> THÊM VÀO GIỎ
+                    </button>
+</div>
+</div>
+<!-- Product 4 -->
+<div class="product-card-hover group cursor-pointer relative bg-white rounded-[32px] p-4 shadow-sm hover:shadow-xl transition-all duration-300">
+<div class="bg-tea-wash rounded-3xl aspect-[4/5] mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="Trà Sữa Hạnh Phúc" class="product-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLsk5P-glD49KnSgOsHAfa3poHpB4SstEcZF1tZUaQR6rRxhpB44PaAYk-vcvVXVf5O-V79GKAndAD6QLEuQ175-s2381TPQGUOtDQq6DjFPK5NJxGtqEh8xeoZLfa5wqabaKL2UGeHzpW1-AJEVX3c_NzoVRuaKMr6rJX1d1bpP2_sKXBAVWaJG7aqGk70aLeqT76Jx0H04LUu9MbCAnY08GFR51V_o5oGtiiFfsRkBpSfkXpHErKOq"/>
+</div>
+<div class="text-center px-2">
+<h3 class="font-headline-lg text-body-lg font-bold text-charcoal-black mb-1 line-clamp-2">Trà Sữa Hạnh Phúc</h3>
+<div class="flex items-center justify-center gap-2 mb-4">
+<span class="text-primary font-bold text-title-md">30.000đ</span>
+</div>
+<button class="w-full py-3 bg-emerald/10 text-primary hover:bg-emerald hover:text-white rounded-xl font-label-caps text-label-caps transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">add</span> THÊM VÀO GIỎ
+                    </button>
+</div>
+</div>
+<!-- Product 5 -->
+<div class="product-card-hover group cursor-pointer relative bg-white rounded-[32px] p-4 shadow-sm hover:shadow-xl transition-all duration-300">
+<div class="bg-[#FFF8E1] rounded-3xl aspect-[4/5] mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="Oolong Đào Quế Hoa Kem Cheese" class="product-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvWLr45mV8MfC8Vi58auOx5Wb9biqSslze1w_jBOWpPL7Xw-5ew0sBjy2pPZk0Cf3EP7fNMDlF29PYAPBgHa1ORcPQcE8a5zJTcCfO5h0LvIKZX5fUX1553adyisFvBll6kU53yUVHhVn5tO3m_cO-pmAEpYzUnx5Ko4LQ-duI6rB7ggxqxP4QaeLgWPtIVr-odikeDNcNkkDuRJLWvT6AEsc_QDa9lisX6MO1FjRfzPc1usOJ5X23MTQ"/>
+</div>
+<div class="text-center px-2">
+<h3 class="font-headline-lg text-body-lg font-bold text-charcoal-black mb-1 line-clamp-2">Oolong Đào Quế Hoa Kem Cheese</h3>
+<div class="flex items-center justify-center gap-2 mb-4">
+<span class="text-primary font-bold text-title-md">35.000đ</span>
+</div>
+<button class="w-full py-3 bg-emerald/10 text-primary hover:bg-emerald hover:text-white rounded-xl font-label-caps text-label-caps transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">add</span> THÊM VÀO GIỎ
+                    </button>
+</div>
+</div>
+<!-- Product 6 -->
+<div class="product-card-hover group cursor-pointer relative bg-white rounded-[32px] p-4 shadow-sm hover:shadow-xl transition-all duration-300">
+<div class="bg-[#F0FDF4] rounded-3xl aspect-[4/5] mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="Trà Sữa Trân Châu Hoàng Gia" class="product-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMazeqg4PKc5rbNUthz6bT-YEDkTnrNUk3mCc6ckgC1K_PAVkJAyMlYQ08x7AASio77-DyjWYEqhFtihKS5foCQW_d2NXQzQaS-X8JWVV2fgjBp7y-EN9rncuOxl50QjMDhXkmssHmiLmXHcXTGQzZ116KjlMNdcn8eg0sXQpW1JYmp9i9F0A1282bbqJOwYH0beV8JTPaPZ6dNJNm9Ulhue3W7dekMIAiDJT1_Kg4BQgZCJnG0Ud1lNBYEXtHimvWzgrXpjfkpA"/>
+</div>
+<div class="text-center px-2">
+<h3 class="font-headline-lg text-body-lg font-bold text-charcoal-black mb-1 line-clamp-2">Trà Sữa Trân Châu Hoàng Gia</h3>
+<div class="flex items-center justify-center gap-2 mb-4">
+<span class="text-primary font-bold text-title-md">30.000đ</span>
+</div>
+<button class="w-full py-3 bg-emerald/10 text-primary hover:bg-emerald hover:text-white rounded-xl font-label-caps text-label-caps transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">add</span> THÊM VÀO GIỎ
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Topping Highlight Section -->
+<div class="mt-section-gap p-12 bg-surface-container rounded-[48px] overflow-hidden relative">
+<div class="flex flex-col md:flex-row items-center gap-12 relative z-10">
+<div class="md:w-1/2">
+<h2 class="font-headline-lg text-headline-lg text-charcoal-black mb-6">Thế giới Topping<br/>đa dạng &amp; phong phú</h2>
+<p class="text-on-surface-variant text-body-lg mb-8 leading-relaxed">Nâng tầm ly trà của bạn với những lựa chọn topping tự làm tươi ngon mỗi ngày. Từ Trân châu sợi truyền thống đến Kem phô mai béo ngậy.</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white p-4 rounded-2xl flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-emerald/10 flex items-center justify-center text-emerald">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">fiber_manual_record</span>
+</div>
+<span class="font-bold text-charcoal-black">Trân châu đen</span>
+</div>
+<div class="bg-white p-4 rounded-2xl flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center text-amber">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cloud</span>
+</div>
+<span class="font-bold text-charcoal-black">Kem Macchiato</span>
+</div>
+</div>
+<button class="mt-10 flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all">
+                            Xem tất cả 15+ loại topping <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="md:w-1/2 grid grid-cols-2 gap-4">
+<div class="h-64 rounded-3xl overflow-hidden shadow-2xl shadow-emerald/10 transform -rotate-3" data-alt="Close-up artistic shot of glossy, dark brown tapioca pearls being poured into a creamy milk tea base. The lighting is soft and warm, capturing the texture and shine of the pearls in a premium food photography style. Organic minimalist background with cream tones." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCU8sr860AoteOnPNV0ZDoMWRez1Z7WlLdHUUjHsfILq6Bou6jsGoPiqUEFS0CwJQA-DBTKO_2LSAWjc7Tv-OHvko_sbWHrRsioaKXxb4myG60Lgwoxve9BjWiexfDNkF2Ta810DWuPK-yt5ObkpXpTp0x3kt0-EqADURdexhz_AjVdBekmUfAOKyk_pIklNgDPizn-DZg-4Tg7m7a1Vq7JjDSjPbbBOQUVNywKXkQ6LnA0SkgtSrUMUVC_qWq77R5jb0w-1MynHw')"></div>
+<div class="h-64 rounded-3xl overflow-hidden shadow-2xl shadow-amber/10 transform rotate-2 translate-y-8" data-alt="Top-down view of various colorful tea toppings in minimalist white bowls: grass jelly, golden pearls, and pudding. The shot is bright, clean, and modern with high-key lighting, maintaining a premium organic aesthetic focused on fresh ingredients." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD5diPNET0dlFIH4-wtq_UX1fzEMHYwEjZvILKuluZ8c-1ZZCYWFkRnEptDf6iQg6SCkAptExVSksje91JVY4VKvAXlk8Vx0aDqDaOcw0sgFArHyYlx_68nay3nxSx2zK5TbFTbUXQU9YHXI3vf4ppbM9Aq0GsMoBs6MWcpak7mHdsMEtxLVWj_zjqtcyjtlN-Cdvdv8YW_MdYOGK7poG9pkzdtUKjS7b4xQNik-FOmHbB39NQw_dxQy-iIiU49afstbne5eEOSBg')"></div>
+</div>
+</div>
+<!-- Subtle background leaf pattern -->
+<div class="absolute -bottom-10 -right-10 opacity-5 scale-150 transform rotate-45">
+<span class="material-symbols-outlined text-[300px]">eco</span>
+</div>
+</div>
+</section>
+<!-- Newsletter / CTA -->
+<section class="max-w-container-max mx-auto px-gutter py-section-gap">
+<div class="bg-charcoal-black text-on-primary p-12 md:p-24 rounded-[60px] text-center relative overflow-hidden">
+<div class="relative z-10 max-w-xl mx-auto">
+<h2 class="font-display-lg text-headline-lg mb-6">Đăng ký nhận ưu đãi</h2>
+<p class="text-surface-variant mb-10 text-body-lg">Đừng bỏ lỡ những hương vị mới nhất và chương trình khuyến mãi đặc quyền dành riêng cho thành viên ZenTea.</p>
+<div class="flex flex-col sm:flex-row gap-4">
+<input class="flex-grow px-8 py-4 bg-white/10 border-none rounded-full text-white placeholder:text-surface-variant focus:ring-2 focus:ring-emerald/50 transition-all outline-none" placeholder="Địa chỉ email của bạn" type="email"/>
+<button class="bg-amber text-charcoal-black font-bold px-10 py-4 rounded-full hover:scale-105 transition-transform">Gửi ngay</button>
+</div>
+</div>
+<!-- Background visual elements -->
+<div class="absolute top-0 left-0 w-full h-full opacity-20 mix-blend-overlay">
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant/30">
+<div class="w-full py-section-gap px-gutter grid grid-cols-1 md:grid-cols-4 gap-gutter max-w-container-max mx-auto">
+<div class="col-span-1 md:col-span-1">
+<a class="font-display-lg text-title-md font-extrabold text-primary mb-6 block" href="/">ZenTea</a>
+<p class="text-body-sm text-on-surface-variant mb-8 leading-relaxed">Tiên phong sử dụng nguồn nông sản Việt Nam sạch và hữu cơ để mang lại trải nghiệm trà sữa hiện đại.</p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-emerald hover:text-white transition-all" href="#"><span class="material-symbols-outlined text-lg">face_nod</span></a>
+<a class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-emerald hover:text-white transition-all" href="#"><span class="material-symbols-outlined text-lg">camera_alt</span></a>
+<a class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-emerald hover:text-white transition-all" href="#"><span class="material-symbols-outlined text-lg">play_arrow</span></a>
+</div>
+</div>
+<div class="col-span-1">
+<h4 class="font-bold text-charcoal-black mb-6">Sản phẩm</h4>
+<ul class="space-y-4 text-body-sm text-on-surface-variant">
+<li><a class="hover:text-emerald transition-colors" href="#">Trà sữa tươi</a></li>
+<li><a class="hover:text-emerald transition-colors" href="#">Trà trái cây Macchiato</a></li>
+<li><a class="hover:text-emerald transition-colors" href="#">Instant Milk Tea</a></li>
+<li><a class="hover:text-emerald transition-colors" href="#">Topping đặc biệt</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="font-bold text-charcoal-black mb-6">Hỗ trợ</h4>
+<ul class="space-y-4 text-body-sm text-on-surface-variant">
+<li><a class="hover:text-emerald transition-colors" href="#">Chính sách giao hàng</a></li>
+<li><a class="hover:text-emerald transition-colors" href="#">Chính sách bảo mật</a></li>
+<li><a class="hover:text-emerald transition-colors" href="#">Điều khoản dịch vụ</a></li>
+<li><a class="hover:text-emerald transition-colors" href="#">Liên hệ</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="font-bold text-charcoal-black mb-6">Trụ sở chính</h4>
+<address class="not-italic text-body-sm text-on-surface-variant space-y-4">
+<p>Tầng 5 tòa Tower 1, KĐT Times City, Hà Nội</p>
+<p>Hotline: 1900 6369 36</p>
+<p>Email: info@zentea.vn</p>
+</address>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-gutter py-8 border-t border-outline-variant/10 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-body-sm text-outline">© 2024 ZenTea Premium Organic. All rights reserved.</p>
+<div class="flex gap-6">
+<img alt="Payment Methods" class="h-6 grayscale opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFTy7mDGKz6XBtGluYu0RC8ENLv3oLDPrFOYvctrCq89pCUGoawETe9t2WbG6d8Ho5RBvJYrmG8Eju_mvLRfL4mfxN_eIEwd3tNUTFqoyf-jOMbRRvX4grOgn-MCDjpanjL9KvuJ0TqP5Iu9UWUEUtbiZEu6rVnJwz8RndlfN0-VPYsH-9mLD0CtXbmF2cADUJsvOTTIGXXTsmU-0PmDzName6yPTDeNwMrLpePSEULpL-isBAkLJP7bEkq5gFQKK83HNYMkVvhg"/>
+</div>
+</div>
+</footer>
+<!-- Cart Drawer Overlay -->
+<div class="fixed inset-0 bg-charcoal-black/40 backdrop-blur-sm z-[60] opacity-0 pointer-events-none transition-opacity duration-300" id="cart-backdrop"></div>
+<!-- Cart Drawer -->
+<div class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white z-[70] transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl" id="cart-drawer">
+<div class="flex items-center justify-between p-6 border-b border-surface-container">
+<h3 class="font-bold text-title-md text-charcoal-black flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald">shopping_cart</span>
+            Giỏ hàng của tôi
+        </h3>
+<div class="flex items-center gap-4">
+<button class="text-body-sm text-error hover:underline">Xóa tất cả</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" id="close-cart-btn">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<div class="flex-grow overflow-y-auto p-6 space-y-6">
+<!-- Cart Item -->
+<div class="flex gap-4">
+<div class="w-20 h-20 bg-tea-wash rounded-xl flex-shrink-0 overflow-hidden">
+<img alt="Trà sữa trân châu hoàng gia" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMazeqg4PKc5rbNUthz6bT-YEDkTnrNUk3mCc6ckgC1K_PAVkJAyMlYQ08x7AASio77-DyjWYEqhFtihKS5foCQW_d2NXQzQaS-X8JWVV2fgjBp7y-EN9rncuOxl50QjMDhXkmssHmiLmXHcXTGQzZ116KjlMNdcn8eg0sXQpW1JYmp9i9F0A1282bbqJOwYH0beV8JTPaPZ6dNJNm9Ulhue3W7dekMIAiDJT1_Kg4BQgZCJnG0Ud1lNBYEXtHimvWzgrXpjfkpA"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<h4 class="font-bold text-body-sm text-charcoal-black leading-tight mb-1">Trà sữa trân châu hoàng gia (M)</h4>
+<p class="text-[12px] text-on-surface-variant mb-2">Size M, 100% đá, 100% đường</p>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-bold text-primary text-body-sm">30.000đ</span>
+<div class="flex items-center gap-3 bg-surface-container rounded-full px-2 py-1">
+<button class="w-6 h-6 flex items-center justify-center text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[16px]">remove</span></button>
+<span class="text-body-sm font-bold">1</span>
+<button class="w-6 h-6 flex items-center justify-center text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[16px]">add</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 border-t border-surface-container bg-surface-bright">
+<div class="flex justify-between items-center mb-6">
+<span class="text-on-surface-variant font-medium">Tổng cộng:</span>
+<span class="text-title-md font-bold text-primary">30.000đ</span>
+</div>
+<button class="w-full py-4 bg-amber text-charcoal-black rounded-2xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-amber/20">
+            Thanh toán
+        </button>
+</div>
+</div>
+<!-- Scripts for micro-interactions -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const header = document.querySelector('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.classList.add('py-2', 'bg-white/80', 'shadow-md');
+                    header.classList.remove('py-4', 'bg-surface/40');
+                } else {
+                    header.classList.remove('py-2', 'bg-white/80', 'shadow-md');
+                    header.classList.add('py-4', 'bg-surface/40');
+                }
+            });
+
+            // Smooth reveal animation on scroll for product cards
+            const cards = document.querySelectorAll('.product-card-hover');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('opacity-100', 'translate-y-0');
+                            entry.target.classList.remove('opacity-0', 'translate-y-10');
+                        }, index * 100);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            cards.forEach(card => {
+                card.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-700', 'ease-out');
+                observer.observe(card);
+            });
+
+            // Cart Drawer Interactivity
+            const cartBtn = document.getElementById('cart-btn');
+            const cartBackdrop = document.getElementById('cart-backdrop');
+            const cartDrawer = document.getElementById('cart-drawer');
+            const closeCartBtn = document.getElementById('close-cart-btn');
+
+            function openCart() {
+                cartBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+                cartBackdrop.classList.add('opacity-100', 'pointer-events-auto');
+                cartDrawer.classList.remove('translate-x-full');
+                cartDrawer.classList.add('translate-x-0');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeCart() {
+                cartBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                cartBackdrop.classList.add('opacity-0', 'pointer-events-none');
+                cartDrawer.classList.remove('translate-x-0');
+                cartDrawer.classList.add('translate-x-full');
+                document.body.style.overflow = '';
+            }
+
+            if(cartBtn) cartBtn.addEventListener('click', openCart);
+            if(closeCartBtn) closeCartBtn.addEventListener('click', closeCart);
+            if(cartBackdrop) cartBackdrop.addEventListener('click', closeCart);
+        });
+    </script>
+</body></html>

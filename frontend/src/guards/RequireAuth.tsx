@@ -9,7 +9,10 @@ import {
   getSingleWorkspace,
   type WorkspaceCode,
 } from "@/common/utils/workspace";
-import { getStoredAccessToken } from "@/services/controllers/auth/tokenStorage";
+import {
+  clearStoredTokens,
+  getStoredAccessToken,
+} from "@/services/controllers/auth/tokenStorage";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/services/store";
 import store from "@/services/store";
@@ -50,6 +53,7 @@ export function RequireAuth({ allowedWorkspaces, children }: RequireAuthProps) {
         store.dispatch(setUser(user));
       })
       .catch(() => {
+        clearStoredTokens();
         store.dispatch(clearSession());
         router.replace(routes.LOGIN);
       });
