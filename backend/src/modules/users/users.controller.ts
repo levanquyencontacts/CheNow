@@ -31,6 +31,16 @@ export class UsersController {
   getProfile(@Request() request: AuthRequest) {
     return this.usersService.toProfileResponse(request.user);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('me')
+  updateMyProfile(
+    @Body() profile: UpdateProfilePayload,
+    @Request() request: AuthRequest,
+  ) {
+    return this.usersService.updateProfile(request.user.id, profile);
+  }
+
   @Get(':id')
   getProfileById(@Param('id') id: string) {
     return this.usersService.getMe(Number(id));

@@ -32,6 +32,10 @@ export class PaginationParamsDto {
   @IsOptional()
   status?: string;
 
+  @IsString()
+  @IsOptional()
+  availability?: string;
+
   @IsInt()
   @IsOptional()
   @Type(() => Number)

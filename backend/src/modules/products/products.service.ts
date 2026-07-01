@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Products } from './entity/products.entity';
 import { ProductsDto, ProductsListResponseDto } from './dto/productsDto.dto';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
 import { ProductStocks } from '../product-stocks/entities/product-stocks.entity';
+import {
+  ProductAvailability,
+  ProductStatus,
+} from '../../common/enums/common.enum';
 
 @Injectable()
 export class ProductsService {
@@ -28,6 +32,33 @@ export class ProductsService {
       });
     }
 
+    if (
+      paginationParams.status &&
+      Object.values(ProductStatus).includes(
+        paginationParams.status as ProductStatus,
+      )
+    ) {
+      queryBuilder.andWhere('product.status = :status', {
+        status: paginationParams.status,
+      });
+    }
+
+    if (paginationParams.availability === ProductAvailability.OUT_OF_STOCK) {
+      queryBuilder.andWhere('productStocks.quantity <= 0');
+    }
+
+    if (paginationParams.availability === ProductAvailability.LOW_STOCK) {
+      queryBuilder.andWhere(
+        'productStocks.quantity > 0 AND productStocks.quantity <= productStocks.minQuantity',
+      );
+    }
+
+    if (paginationParams.availability === ProductAvailability.IN_STOCK) {
+      queryBuilder.andWhere(
+        'productStocks.quantity > productStocks.minQuantity',
+      );
+    }
+
     const result = await PaginationHelper.paginate(
       queryBuilder,
       paginationParams,
@@ -37,12 +68,15 @@ export class ProductsService {
         'price',
         'imageUrl',
         'description',
+        'status',
         'createdAt',
         'updatedAt',
       ],
       'id',
       ['productName', 'description'],
     );
+    await this.hydrateProductStocks(result.items);
+
     return ResponseHelper.createPaginatedResponse(
       result,
       (product) => new ProductsListResponseDto(product),
@@ -79,13 +113,14 @@ export class ProductsService {
     if (!product) {
       return { message: 'Product not found' };
     }
+    await this.hydrateProductStocks([product]);
     return new ProductsListResponseDto(product);
   }
   async updateProduct(id: number, products: ProductsDto) {
     const { quantity, minQuantity, ...productData } = products;
     return this.dataSource.transaction(async (manager) => {
       await manager.update(Products, id, productData);
-      await manager.update(
+      const stockUpdate = await manager.update(
         ProductStocks,
         { productId: id },
         {
@@ -93,6 +128,16 @@ export class ProductsService {
           minQuantity,
         },
       );
+
+      if (!stockUpdate.affected) {
+        await manager.save(
+          manager.create(ProductStocks, {
+            productId: id,
+            quantity,
+            minQuantity,
+          }),
+        );
+      }
 
       return {
         message: 'Product updated successfully',
@@ -106,6 +151,32 @@ export class ProductsService {
       return {
         message: 'Product deleted successfully',
       };
+    });
+  }
+
+  private async hydrateProductStocks(products: Products[]): Promise<void> {
+    const productIds = products.map((product) => product.id);
+
+    if (!productIds.length) {
+      return;
+    }
+
+    const productStocks = await this.dataSource
+      .getRepository(ProductStocks)
+      .findBy({ productId: In(productIds) });
+    const stockByProductId = new Map(
+      productStocks.map((stock) => [stock.productId, stock]),
+    );
+
+    products.forEach((product) => {
+      if (product.productStocks) {
+        return;
+      }
+
+      const productStock = stockByProductId.get(product.id);
+      if (productStock) {
+        product.productStocks = productStock;
+      }
     });
   }
 }

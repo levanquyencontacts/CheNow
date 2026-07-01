@@ -32,7 +32,7 @@ export default function ProductsEditPage() {
             description: product.description ?? "",
             price: String(product.price),
             productName: product.productName,
-            status: "active",
+            status: product.status,
             quantity: product?.quantity ?? 0,
             minQuantity: product?.minQuantity ?? 0,
             imageUrl: product.imageUrl,

@@ -1,8 +1,18 @@
 import { Exclude } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Category } from '../../categories/entities/categories.entity';
 import { Products } from '../entity/products.entity';
 import { ProductStocks } from '../../product-stocks/entities/product-stocks.entity';
+import {
+  ProductAvailability,
+  ProductStatus,
+} from '../../../common/enums/common.enum';
 
 export class ProductsDto {
   @IsNumber()
@@ -21,6 +31,9 @@ export class ProductsDto {
   @IsString()
   @IsOptional()
   description: string;
+  @IsEnum(ProductStatus)
+  @IsOptional()
+  status?: ProductStatus;
   @IsNumber()
   @IsNotEmpty()
   quantity: number;
@@ -46,6 +59,8 @@ export class ProductsListResponseDto {
   @IsString()
   @IsOptional()
   description: string;
+  status: ProductStatus;
+  availability: ProductAvailability;
   categoryName?: string;
   quantity?: number;
   minQuantity?: number;
@@ -59,5 +74,24 @@ export class ProductsListResponseDto {
     this.categoryName = product.category?.categoryName;
     this.quantity = product.productStocks?.quantity;
     this.minQuantity = product.productStocks?.minQuantity;
+    this.availability = getProductAvailability(
+      this.quantity ?? 0,
+      this.minQuantity ?? 0,
+    );
   }
+}
+
+export function getProductAvailability(
+  quantity: number,
+  minQuantity: number,
+): ProductAvailability {
+  if (quantity <= 0) {
+    return ProductAvailability.OUT_OF_STOCK;
+  }
+
+  if (quantity <= minQuantity) {
+    return ProductAvailability.LOW_STOCK;
+  }
+
+  return ProductAvailability.IN_STOCK;
 }

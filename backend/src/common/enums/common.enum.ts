@@ -22,6 +22,17 @@ export enum CustomerRank {
   DIAMOND = 'diamond',
 }
 
+export enum ProductStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
+export enum ProductAvailability {
+  IN_STOCK = 'in_stock',
+  LOW_STOCK = 'low_stock',
+  OUT_OF_STOCK = 'out_of_stock',
+}
+
 export enum OrderType {
   DINE_IN = 'dine_in',
   TAKEAWAY = 'take_away',

@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Image,
+  StatusBadge,
   Table,
   TableActionCell,
   TableBody,
@@ -18,10 +19,26 @@ import {
 import { useInfiniteCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
 import { useProductsQuery } from "@/services/controllers/products/ProductsQueries";
 import { PaginationParams } from "@/services/types/apiType";
+import type { ProductAvailability } from "@/services/types/apiType";
 import { CirclePlus, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProductsFilters } from "./filter/ProductsFilters";
+
+const availabilityLabels: Record<ProductAvailability, string> = {
+  in_stock: "Còn hàng",
+  low_stock: "Sắp hết",
+  out_of_stock: "Hết hàng",
+};
+
+const availabilityVariants: Record<
+  ProductAvailability,
+  "danger" | "success" | "warning"
+> = {
+  in_stock: "success",
+  low_stock: "warning",
+  out_of_stock: "danger",
+};
 
 export default function ProductsPage() {
   const [page, setPage] = useState(1);
@@ -182,7 +199,7 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell
                       style={{
-                        width: "21%",
+                        width: "16%",
                         padding: "16px",
                         borderBottom: 0,
                         fontSize: 12,
@@ -191,6 +208,30 @@ export default function ProductsPage() {
                       }}
                     >
                       Description
+                    </TableCell>
+                    <TableCell
+                      style={{
+                        width: "10%",
+                        padding: "16px",
+                        borderBottom: 0,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#5c554c",
+                      }}
+                    >
+                      Status
+                    </TableCell>
+                    <TableCell
+                      style={{
+                        width: "10%",
+                        padding: "16px",
+                        borderBottom: 0,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#5c554c",
+                      }}
+                    >
+                      Stock
                     </TableCell>
                     <TableCell
                       style={{
@@ -236,7 +277,7 @@ export default function ProductsPage() {
                   {isLoading ? (
                     <TableRow className="h-20 bg-white/60 text-[#6f665c]">
                       <TableCell
-                        colSpan={9}
+                        colSpan={11}
                         style={{
                           padding: "16px 20px",
                           borderBottom: 0,
@@ -251,7 +292,7 @@ export default function ProductsPage() {
                   {isError ? (
                     <TableRow className="h-20 bg-white/60 text-[#b12f1d]">
                       <TableCell
-                        colSpan={9}
+                        colSpan={11}
                         style={{
                           padding: "16px 20px",
                           borderBottom: 0,
@@ -266,7 +307,7 @@ export default function ProductsPage() {
                   {!isLoading && !isError && products.length === 0 ? (
                     <TableRow className="h-20 bg-white/60 text-[#6f665c]">
                       <TableCell
-                        colSpan={9}
+                        colSpan={11}
                         style={{
                           padding: "16px 20px",
                           borderBottom: 0,
@@ -342,6 +383,35 @@ export default function ProductsPage() {
                         }}
                       >
                         {product.description || "-"}
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          padding: "16px",
+                          borderBottom: 0,
+                          color: "#183d2b",
+                        }}
+                      >
+                        <StatusBadge
+                          label={
+                            product.status === "active"
+                              ? "Đang bán"
+                              : "Ngừng bán"
+                          }
+                          status={product.status}
+                        />
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          padding: "16px",
+                          borderBottom: 0,
+                          color: "#183d2b",
+                        }}
+                      >
+                        <StatusBadge
+                          label={availabilityLabels[product.availability]}
+                          status={product.availability}
+                          variant={availabilityVariants[product.availability]}
+                        />
                       </TableCell>
                       <TableCell
                         style={{

@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chenow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chenow
+      POSTGRES_PASSWORD: chenow
+      POSTGRES_DB: chenow
+    ports:
+      - "15433:5432"
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chenow -d chenow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data-dev:
