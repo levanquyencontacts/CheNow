@@ -50,6 +50,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (status === 401 && shouldLogoutOnUnauthorized(originalRequest?.url)) {
+      handleLogout();
+      return Promise.reject(error);
+    }
+
     if (message) {
       return Promise.reject(error);
     }
@@ -81,6 +86,20 @@ function handleLogout(): void {
   if (typeof window !== "undefined") {
     window.location.href = routes.LOGIN;
   }
+}
+
+function shouldLogoutOnUnauthorized(url?: string): boolean {
+  if (!url) {
+    return true;
+  }
+
+  return ![
+    "/auth/login",
+    "/auth/register",
+    "/auth/refresh-token",
+    "/auth/forgot-password",
+    "/auth/reset-password",
+  ].some((path) => url.includes(path));
 }
 
 export default apiClient;
