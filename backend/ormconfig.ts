@@ -25,18 +25,22 @@ const dataSource = new DataSource({
   database: process.env.DB_DATABASE,
   synchronize: false,
   migrationsTableName: 'migrations',
-  entities: [
-    'src/**/*.entity{.ts,.js}',
-    'src/**/*.entities{.ts,.js}',
-    'src/modules/**/entity/*{.ts,.js}',
-    'dist/**/*.entity.js',
-    'dist/**/*.entities.js',
-    'dist/modules/**/entity/*.js',
-  ],
-  migrations: [
-    'src/database/migrations/dev/*{.ts,.js}',
-    'dist/database/migrations/dev/*.js',
-  ],
+  entities:
+    nodeEnv === 'production'
+      ? [
+          'dist/**/*.entity.js',
+          'dist/**/*.entities.js',
+          'dist/modules/**/entity/*.js',
+        ]
+      : [
+          'src/**/*.entity.ts',
+          'src/**/*.entities.ts',
+          'src/modules/**/entity/*.ts',
+        ],
+  migrations:
+    nodeEnv === 'production'
+      ? ['dist/database/migrations/dev/*.js']
+      : ['src/database/migrations/dev/*.ts'],
 });
 
 export default dataSource;

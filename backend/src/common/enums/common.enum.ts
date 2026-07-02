@@ -60,3 +60,14 @@ export enum OrderStatus {
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
 }
+
+export enum ConversationUserRole {
+  CUSTOMER = 'customer',
+  ADMIN = 'admin',
+}
+
+export enum MessageType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  FILE = 'file',
+}
