@@ -16,6 +16,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { ConversationsModule } from './modules/conversations/conversations.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CustomersModule } from './modules/customers/customers.module';
     CategorySizesModule,
     OrdersModule,
     DashboardModule,
+    ConversationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
