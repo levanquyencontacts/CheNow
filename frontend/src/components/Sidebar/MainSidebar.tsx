@@ -9,6 +9,7 @@ import {
   Grid2X2,
   LayoutDashboard,
   List,
+  MessagesSquare,
   Package,
   ShoppingBag,
   type LucideIcon,
@@ -49,6 +50,7 @@ const navSections: NavSection[] = [
     title: "Management",
     items: [
       // { href: routes.CUSTOMERS, label: "Khách hàng", icon: UsersRound },
+      { href: routes.CHAT, label: "Chat", icon: MessagesSquare, badge: 3 },
       { href: routes.REPORTS, label: "Reports", icon: BarChart3 },
       // { href: "/promotions", label: "Khuyến mãi", icon: BadgePercent },
     ],

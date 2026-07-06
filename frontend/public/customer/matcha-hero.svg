@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1000" role="img" aria-label="Matcha milk tea">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#173f2d"/>
+      <stop offset="0.52" stop-color="#2d6a4f"/>
+      <stop offset="1" stop-color="#b7df9a"/>
+    </linearGradient>
+    <linearGradient id="cup" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f7fff2"/>
+      <stop offset="0.5" stop-color="#cfeebd"/>
+      <stop offset="1" stop-color="#6da86b"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="34" stdDeviation="32" flood-color="#062315" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <rect width="1800" height="1000" fill="url(#bg)"/>
+  <circle cx="1370" cy="190" r="360" fill="#ffffff" opacity="0.13"/>
+  <circle cx="1120" cy="760" r="460" fill="#1b4332" opacity="0.3"/>
+  <path d="M0 720 C260 630 430 800 700 710 C1020 600 1220 640 1800 520 L1800 1000 L0 1000 Z" fill="#fff8e1" opacity="0.18"/>
+  <g filter="url(#shadow)" transform="translate(1030 130)">
+    <path d="M155 118 H515 L468 770 C462 850 405 900 336 900 H270 C201 900 144 850 138 770 Z" fill="url(#cup)"/>
+    <path d="M155 118 H515 L506 250 C390 315 269 315 146 248 Z" fill="#f9fff2" opacity="0.75"/>
+    <ellipse cx="335" cy="118" rx="186" ry="55" fill="#f7fff2"/>
+    <ellipse cx="335" cy="116" rx="152" ry="34" fill="#90be6d"/>
+    <path d="M230 330 C310 280 390 380 470 325 L450 604 C365 665 264 552 162 620 L146 392 C172 380 200 355 230 330 Z" fill="#2d6a4f" opacity="0.72"/>
+    <circle cx="246" cy="750" r="22" fill="#432010"/>
+    <circle cx="306" cy="790" r="24" fill="#432010"/>
+    <circle cx="376" cy="742" r="20" fill="#432010"/>
+    <path d="M300 78 L245 -56" stroke="#f5ede4" stroke-width="26" stroke-linecap="round"/>
+    <path d="M360 82 L420 -58" stroke="#f5ede4" stroke-width="26" stroke-linecap="round"/>
+  </g>
+  <g opacity="0.45">
+    <circle cx="920" cy="230" r="8" fill="#fff"/>
+    <circle cx="1580" cy="520" r="10" fill="#fff"/>
+    <circle cx="820" cy="680" r="7" fill="#fff"/>
+  </g>
+</svg>

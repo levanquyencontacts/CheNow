@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, CreditCard, MapPin, Minus, Pencil, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { SAVED_ADDRESSES, TOPPINGS } from "@/common/mocks/customerOrder";
 
 type Product = {
   id: number;
@@ -31,30 +32,6 @@ type CartItem = {
 
 const formatPrice = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
 const sizeExtra = (size: CartItem["size"]) => (size === "L" ? 7000 : 0);
-const TOPPINGS = [
-  { id: "pearl", name: "Trân châu đen", price: 7000 },
-  { id: "cheese", name: "Kem cheese", price: 10000 },
-  { id: "pudding", name: "Pudding trứng", price: 8000 },
-  { id: "aloe", name: "Nha đam", price: 6000 },
-];
-const SAVED_ADDRESSES = [
-  {
-    id: "home",
-    label: "Nhà riêng",
-    receiver: "Nguyễn Văn A",
-    phone: "0900 000 000",
-    address: "12 Hàng Bài, Hoàn Kiếm, Hà Nội",
-    isDefault: true,
-  },
-  {
-    id: "office",
-    label: "Công ty",
-    receiver: "Nguyễn Văn A",
-    phone: "0900 000 001",
-    address: "45 Xuân Thủy, Cầu Giấy, Hà Nội",
-    isDefault: false,
-  },
-];
 const readStoredCart = () => {
   if (typeof window === "undefined") return [];
 

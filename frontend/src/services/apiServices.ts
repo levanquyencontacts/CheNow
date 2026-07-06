@@ -5,6 +5,7 @@ import UserService from "./controllers/user/UserServices";
 import { FileService } from "./file/FileServices";
 import { CategoriesService } from "./controllers/categories/CategoriesService";
 import { ProductsService } from "./controllers/products/ProductsService";
+import { CustomerProductsService } from "./controllers/customer-products/CustomerProductsService";
 import { ToppingsService } from "./controllers/toppings/ToppingsService";
 import { CategorySizesService } from "./controllers/category-sizes/CategorySizesService";
 import { OrdersService } from "./controllers/orders/OrdersService";
@@ -17,6 +18,7 @@ class ApiServices {
   public user: UserService;
   public categories: CategoriesService;
   public products: ProductsService;
+  public customerProducts: CustomerProductsService;
   public toppings: ToppingsService;
   public categorySizes: CategorySizesService;
   public orders: OrdersService;
@@ -30,6 +32,7 @@ class ApiServices {
     this.user = new UserService(apiClient);
     this.categories = new CategoriesService(apiClient);
     this.products = new ProductsService(apiClient);
+    this.customerProducts = new CustomerProductsService(apiClient);
     this.toppings = new ToppingsService(apiClient);
     this.categorySizes = new CategorySizesService(apiClient);
     this.orders = new OrdersService(apiClient);

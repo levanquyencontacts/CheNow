@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1000" role="img" aria-label="Peach tea">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#432010"/>
+      <stop offset="0.5" stop-color="#b5653b"/>
+      <stop offset="1" stop-color="#f6bd60"/>
+    </linearGradient>
+    <linearGradient id="tea" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff4c2"/>
+      <stop offset="0.46" stop-color="#f4a261"/>
+      <stop offset="1" stop-color="#b5653b"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="34" stdDeviation="32" flood-color="#3a1608" flood-opacity="0.42"/>
+    </filter>
+  </defs>
+  <rect width="1800" height="1000" fill="url(#bg)"/>
+  <circle cx="1340" cy="210" r="370" fill="#fff" opacity="0.15"/>
+  <circle cx="1080" cy="800" r="480" fill="#7f5539" opacity="0.25"/>
+  <path d="M0 760 C250 600 520 780 760 640 C1050 470 1340 610 1800 460 L1800 1000 L0 1000 Z" fill="#fffaf5" opacity="0.16"/>
+  <g filter="url(#shadow)" transform="translate(1040 105)">
+    <path d="M130 145 H535 L490 795 C484 875 426 920 354 920 H292 C220 920 162 875 156 795 Z" fill="url(#tea)"/>
+    <ellipse cx="332" cy="145" rx="208" ry="58" fill="#fff4c2"/>
+    <ellipse cx="332" cy="142" rx="166" ry="36" fill="#e76f51"/>
+    <circle cx="260" cy="340" r="62" fill="#ffd166" opacity="0.95"/>
+    <circle cx="405" cy="430" r="76" fill="#f4a261" opacity="0.8"/>
+    <path d="M215 320 C330 385 390 265 485 340 L460 680 C340 610 260 710 170 650 Z" fill="#fff3b0" opacity="0.35"/>
+    <path d="M315 95 L262 -42" stroke="#fffaf5" stroke-width="25" stroke-linecap="round"/>
+    <path d="M383 96 L450 -45" stroke="#fffaf5" stroke-width="25" stroke-linecap="round"/>
+  </g>
+</svg>

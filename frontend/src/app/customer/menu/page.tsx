@@ -15,106 +15,30 @@ import {
   MapPin,
   Menu,
 } from "lucide-react";
+import { useCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
+import { useCustomerProductsQuery } from "@/services/controllers/customer-products/CustomerProductsQueries";
+import { CustomerProduct } from "@/services/types/apiType";
+import {
+  FALLBACK_PRODUCT_IMAGE,
+  MENU_CATEGORIES,
+  NAV_LINKS,
+  PRODUCT_BACKGROUNDS,
+  PRODUCTS,
+  TOPPINGS,
+} from "@/common/mocks/customerMenu";
 
-const NAV_LINKS = ["Giới thiệu", "Sản phẩm", "Khuyến mãi", "Cửa hàng", "Tin tức"];
-
-const MENU_CATEGORIES = [
-  { id: "all", name: "Tất cả", count: 45 },
-  { id: "hot", name: "Món nổi bật", count: 12 },
-  { id: "milktea", name: "Trà sữa", count: 22 },
-  { id: "fruit", name: "Trà trái cây", count: 15 },
-  { id: "macchiato", name: "Macchiato", count: 6 },
-  { id: "coffee", name: "Cà phê", count: 5 },
-];
-
-const TOPPINGS = [
-  { id: "pearl", name: "Trân châu đen", price: 7000 },
-  { id: "cheese", name: "Kem cheese", price: 10000 },
-  { id: "pudding", name: "Pudding trứng", price: 8000 },
-  { id: "aloe", name: "Nha đam", price: 6000 },
-];
-
-const PRODUCTS = [
-  {
-    id: 1,
-    categoryId: "hot",
-    name: "Xanh Nhài Mơ Mận",
-    price: 33000,
-    tag: "Mới",
-    rating: 4.8,
-    sold: 1280,
-    desc: "Trà xanh nhài ủ lạnh cùng mơ mận chua ngọt, hậu vị thanh nhẹ.",
-    image:
-      "https://lh3.googleusercontent.com/aida/AP1WRLvFqOp7_XqoXS1BksaF-_LnSZR1CP6C2razOqyKL1OwHcKUz53dRa0Y3EWJa-Ewf0VcLxniOUrw6GbMRS1ASwn0PnuYlH6hQjl_5lj4xUbANEeCcTGdm2HLs2zxEes2GNupEtErPMO3W4PaGxbD4UTOMg_mrmKpdrz_tR6Wuy9xDUspq61JsVZT8l3PyHlSYnqRh-TuNR5Ha5Ogg_B47JtRtdU5qZ0kovOYfro7Y3cDzU1wiUrNkdw9VA",
-    bg: "bg-[#eefbf3]",
-  },
-  {
-    id: 2,
-    categoryId: "fruit",
-    name: "Ô Long Dứa Băng Tuyết",
-    price: 30000,
-    tag: "Bán chạy",
-    rating: 4.9,
-    sold: 2140,
-    desc: "Ô long rang thơm, dứa tươi và lớp đá tuyết mát lạnh.",
-    image:
-      "https://lh3.googleusercontent.com/aida/AP1WRLvWLr45mV8MfC8Vi58auOx5Wb9biqSslze1w_jBOWpPL7Xw-5ew0sBjy2pPZk0Cf3EP7fNMDlF29PYAPBgHa1ORcPQcE8a5zJTcCfO5h0LvIKZX5fUX1553adyisFvBll6kU53yUVHhVn5tO3m_cO-pmAEpYzUnx5Ko4LQ-duI6rB7ggxqxP4QaeLgWPtIVr-odikeDNcNkkDuRJLWvT6AEsc_QDa9lisX6MO1FjRfzPc1usOJ5X23MTQ",
-    bg: "bg-[#fff8e1]",
-  },
-  {
-    id: 3,
-    categoryId: "macchiato",
-    name: "Xanh Nhài Matcha Tươi Kem Phô Mai",
-    price: 35000,
-    tag: "Mới",
-    rating: 4.7,
-    sold: 980,
-    desc: "Matcha tươi, nền trà xanh nhài và kem phô mai mằn mặn.",
-    image:
-      "https://lh3.googleusercontent.com/aida/AP1WRLvp46gux7fWNv1KYdINSrG9GJClA-adlfW9GvwnFdL7FGEuTfSnhGSwLe5AikZ_wSXiYhqeXhKv6Ap2MB52RO2v1E2zFTuxWwL6HsX9ktk_k_U5KZbmDXkYdhsaAnsiy1ebRjRCEeHwsi5TUZGHOauorTrhf11hLty1wummqo8H6vJvEt8povBAmaeN2XTmUUX7aJnhjHBN50L9mYLO6WhXAIZN0rG8e1wfedJ402IYw8_0JjdC1SR40Q",
-    bg: "bg-[#f0fdf4]",
-  },
-  {
-    id: 4,
-    categoryId: "milktea",
-    name: "Trà Sữa Hạnh Phúc",
-    price: 30000,
-    tag: "Ưu đãi",
-    rating: 4.6,
-    sold: 1530,
-    desc: "Trà đen đậm vị, sữa tươi béo nhẹ, dễ uống mỗi ngày.",
-    image:
-      "https://lh3.googleusercontent.com/aida/AP1WRLsk5P-glD49KnSgOsHAfa3poHpB4SstEcZF1tZUaQR6rRxhpB44PaAYk-vcvVXVf5O-V79GKAndAD6QLEuQ175-s2381TPQGUOtDQq6DjFPK5NJxGtqEh8xeoZLfa5wqabaKL2UGeHzpW1-AJEVX3c_NzoVRuaKMr6rJX1d1bpP2_sKXBAVWaJG7aqGk70aLeqT76Jx0H04LUu9MbCAnY08GFR51V_o5oGtiiFfsRkBpSfkXpHErKOq",
-    bg: "bg-[#fff4ec]",
-  },
-  {
-    id: 5,
-    categoryId: "macchiato",
-    name: "Oolong Đào Quế Hoa Kem Cheese",
-    price: 35000,
-    rating: 4.8,
-    sold: 1760,
-    desc: "Ô long đào thơm, quế hoa dịu và kem cheese phủ mịn.",
-    image:
-      "https://lh3.googleusercontent.com/aida/AP1WRLvWLr45mV8MfC8Vi58auOx5Wb9biqSslze1w_jBOWpPL7Xw-5ew0sBjy2pPZk0Cf3EP7fNMDlF29PYAPBgHa1ORcPQcE8a5zJTcCfO5h0LvIKZX5fUX1553adyisFvBll6kU53yUVHhVn5tO3m_cO-pmAEpYzUnx5Ko4LQ-duI6rB7ggxqxP4QaeLgWPtIVr-odikeDNcNkkDuRJLWvT6AEsc_QDa9lisX6MO1FjRfzPc1usOJ5X23MTQ",
-    bg: "bg-[#fff8e1]",
-  },
-  {
-    id: 6,
-    categoryId: "milktea",
-    name: "Trà Sữa Trân Châu Hoàng Gia",
-    price: 30000,
-    tag: "Bán chạy",
-    rating: 4.9,
-    sold: 2960,
-    desc: "Vị trà sữa truyền thống, trân châu dai mềm và hậu trà thơm.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCMazeqg4PKc5rbNUthz6bT-YEDkTnrNUk3mCc6ckgC1K_PAVkJAyMlYQ08x7AASio77-DyjWYEqhFtihKS5foCQW_d2NXQzQaS-X8JWVV2fgjBp7y-EN9rncuOxl50QjMDhXkmssHmiLmXHcXTGQzZ116KjlMNdcn8eg0sXQpW1JYmp9i9F0A1282bbqJOwYH0beV8JTPaPZ6dNJNm9Ulhue3W7dekMIAiDJT1_Kg4BQgZCJnG0Ud1lNBYEXtHimvWzgrXpjfkpA",
-    bg: "bg-[#f0fdf4]",
-  },
-];
-
-type Product = (typeof PRODUCTS)[number];
+type Product = {
+  id: number;
+  categoryId: number | string;
+  name: string;
+  price: number;
+  tag?: string;
+  rating: number;
+  sold: number;
+  desc: string;
+  image: string;
+  bg: string;
+};
 type Topping = (typeof TOPPINGS)[number];
 type CartItem = {
   key: string;
@@ -129,6 +53,18 @@ type CartItem = {
 
 const formatPrice = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
 const sizeExtra = (size: CartItem["size"]) => (size === "L" ? 7000 : 0);
+const toProductCard = (product: CustomerProduct, index: number): Product => ({
+  id: product.id,
+  categoryId: product.categoryId,
+  name: product.productName,
+  price: Number(product.price),
+  tag: index < 4 ? (index % 2 === 0 ? "Mới" : "Bán chạy") : undefined,
+  rating: 4.6 + (index % 4) / 10,
+  sold: 240 + product.id * 17,
+  desc: product.description || product.categoryName || "Thức uống được pha chế mỗi ngày từ nguyên liệu chọn lọc.",
+  image: product.imageUrl || FALLBACK_PRODUCT_IMAGE,
+  bg: PRODUCT_BACKGROUNDS[index % PRODUCT_BACKGROUNDS.length],
+});
 const readStoredCart = () => {
   if (typeof window === "undefined") return [];
 
@@ -154,6 +90,33 @@ export default function MenuCustomerPage() {
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
   const [activePromo, setActivePromo] = useState(0);
 
+  const categoryId = activeCategory === "all" || activeCategory === "hot" ? undefined : Number(activeCategory);
+  const productSort =
+    sortMode === "price-asc" || sortMode === "price-desc" ? "price" : sortMode === "popular" ? "id" : "productName";
+  const productOrder = sortMode === "price-asc" ? "ASC" : "DESC";
+  const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery({
+    limit: 200,
+    status: "active",
+  });
+  const {
+    data: customerProductsResponse,
+    isError: isCustomerProductsError,
+    isLoading: isCustomerProductsLoading,
+  } = useCustomerProductsQuery({
+    categoryId,
+    limit: 200,
+    order: productOrder,
+    page: 1,
+    searchValue: searchValue.trim() || undefined,
+    sort: productSort,
+  });
+
+  const apiProducts = useMemo(
+    () => customerProductsResponse?.data.map((product, index) => toProductCard(product, index)) ?? [],
+    [customerProductsResponse?.data],
+  );
+  const productsSource: Product[] = customerProductsResponse && !isCustomerProductsError ? apiProducts : PRODUCTS;
+
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
@@ -162,10 +125,10 @@ export default function MenuCustomerPage() {
 
   const filteredProducts = useMemo(() => {
     const keyword = searchValue.trim().toLowerCase();
-    const products = PRODUCTS.filter((product) => {
+    const products = productsSource.filter((product) => {
       const matchesCategory =
         activeCategory === "all" ||
-        product.categoryId === activeCategory ||
+        String(product.categoryId) === activeCategory ||
         (activeCategory === "hot" && product.tag === "Bán chạy");
       const matchesSearch =
         !keyword || product.name.toLowerCase().includes(keyword) || product.desc.toLowerCase().includes(keyword);
@@ -178,17 +141,39 @@ export default function MenuCustomerPage() {
       if (sortMode === "rating") return b.rating - a.rating;
       return b.sold - a.sold;
     });
-  }, [activeCategory, searchValue, sortMode]);
+  }, [activeCategory, productsSource, searchValue, sortMode]);
 
-  const featuredProducts = useMemo(() => PRODUCTS.filter((product) => product.tag).slice(0, 4), []);
+  const menuCategories = useMemo(() => {
+    const categories = categoriesResponse?.data ?? [];
+
+    if (!categoriesResponse) {
+      return MENU_CATEGORIES;
+    }
+
+    return [
+      { id: "all", name: "Tất cả", count: customerProductsResponse?.metadata.pagination.total ?? productsSource.length },
+      { id: "hot", name: "Món nổi bật", count: productsSource.filter((product) => product.tag).length },
+      ...categories.map((category) => ({
+        id: String(category.id),
+        name: category.categoryName,
+        count: productsSource.filter((product) => product.categoryId === category.id).length,
+      })),
+    ];
+  }, [categoriesResponse, customerProductsResponse?.metadata.pagination.total, productsSource]);
+
+  const featuredProducts = useMemo(() => productsSource.filter((product) => product.tag).slice(0, 4), [productsSource]);
 
   useEffect(() => {
+    if (featuredProducts.length <= 1) return;
+
     const timer = window.setInterval(() => {
       setActivePromo((current) => (current + 1) % featuredProducts.length);
     }, 4500);
 
     return () => window.clearInterval(timer);
   }, [featuredProducts.length]);
+
+  const activePromoIndex = featuredProducts.length > 0 ? activePromo % featuredProducts.length : 0;
 
   const currentPrice =
     (selectedProduct?.price ?? 0) +
@@ -343,14 +328,14 @@ export default function MenuCustomerPage() {
           <div className="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
             <div>
               <span className="mb-4 block text-label-caps font-bold uppercase tracking-widest text-amber">
-                CheNow Web Menu
+                Thực đơn CheNow
               </span>
               <h1 className="text-4xl font-black leading-[1.08] text-charcoal-black md:text-6xl">
-                Thực đơn dạng thẻ,
-                <span className="block text-emerald">rõ món, rõ giá.</span>
+                Chọn món yêu thích,
+                <span className="block text-emerald">đặt nhanh trong vài bước.</span>
               </h1>
               <p className="mt-5 max-w-2xl text-body-lg leading-relaxed text-on-surface-variant">
-                Giao diện web card rộng rãi hơn: ảnh món nổi bật, thông tin dễ đọc, vẫn có thêm vào giỏ và đặt hàng ngay.
+                Xem giá, chọn size, thêm topping và gửi đơn ngay trên website. CheNow sẽ chuẩn bị đồ uống sau khi đơn được xác nhận.
               </p>
             </div>
             <div className="rounded-2xl border border-[#eadfd4] bg-white p-5 shadow-sm">
@@ -359,8 +344,8 @@ export default function MenuCustomerPage() {
                   <Check size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-charcoal-black">Miễn phí giao từ 120.000đ</p>
-                  <p className="text-xs text-on-surface-variant">Dự kiến giao 25-35 phút tại Hà Nội.</p>
+                  <p className="text-sm font-bold text-charcoal-black">Freeship cho đơn từ 120.000đ</p>
+                  <p className="text-xs text-on-surface-variant">Thời gian giao dự kiến 25-35 phút tại Hà Nội.</p>
                 </div>
               </div>
               <div className="mt-5">{goToOrderButton}</div>
@@ -370,7 +355,7 @@ export default function MenuCustomerPage() {
           <div className="mb-10 overflow-hidden rounded-2xl border border-[#eadfd4] bg-white shadow-sm">
             <div
               className="flex transition-transform duration-700 ease-out"
-              style={{ transform: `translateX(-${activePromo * 100}%)` }}
+              style={{ transform: `translateX(-${activePromoIndex * 100}%)` }}
             >
               {featuredProducts.map((product) => (
                 <button
@@ -384,7 +369,7 @@ export default function MenuCustomerPage() {
                       <span className="mb-4 inline-flex rounded-full bg-amber px-3 py-1 text-[10px] font-black uppercase text-charcoal-black">
                         {product.tag}
                       </span>
-                      <p className="text-xs font-bold uppercase tracking-widest text-primary">Quảng cáo hôm nay</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-primary">Gợi ý hôm nay</p>
                       <h2 className="mt-3 max-w-xl text-3xl font-black leading-tight text-charcoal-black md:text-5xl">
                         {product.name}
                       </h2>
@@ -419,13 +404,13 @@ export default function MenuCustomerPage() {
               ))}
             </div>
             <div className="flex items-center justify-between border-t border-[#f1e6dc] px-5 py-3">
-              <p className="text-xs font-semibold text-on-surface-variant">Banner tự chạy, có thể chọn slide</p>
+              <p className="text-xs font-semibold text-on-surface-variant">Món nổi bật được cập nhật theo từng ngày</p>
               <div className="flex gap-2">
                 {featuredProducts.map((product, index) => (
                   <button
                     aria-label={`Chuyển đến banner ${product.name}`}
                     className={`h-2 rounded-full transition-all ${
-                      activePromo === index ? "w-8 bg-primary" : "w-2 bg-[#d9c8b8] hover:bg-[#bda995]"
+                      activePromoIndex === index ? "w-8 bg-primary" : "w-2 bg-[#d9c8b8] hover:bg-[#bda995]"
                     }`}
                     key={product.id}
                     onClick={() => setActivePromo(index)}
@@ -444,7 +429,7 @@ export default function MenuCustomerPage() {
                   <h2 className="mt-1 text-xl font-black text-charcoal-black">Danh mục</h2>
                 </div>
                 <div className="space-y-2">
-                  {MENU_CATEGORIES.map((category) => (
+                  {menuCategories.map((category) => (
                     <button
                       className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition-colors ${
                         activeCategory === category.id
@@ -511,9 +496,15 @@ export default function MenuCustomerPage() {
               <div className="mb-6 flex items-end justify-between gap-4">
                 <div>
                   <h2 className="text-3xl font-black text-charcoal-black">
-                    {MENU_CATEGORIES.find((category) => category.id === activeCategory)?.name}
+                    {menuCategories.find((category) => category.id === activeCategory)?.name}
                   </h2>
                   <p className="mt-1 text-sm text-on-surface-variant">{filteredProducts.length} món phù hợp</p>
+                  {(isCustomerProductsLoading || isCategoriesLoading) && (
+                    <p className="mt-1 text-xs font-semibold text-primary">Đang tải dữ liệu menu...</p>
+                  )}
+                  {isCustomerProductsError && (
+                    <p className="mt-1 text-xs font-semibold text-error">Chưa tải được API, đang hiển thị dữ liệu mẫu.</p>
+                  )}
                 </div>
                 {goToOrderButton}
               </div>
