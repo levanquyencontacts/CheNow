@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 import { Products } from './entity/products.entity';
-import { ProductsDto, ProductsListResponseDto } from './dto/productsDto.dto';
+import {
+  CustomerProductListResponseDto,
+  ProductsDto,
+  ProductsListResponseDto,
+} from './dto/productsDto.dto';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
@@ -11,6 +15,7 @@ import {
   ProductAvailability,
   ProductStatus,
 } from '../../common/enums/common.enum';
+import { CategoryStatus } from '../categories/entities/categories.entity';
 
 @Injectable()
 export class ProductsService {
@@ -82,6 +87,41 @@ export class ProductsService {
       (product) => new ProductsListResponseDto(product),
     );
   }
+
+  async findAllForCustomer(paginationParams: PaginationParamsDto) {
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.productStocks', 'productStocks')
+      .andWhere('product.status = :status', {
+        status: ProductStatus.ACTIVE,
+      })
+      .andWhere('category.status = :categoryStatus', {
+        categoryStatus: CategoryStatus.ACTIVE,
+      })
+      .andWhere('productStocks.quantity > 0');
+
+    if (paginationParams.categoryId) {
+      queryBuilder.andWhere('product.categoryId = :categoryId', {
+        categoryId: paginationParams.categoryId,
+      });
+    }
+
+    const result = await PaginationHelper.paginate(
+      queryBuilder,
+      paginationParams,
+      ['id', 'productName', 'price', 'createdAt', 'updatedAt'],
+      'id',
+      ['productName', 'description'],
+    );
+    await this.hydrateProductStocks(result.items);
+
+    return ResponseHelper.createPaginatedResponse(
+      result,
+      (product) => new CustomerProductListResponseDto(product),
+    );
+  }
+
   async createProduct(products: ProductsDto) {
     const { quantity, minQuantity, ...productData } = products;
 

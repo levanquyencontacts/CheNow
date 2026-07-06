@@ -130,6 +130,17 @@ export interface Product {
   updatedAt: string;
 }
 
+export interface CustomerProduct {
+  id: number;
+  categoryId: number;
+  categoryName?: string;
+  productName: string;
+  price: number;
+  imageUrl: string | null;
+  description: string | null;
+  availability: ProductAvailability;
+}
+
 export interface CreateProductPayload {
   categoryId: number;
   productName: string;

@@ -12,6 +12,7 @@ export const routes = {
   AI_ASSISTANT: "/ai",
   CUSTOMERS: "/admin/customer",
   REPORTS: "/admin/reports",
+  CHAT: "/admin/chat",
   SETTINGS: "/admin/settings",
   SUPPORT: "/admin/support",
   LOGIN: "/login",

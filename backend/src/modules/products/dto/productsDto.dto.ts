@@ -81,6 +81,31 @@ export class ProductsListResponseDto {
   }
 }
 
+export class CustomerProductListResponseDto {
+  id: number;
+  categoryId: number;
+  categoryName?: string;
+  productName: string;
+  price: number;
+  imageUrl: string;
+  description: string;
+  availability: ProductAvailability;
+
+  constructor(product: Products) {
+    this.id = product.id;
+    this.categoryId = product.categoryId;
+    this.categoryName = product.category?.categoryName;
+    this.productName = product.productName;
+    this.price = Number(product.price);
+    this.imageUrl = product.imageUrl;
+    this.description = product.description;
+    this.availability = getProductAvailability(
+      product.productStocks?.quantity ?? 0,
+      product.productStocks?.minQuantity ?? 0,
+    );
+  }
+}
+
 export function getProductAvailability(
   quantity: number,
   minQuantity: number,
