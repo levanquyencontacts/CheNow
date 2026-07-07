@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { io } from "socket.io-client";
 import {
   Headphones,
   MessageCircle,
@@ -12,12 +13,15 @@ import {
 
 type ChatMessage = {
   id: number;
+  roomId?: string;
   author: "customer" | "staff";
   text: string;
   time: string;
 };
 
 const quickReplies = ["Tư vấn món", "Theo dõi đơn", "Khuyến mãi hôm nay"];
+const roomId = "customer-demo-room";
+const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:3001";
 
 const initialMessages: ChatMessage[] = [
   {
@@ -32,20 +36,50 @@ export function CustomerChatWidget() {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [connected, setConnected] = useState(false);
+
+  const socket = useMemo(
+    () =>
+      io(socketUrl, {
+        autoConnect: false,
+        transports: ["websocket"],
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    socket.connect();
+
+    socket.on("connect", () => {
+      setConnected(true);
+      socket.emit("chat:join", { roomId });
+    });
+
+    socket.on("disconnect", () => {
+      setConnected(false);
+    });
+
+    socket.on("chat:new", (message: ChatMessage) => {
+      setMessages((current) => [...current, message]);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("chat:new");
+      socket.disconnect();
+    };
+  }, [socket]);
 
   const addMessage = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    setMessages((current) => [
-      ...current,
-      {
-        id: Date.now(),
-        author: "customer",
-        text: trimmed,
-        time: "Bây giờ",
-      },
-    ]);
+    socket.emit("chat:send", {
+      roomId,
+      author: "customer",
+      text: trimmed,
+    });
     setInputValue("");
   };
 
@@ -66,7 +100,7 @@ export function CustomerChatWidget() {
               <div>
                 <p className="text-sm font-black leading-none">Hỗ trợ CheNow</p>
                 <p className="mt-1 text-[11px] text-white/60">
-                  Thường phản hồi trong vài phút
+                  {connected ? "Socket đã kết nối" : "Đang kết nối socket..."}
                 </p>
               </div>
             </div>
