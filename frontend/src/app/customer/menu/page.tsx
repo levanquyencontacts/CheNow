@@ -16,15 +16,21 @@ import {
   Menu,
 } from "lucide-react";
 import { useCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
+import { useCategorySizesQuery } from "@/services/controllers/category-sizes/CategorySizesQueries";
 import { useCustomerProductsQuery } from "@/services/controllers/customer-products/CustomerProductsQueries";
-import { CustomerProduct } from "@/services/types/apiType";
+import { useToppingsQuery } from "@/services/controllers/toppings/ToppingsQueries";
+import {
+  CategorySize,
+  CustomerCartItem,
+  CustomerProduct,
+  Topping as ApiTopping,
+} from "@/services/types/apiType";
 import {
   FALLBACK_PRODUCT_IMAGE,
   MENU_CATEGORIES,
   NAV_LINKS,
   PRODUCT_BACKGROUNDS,
   PRODUCTS,
-  TOPPINGS,
 } from "@/common/mocks/customerMenu";
 
 type Product = {
@@ -39,20 +45,20 @@ type Product = {
   image: string;
   bg: string;
 };
-type Topping = (typeof TOPPINGS)[number];
-type CartItem = {
-  key: string;
-  product: Product;
-  size: "M" | "L";
-  sugar: string;
-  ice: string;
-  toppings: Topping[];
-  quantity: number;
-  linePrice: number;
+type Topping = {
+  id: number | string;
+  name: string;
+  price: number;
+};
+type SizeOption = {
+  categorySizeId?: number;
+  code: string;
+  extraPrice: number;
+  label: string;
+  value: string;
 };
 
 const formatPrice = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
-const sizeExtra = (size: CartItem["size"]) => (size === "L" ? 7000 : 0);
 const toProductCard = (product: CustomerProduct, index: number): Product => ({
   id: product.id,
   categoryId: product.categoryId,
@@ -61,15 +67,45 @@ const toProductCard = (product: CustomerProduct, index: number): Product => ({
   tag: index < 4 ? (index % 2 === 0 ? "Mới" : "Bán chạy") : undefined,
   rating: 4.6 + (index % 4) / 10,
   sold: 240 + product.id * 17,
-  desc: product.description || product.categoryName || "Thức uống được pha chế mỗi ngày từ nguyên liệu chọn lọc.",
+  desc:
+    product.description ||
+    product.categoryName ||
+    "Thức uống được pha chế mỗi ngày từ nguyên liệu chọn lọc.",
   image: product.imageUrl || FALLBACK_PRODUCT_IMAGE,
   bg: PRODUCT_BACKGROUNDS[index % PRODUCT_BACKGROUNDS.length],
+});
+const getNumericCategoryId = (product?: Product | null) => {
+  const categoryId = Number(product?.categoryId);
+  return Number.isFinite(categoryId) ? categoryId : undefined;
+};
+const toSizeOption = (
+  size: CategorySize,
+  categoryId: number,
+): SizeOption | null => {
+  const category = size.category.find((item) => item.id === categoryId);
+
+  if (!category) return null;
+
+  return {
+    categorySizeId: category.categorySizeId,
+    code: size.code,
+    extraPrice: Number(category.extraPrice ?? 0),
+    label: size.name,
+    value: String(size.id),
+  };
+};
+const toToppingOption = (topping: ApiTopping): Topping => ({
+  id: topping.id,
+  name: topping.name,
+  price: Number(topping.price ?? 0),
 });
 const readStoredCart = () => {
   if (typeof window === "undefined") return [];
 
   try {
-    return JSON.parse(window.localStorage.getItem("chenow-cart") ?? "[]") as CartItem[];
+    return JSON.parse(
+      window.localStorage.getItem("chenow-cart") ?? "[]",
+    ) as CustomerCartItem[];
   } catch {
     return [];
   }
@@ -81,23 +117,34 @@ export default function MenuCustomerPage() {
   const [searchValue, setSearchValue] = useState("");
   const [sortMode, setSortMode] = useState("popular");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [cart, setCart] = useState<CartItem[]>(readStoredCart);
+  const [cart, setCart] = useState<CustomerCartItem[]>(readStoredCart);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [size, setSize] = useState<CartItem["size"]>("M");
+  const [size, setSize] = useState("");
   const [sugar, setSugar] = useState("70%");
   const [ice, setIce] = useState("70%");
   const [quantity, setQuantity] = useState(1);
-  const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+  const [selectedToppings, setSelectedToppings] = useState<
+    Array<number | string>
+  >([]);
   const [activePromo, setActivePromo] = useState(0);
 
-  const categoryId = activeCategory === "all" || activeCategory === "hot" ? undefined : Number(activeCategory);
+  const categoryId =
+    activeCategory === "all" || activeCategory === "hot"
+      ? undefined
+      : Number(activeCategory);
+  const selectedCategoryId = getNumericCategoryId(selectedProduct);
   const productSort =
-    sortMode === "price-asc" || sortMode === "price-desc" ? "price" : sortMode === "popular" ? "id" : "productName";
+    sortMode === "price-asc" || sortMode === "price-desc"
+      ? "price"
+      : sortMode === "popular"
+        ? "id"
+        : "productName";
   const productOrder = sortMode === "price-asc" ? "ASC" : "DESC";
-  const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery({
-    limit: 200,
-    status: "active",
-  });
+  const { data: categoriesResponse, isLoading: isCategoriesLoading } =
+    useCategoriesQuery({
+      limit: 200,
+      status: "active",
+    });
   const {
     data: customerProductsResponse,
     isError: isCustomerProductsError,
@@ -110,12 +157,30 @@ export default function MenuCustomerPage() {
     searchValue: searchValue.trim() || undefined,
     sort: productSort,
   });
+  const { data: categorySizesResponse, isLoading: isCategorySizesLoading } =
+    useCategorySizesQuery({
+      categoryId: selectedCategoryId ?? -1,
+      limit: 200,
+      order: "ASC",
+    });
+  const { data: toppingsResponse, isLoading: isToppingsLoading } =
+    useToppingsQuery({
+      categoryId: selectedCategoryId ?? -1,
+      limit: 200,
+      order: "ASC",
+    });
 
   const apiProducts = useMemo(
-    () => customerProductsResponse?.data.map((product, index) => toProductCard(product, index)) ?? [],
+    () =>
+      customerProductsResponse?.data.map((product, index) =>
+        toProductCard(product, index),
+      ) ?? [],
     [customerProductsResponse?.data],
   );
-  const productsSource: Product[] = customerProductsResponse && !isCustomerProductsError ? apiProducts : PRODUCTS;
+  const productsSource: Product[] =
+    customerProductsResponse && !isCustomerProductsError
+      ? apiProducts
+      : PRODUCTS;
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -131,7 +196,9 @@ export default function MenuCustomerPage() {
         String(product.categoryId) === activeCategory ||
         (activeCategory === "hot" && product.tag === "Bán chạy");
       const matchesSearch =
-        !keyword || product.name.toLowerCase().includes(keyword) || product.desc.toLowerCase().includes(keyword);
+        !keyword ||
+        product.name.toLowerCase().includes(keyword) ||
+        product.desc.toLowerCase().includes(keyword);
       return matchesCategory && matchesSearch;
     });
 
@@ -151,17 +218,36 @@ export default function MenuCustomerPage() {
     }
 
     return [
-      { id: "all", name: "Tất cả", count: customerProductsResponse?.metadata.pagination.total ?? productsSource.length },
-      { id: "hot", name: "Món nổi bật", count: productsSource.filter((product) => product.tag).length },
+      {
+        id: "all",
+        name: "Tất cả",
+        count:
+          customerProductsResponse?.metadata.pagination.total ??
+          productsSource.length,
+      },
+      {
+        id: "hot",
+        name: "Món nổi bật",
+        count: productsSource.filter((product) => product.tag).length,
+      },
       ...categories.map((category) => ({
         id: String(category.id),
         name: category.categoryName,
-        count: productsSource.filter((product) => product.categoryId === category.id).length,
+        count: productsSource.filter(
+          (product) => product.categoryId === category.id,
+        ).length,
       })),
     ];
-  }, [categoriesResponse, customerProductsResponse?.metadata.pagination.total, productsSource]);
+  }, [
+    categoriesResponse,
+    customerProductsResponse?.metadata.pagination.total,
+    productsSource,
+  ]);
 
-  const featuredProducts = useMemo(() => productsSource.filter((product) => product.tag).slice(0, 4), [productsSource]);
+  const featuredProducts = useMemo(
+    () => productsSource.filter((product) => product.tag).slice(0, 4),
+    [productsSource],
+  );
 
   useEffect(() => {
     if (featuredProducts.length <= 1) return;
@@ -173,16 +259,36 @@ export default function MenuCustomerPage() {
     return () => window.clearInterval(timer);
   }, [featuredProducts.length]);
 
-  const activePromoIndex = featuredProducts.length > 0 ? activePromo % featuredProducts.length : 0;
+  const activePromoIndex =
+    featuredProducts.length > 0 ? activePromo % featuredProducts.length : 0;
+  const sizeOptions = useMemo(() => {
+    if (!selectedCategoryId) return [];
+
+    return (categorySizesResponse?.data ?? [])
+      .map((item) => toSizeOption(item, selectedCategoryId))
+      .filter((item): item is SizeOption => Boolean(item));
+  }, [categorySizesResponse?.data, selectedCategoryId]);
+  const toppingOptions = useMemo(
+    () => (toppingsResponse?.data ?? []).map(toToppingOption),
+    [toppingsResponse?.data],
+  );
+  const selectedSize =
+    sizeOptions.find((item) => item.value === size) ?? sizeOptions[0];
+  const selectedToppingsTotal = selectedToppings.reduce<number>(
+    (sum, id) =>
+      sum +
+      Number(toppingOptions.find((topping) => topping.id === id)?.price ?? 0),
+    0,
+  );
 
   const currentPrice =
-    (selectedProduct?.price ?? 0) +
-    sizeExtra(size) +
-    selectedToppings.reduce((sum, id) => sum + (TOPPINGS.find((topping) => topping.id === id)?.price ?? 0), 0);
+    Number(selectedProduct?.price ?? 0) +
+    Number(selectedSize?.extraPrice ?? 0) +
+    selectedToppingsTotal;
 
   const openOrderModal = (product: Product) => {
     setSelectedProduct(product);
-    setSize("M");
+    setSize("");
     setSugar("70%");
     setIce("70%");
     setQuantity(1);
@@ -190,12 +296,14 @@ export default function MenuCustomerPage() {
   };
 
   const createConfiguredItem = () => {
-    if (!selectedProduct) return null;
+    if (!selectedProduct || !selectedSize) return null;
 
-    const toppings = TOPPINGS.filter((topping) => selectedToppings.includes(topping.id));
+    const toppings = toppingOptions.filter((topping) =>
+      selectedToppings.includes(topping.id),
+    );
     const optionKey = [
       selectedProduct.id,
-      size,
+      selectedSize.value,
       sugar,
       ice,
       toppings.map((topping) => topping.id).join("-"),
@@ -204,7 +312,7 @@ export default function MenuCustomerPage() {
     return {
       key: optionKey,
       product: selectedProduct,
-      size,
+      size: selectedSize.label,
       sugar,
       ice,
       toppings,
@@ -213,11 +321,13 @@ export default function MenuCustomerPage() {
     };
   };
 
-  const mergeCartItem = (current: CartItem[], item: CartItem) => {
+  const mergeCartItem = (current: CustomerCartItem[], item: CustomerCartItem) => {
     const existing = current.find((cartItem) => cartItem.key === item.key);
     if (existing) {
       return current.map((cartItem) =>
-        cartItem.key === item.key ? { ...cartItem, quantity: cartItem.quantity + item.quantity } : cartItem,
+        cartItem.key === item.key
+          ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
+          : cartItem,
       );
     }
 
@@ -284,8 +394,12 @@ export default function MenuCustomerPage() {
               <span className="text-base font-black text-white">C</span>
             </div>
             <div>
-              <p className="text-lg font-black leading-none tracking-tight text-[#432010]">CheNow</p>
-              <p className="text-[9px] uppercase leading-none tracking-widest text-[#8c6a5a]">Đậm vị thiên nhiên</p>
+              <p className="text-lg font-black leading-none tracking-tight text-[#432010]">
+                CheNow
+              </p>
+              <p className="text-[9px] uppercase leading-none tracking-widest text-[#8c6a5a]">
+                Đậm vị thiên nhiên
+              </p>
             </div>
           </div>
 
@@ -307,7 +421,11 @@ export default function MenuCustomerPage() {
               <MapPin className="text-[#2d6a4f]" size={12} /> Hà Nội
             </button>
             {CartButton}
-            <button className="p-2 lg:hidden" onClick={() => setMenuOpen(!menuOpen)} type="button">
+            <button
+              className="p-2 lg:hidden"
+              onClick={() => setMenuOpen(!menuOpen)}
+              type="button"
+            >
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
@@ -315,7 +433,11 @@ export default function MenuCustomerPage() {
         {menuOpen && (
           <div className="flex flex-col gap-1 border-t border-[#eadfd4] bg-white px-6 py-4 lg:hidden">
             {NAV_LINKS.map((link) => (
-              <a className="border-b border-[#f5ede4] py-2 text-sm font-medium text-[#5f5148] last:border-0" href="#" key={link}>
+              <a
+                className="border-b border-[#f5ede4] py-2 text-sm font-medium text-[#5f5148] last:border-0"
+                href="#"
+                key={link}
+              >
                 {link}
               </a>
             ))}
@@ -332,10 +454,13 @@ export default function MenuCustomerPage() {
               </span>
               <h1 className="text-4xl font-black leading-[1.08] text-charcoal-black md:text-6xl">
                 Chọn món yêu thích,
-                <span className="block text-emerald">đặt nhanh trong vài bước.</span>
+                <span className="block text-emerald">
+                  đặt nhanh trong vài bước.
+                </span>
               </h1>
               <p className="mt-5 max-w-2xl text-body-lg leading-relaxed text-on-surface-variant">
-                Xem giá, chọn size, thêm topping và gửi đơn ngay trên website. CheNow sẽ chuẩn bị đồ uống sau khi đơn được xác nhận.
+                Xem giá, chọn size, thêm topping và gửi đơn ngay trên website.
+                CheNow sẽ chuẩn bị đồ uống sau khi đơn được xác nhận.
               </p>
             </div>
             <div className="rounded-2xl border border-[#eadfd4] bg-white p-5 shadow-sm">
@@ -344,8 +469,12 @@ export default function MenuCustomerPage() {
                   <Check size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-charcoal-black">Freeship cho đơn từ 120.000đ</p>
-                  <p className="text-xs text-on-surface-variant">Thời gian giao dự kiến 25-35 phút tại Hà Nội.</p>
+                  <p className="text-sm font-bold text-charcoal-black">
+                    Freeship cho đơn từ 120.000đ
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    Thời gian giao dự kiến 25-35 phút tại Hà Nội.
+                  </p>
                 </div>
               </div>
               <div className="mt-5">{goToOrderButton}</div>
@@ -369,7 +498,9 @@ export default function MenuCustomerPage() {
                       <span className="mb-4 inline-flex rounded-full bg-amber px-3 py-1 text-[10px] font-black uppercase text-charcoal-black">
                         {product.tag}
                       </span>
-                      <p className="text-xs font-bold uppercase tracking-widest text-primary">Gợi ý hôm nay</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-primary">
+                        Gợi ý hôm nay
+                      </p>
                       <h2 className="mt-3 max-w-xl text-3xl font-black leading-tight text-charcoal-black md:text-5xl">
                         {product.name}
                       </h2>
@@ -383,14 +514,17 @@ export default function MenuCustomerPage() {
                       </span>
                       <span className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#8c6a5a] shadow-sm">
                         <Star className="fill-amber text-amber" size={13} />
-                        {product.rating} · {product.sold.toLocaleString("vi-VN")} đã bán
+                        {product.rating} ·{" "}
+                        {product.sold.toLocaleString("vi-VN")} đã bán
                       </span>
                       <span className="rounded-full bg-emerald px-4 py-2 text-sm font-black text-white">
                         Chọn món
                       </span>
                     </div>
                   </div>
-                  <div className={`${product.bg} relative min-h-[260px] overflow-hidden lg:min-h-[360px]`}>
+                  <div
+                    className={`${product.bg} relative min-h-[260px] overflow-hidden lg:min-h-[360px]`}
+                  >
                     <Image
                       alt={product.name}
                       className="object-cover"
@@ -404,13 +538,17 @@ export default function MenuCustomerPage() {
               ))}
             </div>
             <div className="flex items-center justify-between border-t border-[#f1e6dc] px-5 py-3">
-              <p className="text-xs font-semibold text-on-surface-variant">Món nổi bật được cập nhật theo từng ngày</p>
+              <p className="text-xs font-semibold text-on-surface-variant">
+                Món nổi bật được cập nhật theo từng ngày
+              </p>
               <div className="flex gap-2">
                 {featuredProducts.map((product, index) => (
                   <button
                     aria-label={`Chuyển đến banner ${product.name}`}
                     className={`h-2 rounded-full transition-all ${
-                      activePromoIndex === index ? "w-8 bg-primary" : "w-2 bg-[#d9c8b8] hover:bg-[#bda995]"
+                      activePromoIndex === index
+                        ? "w-8 bg-primary"
+                        : "w-2 bg-[#d9c8b8] hover:bg-[#bda995]"
                     }`}
                     key={product.id}
                     onClick={() => setActivePromo(index)}
@@ -425,8 +563,12 @@ export default function MenuCustomerPage() {
             <aside className="lg:sticky lg:top-24 lg:self-start">
               <div className="rounded-2xl border border-[#eadfd4] bg-white p-5 shadow-sm">
                 <div className="mb-5">
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary">Lựa chọn thực đơn</p>
-                  <h2 className="mt-1 text-xl font-black text-charcoal-black">Danh mục</h2>
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary">
+                    Lựa chọn thực đơn
+                  </p>
+                  <h2 className="mt-1 text-xl font-black text-charcoal-black">
+                    Danh mục
+                  </h2>
                 </div>
                 <div className="space-y-2">
                   {menuCategories.map((category) => (
@@ -443,7 +585,9 @@ export default function MenuCustomerPage() {
                       <span>{category.name}</span>
                       <span
                         className={`rounded-full px-2 py-1 text-xs ${
-                          activeCategory === category.id ? "bg-white/20 text-white" : "bg-white text-on-surface-variant"
+                          activeCategory === category.id
+                            ? "bg-white/20 text-white"
+                            : "bg-white text-on-surface-variant"
                         }`}
                       >
                         {category.count}
@@ -452,8 +596,12 @@ export default function MenuCustomerPage() {
                   ))}
                 </div>
                 <div className="mt-5 rounded-xl bg-[#fffaf5] p-4">
-                  <p className="text-sm font-bold text-charcoal-black">Đơn hiện tại</p>
-                  <p className="mt-1 text-xs text-on-surface-variant">{cartCount} món trong giỏ</p>
+                  <p className="text-sm font-bold text-charcoal-black">
+                    Đơn hiện tại
+                  </p>
+                  <p className="mt-1 text-xs text-on-surface-variant">
+                    {cartCount} món trong giỏ
+                  </p>
                   <button
                     className="mt-3 w-full rounded-xl bg-amber px-4 py-3 text-sm font-black text-charcoal-black transition-transform hover:scale-[1.01]"
                     onClick={openCartPage}
@@ -496,14 +644,24 @@ export default function MenuCustomerPage() {
               <div className="mb-6 flex items-end justify-between gap-4">
                 <div>
                   <h2 className="text-3xl font-black text-charcoal-black">
-                    {menuCategories.find((category) => category.id === activeCategory)?.name}
+                    {
+                      menuCategories.find(
+                        (category) => category.id === activeCategory,
+                      )?.name
+                    }
                   </h2>
-                  <p className="mt-1 text-sm text-on-surface-variant">{filteredProducts.length} món phù hợp</p>
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    {filteredProducts.length} món phù hợp
+                  </p>
                   {(isCustomerProductsLoading || isCategoriesLoading) && (
-                    <p className="mt-1 text-xs font-semibold text-primary">Đang tải dữ liệu menu...</p>
+                    <p className="mt-1 text-xs font-semibold text-primary">
+                      Đang tải dữ liệu menu...
+                    </p>
                   )}
                   {isCustomerProductsError && (
-                    <p className="mt-1 text-xs font-semibold text-error">Chưa tải được API, đang hiển thị dữ liệu mẫu.</p>
+                    <p className="mt-1 text-xs font-semibold text-error">
+                      Chưa tải được API, đang hiển thị dữ liệu mẫu.
+                    </p>
                   )}
                 </div>
                 {goToOrderButton}
@@ -515,8 +673,14 @@ export default function MenuCustomerPage() {
                     className="group overflow-hidden rounded-2xl border border-[#eadfd4] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#cdb8a5] hover:shadow-xl"
                     key={product.id}
                   >
-                    <button className="block w-full text-left" onClick={() => openOrderModal(product)} type="button">
-                      <div className={`${product.bg} relative aspect-[4/3] overflow-hidden`}>
+                    <button
+                      className="block w-full text-left"
+                      onClick={() => openOrderModal(product)}
+                      type="button"
+                    >
+                      <div
+                        className={`${product.bg} relative aspect-[4/3] overflow-hidden`}
+                      >
                         <Image
                           alt={product.name}
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -541,12 +705,16 @@ export default function MenuCustomerPage() {
                       <div className="p-5">
                         <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#8c6a5a]">
                           <Star className="fill-amber text-amber" size={13} />
-                          {product.rating} <span className="text-[#c9b9ac]">|</span> Đã bán {product.sold.toLocaleString("vi-VN")}
+                          {product.rating}{" "}
+                          <span className="text-[#c9b9ac]">|</span> Đã bán{" "}
+                          {product.sold.toLocaleString("vi-VN")}
                         </div>
                         <h3 className="line-clamp-2 min-h-12 text-lg font-black leading-tight text-charcoal-black">
                           {product.name}
                         </h3>
-                        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-on-surface-variant">{product.desc}</p>
+                        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-on-surface-variant">
+                          {product.desc}
+                        </p>
                       </div>
                     </button>
                     <div className="grid grid-cols-[44px_minmax(0,1fr)] gap-2 border-t border-[#f1e6dc] p-4">
@@ -580,8 +748,12 @@ export default function MenuCustomerPage() {
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#eadfd4] bg-white p-5">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-primary">Cấu hình món</p>
-                <h3 className="text-xl font-bold text-charcoal-black">{selectedProduct.name}</h3>
+                <p className="text-xs font-bold uppercase tracking-widest text-primary">
+                  Cấu hình món
+                </p>
+                <h3 className="text-xl font-bold text-charcoal-black">
+                  {selectedProduct.name}
+                </h3>
               </div>
               <button
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container text-on-surface"
@@ -594,7 +766,9 @@ export default function MenuCustomerPage() {
 
             <div className="grid gap-6 p-5 md:grid-cols-[210px_minmax(0,1fr)]">
               <div>
-                <div className={`${selectedProduct.bg} relative aspect-square overflow-hidden rounded-2xl`}>
+                <div
+                  className={`${selectedProduct.bg} relative aspect-square overflow-hidden rounded-2xl`}
+                >
                   <Image
                     alt={selectedProduct.name}
                     className="object-cover"
@@ -604,54 +778,86 @@ export default function MenuCustomerPage() {
                     unoptimized
                   />
                 </div>
-                <p className="mt-3 text-sm leading-5 text-on-surface-variant">{selectedProduct.desc}</p>
+                <p className="mt-3 text-sm leading-5 text-on-surface-variant">
+                  {selectedProduct.desc}
+                </p>
               </div>
               <div className="space-y-5">
                 <OptionGroup
-                  active={size}
-                  items={[
-                    { label: "M", value: "M", hint: "Giá gốc" },
-                    { label: "L", value: "L", hint: "+7.000đ" },
-                  ]}
+                  active={selectedSize?.value ?? ""}
+                  items={sizeOptions.map((item) => ({
+                    label: item.label,
+                    value: item.value,
+                    hint:
+                      item.extraPrice > 0
+                        ? `+${formatPrice(item.extraPrice)}`
+                        : "Gia goc",
+                  }))}
                   label="Size"
-                  onChange={(value) => setSize(value as CartItem["size"])}
+                  onChange={setSize}
                 />
                 <OptionGroup
                   active={sugar}
-                  items={["30%", "50%", "70%", "100%"].map((value) => ({ label: value, value }))}
+                  items={["30%", "50%", "70%", "100%"].map((value) => ({
+                    label: value,
+                    value,
+                  }))}
                   label="Đường"
                   onChange={setSugar}
                 />
                 <OptionGroup
                   active={ice}
-                  items={["Ít đá", "50%", "70%", "100%"].map((value) => ({ label: value, value }))}
+                  items={["Ít đá", "50%", "70%", "100%"].map((value) => ({
+                    label: value,
+                    value,
+                  }))}
                   label="Đá"
                   onChange={setIce}
                 />
 
                 <div>
-                  <p className="mb-2 text-sm font-bold text-charcoal-black">Topping</p>
+                  <p className="mb-2 text-sm font-bold text-charcoal-black">
+                    Topping
+                  </p>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {TOPPINGS.map((topping) => {
-                      const active = selectedToppings.includes(topping.id);
-                      return (
-                        <button
-                          className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
-                            active ? "border-primary bg-emerald/10 text-primary" : "border-[#eadfd4] bg-white text-on-surface"
-                          }`}
-                          key={topping.id}
-                          onClick={() =>
-                            setSelectedToppings((current) =>
-                              active ? current.filter((id) => id !== topping.id) : [...current, topping.id],
-                            )
-                          }
-                          type="button"
-                        >
-                          <span className="font-semibold">{topping.name}</span>
-                          <span className="text-xs">{formatPrice(topping.price)}</span>
-                        </button>
-                      );
-                    })}
+                    {isToppingsLoading ? (
+                      <p className="col-span-full rounded-xl border border-[#eadfd4] bg-white px-3 py-2 text-sm text-on-surface-variant">
+                        Dang tai topping...
+                      </p>
+                    ) : toppingOptions.length === 0 ? (
+                      <p className="col-span-full rounded-xl border border-[#eadfd4] bg-white px-3 py-2 text-sm text-on-surface-variant">
+                        Danh muc nay chua co topping.
+                      </p>
+                    ) : (
+                      toppingOptions.map((topping) => {
+                        const active = selectedToppings.includes(topping.id);
+                        return (
+                          <button
+                            className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
+                              active
+                                ? "border-primary bg-emerald/10 text-primary"
+                                : "border-[#eadfd4] bg-white text-on-surface"
+                            }`}
+                            key={topping.id}
+                            onClick={() =>
+                              setSelectedToppings((current) =>
+                                active
+                                  ? current.filter((id) => id !== topping.id)
+                                  : [...current, topping.id],
+                              )
+                            }
+                            type="button"
+                          >
+                            <span className="font-semibold">
+                              {topping.name}
+                            </span>
+                            <span className="text-xs">
+                              {formatPrice(topping.price)}
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
 
@@ -659,6 +865,7 @@ export default function MenuCustomerPage() {
                   <QuantityStepper onChange={setQuantity} value={quantity} />
                   <button
                     className="flex h-12 items-center justify-center rounded-xl bg-emerald px-5 text-sm font-black text-white transition-colors hover:bg-primary"
+                    disabled={isCategorySizesLoading || !selectedSize}
                     onClick={() => addConfiguredItem(false)}
                     type="button"
                   >
@@ -666,6 +873,7 @@ export default function MenuCustomerPage() {
                   </button>
                   <button
                     className="flex h-12 items-center justify-center rounded-xl bg-amber px-5 text-sm font-black text-charcoal-black transition-transform hover:scale-[1.01] active:scale-[0.98]"
+                    disabled={isCategorySizesLoading || !selectedSize}
                     onClick={buyConfiguredItemNow}
                     type="button"
                   >
@@ -677,7 +885,6 @@ export default function MenuCustomerPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
@@ -700,14 +907,20 @@ function OptionGroup({
         {items.map((item) => (
           <button
             className={`rounded-xl border px-3 py-2 text-sm font-bold transition-colors ${
-              active === item.value ? "border-primary bg-emerald/10 text-primary" : "border-[#eadfd4] bg-white text-on-surface"
+              active === item.value
+                ? "border-primary bg-emerald/10 text-primary"
+                : "border-[#eadfd4] bg-white text-on-surface"
             }`}
             key={item.value}
             onClick={() => onChange(item.value)}
             type="button"
           >
             {item.label}
-            {item.hint && <span className="mt-1 block text-[11px] font-medium text-on-surface-variant">{item.hint}</span>}
+            {item.hint && (
+              <span className="mt-1 block text-[11px] font-medium text-on-surface-variant">
+                {item.hint}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -725,7 +938,9 @@ function QuantityStepper({
   value: number;
 }) {
   return (
-    <div className={`flex items-center rounded-full bg-surface-container ${compact ? "gap-2 px-2 py-1" : "gap-4 px-3 py-2"}`}>
+    <div
+      className={`flex items-center rounded-full bg-surface-container ${compact ? "gap-2 px-2 py-1" : "gap-4 px-3 py-2"}`}
+    >
       <button
         className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-on-surface-variant transition-colors hover:text-primary"
         onClick={() => onChange(Math.max(0, value - 1))}
@@ -756,25 +971,43 @@ function MenuFooter() {
             </div>
             <div>
               <p className="font-black">CheNow</p>
-              <p className="text-[10px] uppercase tracking-widest text-white/50">Đậm vị thiên nhiên</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/50">
+                Đậm vị thiên nhiên
+              </p>
             </div>
           </div>
           <p className="max-w-sm text-sm leading-6 text-white/60">
-            Thức uống từ trà, sữa tươi và nông sản Việt được pha chế mỗi ngày để giữ vị tự nhiên, dễ uống.
+            Thức uống từ trà, sữa tươi và nông sản Việt được pha chế mỗi ngày để
+            giữ vị tự nhiên, dễ uống.
           </p>
         </div>
         <div>
           <p className="mb-3 text-sm font-bold">Thực đơn</p>
-          {["Món nổi bật", "Trà sữa", "Trà trái cây", "Macchiato"].map((item) => (
-            <a className="block py-1 text-sm text-white/60 transition-colors hover:text-white" href="#" key={item}>
-              {item}
-            </a>
-          ))}
+          {["Món nổi bật", "Trà sữa", "Trà trái cây", "Macchiato"].map(
+            (item) => (
+              <a
+                className="block py-1 text-sm text-white/60 transition-colors hover:text-white"
+                href="#"
+                key={item}
+              >
+                {item}
+              </a>
+            ),
+          )}
         </div>
         <div>
           <p className="mb-3 text-sm font-bold">Hỗ trợ</p>
-          {["Chính sách giao hàng", "Đổi trả & hoàn tiền", "Điều khoản thành viên", "Liên hệ cửa hàng"].map((item) => (
-            <a className="block py-1 text-sm text-white/60 transition-colors hover:text-white" href="#" key={item}>
+          {[
+            "Chính sách giao hàng",
+            "Đổi trả & hoàn tiền",
+            "Điều khoản thành viên",
+            "Liên hệ cửa hàng",
+          ].map((item) => (
+            <a
+              className="block py-1 text-sm text-white/60 transition-colors hover:text-white"
+              href="#"
+              key={item}
+            >
               {item}
             </a>
           ))}
