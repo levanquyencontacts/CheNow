@@ -37,7 +37,7 @@ export class Conversation {
   lastMessage?: Message | null;
 
   @Index()
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   lastMessageAt?: Date | null;
 
   @OneToMany(
@@ -49,9 +49,9 @@ export class Conversation {
   @OneToMany(() => Message, (message) => message.conversation)
   messages: Message[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

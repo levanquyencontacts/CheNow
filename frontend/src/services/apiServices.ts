@@ -11,6 +11,7 @@ import { CategorySizesService } from "./controllers/category-sizes/CategorySizes
 import { OrdersService } from "./controllers/orders/OrdersService";
 import { AiAssistantService } from "./controllers/ai-assistant/AiAssistantService";
 import { DashboardService } from "./controllers/dashboard/DashboardService";
+import { ChatService } from "./controllers/chat/ChatService";
 
 class ApiServices {
   public auth: AuthService;
@@ -25,6 +26,7 @@ class ApiServices {
   public dashboard: DashboardService;
   public aiAssistant: AiAssistantService;
   public file: FileService;
+  public chat: ChatService;
 
   constructor() {
     this.auth = new AuthService(apiClient);
@@ -39,6 +41,7 @@ class ApiServices {
     this.dashboard = new DashboardService(apiClient);
     this.aiAssistant = new AiAssistantService(apiClient);
     this.file = new FileService(apiClient);
+    this.chat = new ChatService(apiClient);
   }
 }
 

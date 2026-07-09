@@ -1,50 +1,153 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Paper } from "@/components";
+import { useChatSocket } from "@/hooks/useChatSocket";
+import {
+  createTempChatMessage,
+  mapChatConversationResponse,
+  mapChatMessageResponse,
+  markChatMessageFailed,
+  replaceChatMessage,
+} from "@/services/controllers/chat/chatMapper";
+import {
+  ChatConversation,
+  ChatConversationResponse,
+  ChatMessage,
+  ChatMessageResponse,
+} from "@/services/types/apiType";
 import { AdminChatHeader } from "./components/AdminChatHeader";
 import { ConversationList } from "./components/ConversationList";
 import { ConversationPanel } from "./components/ConversationPanel";
 import { CustomerInfoPanel } from "./components/CustomerInfoPanel";
 import {
   conversations,
-  messages,
+  messages as initialMessages,
   quickAnswers,
 } from "./components/admin-chat.mock";
 
 export default function AdminChatPage() {
+  const [conversationItems, setConversationItems] =
+    useState<ChatConversation[]>(conversations);
+  const [conversationMessages, setConversationMessages] =
+    useState<Record<number, ChatMessage[]>>({
+      [conversations[0].id]: initialMessages,
+    });
   const [activeId, setActiveId] = useState(conversations[0].id);
   const [reply, setReply] = useState("");
   const [search, setSearch] = useState("");
+
+  const upsertConversation = useCallback((conversation: ChatConversation) => {
+    setConversationItems((current) => {
+      const withoutCurrent = current.filter((item) => item.id !== conversation.id);
+
+      return [conversation, ...withoutCurrent];
+    });
+  }, []);
+
+  const handleNewMessage = useCallback((message: ChatMessageResponse) => {
+    if (message.senderRole !== "customer") {
+      return;
+    }
+
+    setConversationMessages((current) => ({
+      ...current,
+      [message.conversationId]: [
+        ...(current[message.conversationId] ?? []),
+        mapChatMessageResponse(message),
+      ],
+    }));
+  }, []);
+
+  const handleConversationUpdated = useCallback(
+    (conversation: ChatConversationResponse) => {
+      upsertConversation(mapChatConversationResponse(conversation));
+    },
+    [upsertConversation],
+  );
+
+  const { joinConversation, sendMessage } = useChatSocket({
+    onConversationUpdated: handleConversationUpdated,
+    onNewMessage: handleNewMessage,
+  });
 
   const filteredConversations = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
     if (!keyword) {
-      return conversations;
+      return conversationItems;
     }
 
-    return conversations.filter((conversation) =>
+    return conversationItems.filter((conversation) =>
       [conversation.customer, conversation.phone, conversation.lastMessage]
         .join(" ")
         .toLowerCase()
         .includes(keyword),
     );
-  }, [search]);
+  }, [conversationItems, search]);
 
   const activeConversation = useMemo(
     () =>
-      conversations.find((conversation) => conversation.id === activeId) ??
-      conversations[0],
-    [activeId],
+      conversationItems.find((conversation) => conversation.id === activeId) ??
+      conversationItems[0],
+    [activeId, conversationItems],
   );
 
-  const handleSendReply = () => {
-    if (!reply.trim()) {
+  const activeMessages = conversationMessages[activeId] ?? [];
+
+  const handleSelectConversation = (conversationId: number) => {
+    setActiveId(conversationId);
+    void joinConversation(conversationId);
+  };
+
+  const handleSendReply = async () => {
+    const trimmed = reply.trim();
+    if (!trimmed || !activeConversation) {
       return;
     }
 
+    const tempMessage = createTempChatMessage({
+      author: "staff",
+      text: trimmed,
+    });
+
+    setConversationMessages((current) => ({
+      ...current,
+      [activeConversation.id]: [
+        ...(current[activeConversation.id] ?? []),
+        tempMessage,
+      ],
+    }));
     setReply("");
+
+    const ack = await sendMessage({
+      conversationId: activeConversation.id,
+      content: trimmed,
+      type: "text",
+    });
+
+    const data = ack.data;
+
+    if (!ack.success || !data) {
+      setConversationMessages((current) => ({
+        ...current,
+        [activeConversation.id]: markChatMessageFailed(
+          current[activeConversation.id] ?? [],
+          tempMessage.id,
+        ),
+      }));
+      return;
+    }
+
+    setConversationMessages((current) => ({
+      ...current,
+      [activeConversation.id]: replaceChatMessage(
+        current[activeConversation.id] ?? [],
+        tempMessage.id,
+        mapChatMessageResponse(data.message),
+      ),
+    }));
+    upsertConversation(mapChatConversationResponse(data.conversation));
   };
 
   return (
@@ -59,19 +162,23 @@ export default function AdminChatPage() {
           activeId={activeId}
           conversations={filteredConversations}
           onSearchChange={setSearch}
-          onSelectConversation={setActiveId}
+          onSelectConversation={handleSelectConversation}
           searchValue={search}
         />
-        <ConversationPanel
-          conversation={activeConversation}
-          messages={messages}
-          onQuickAnswer={setReply}
-          onReplyChange={setReply}
-          onSendReply={handleSendReply}
-          quickAnswers={quickAnswers}
-          reply={reply}
-        />
-        <CustomerInfoPanel conversation={activeConversation} />
+        {activeConversation ? (
+          <>
+            <ConversationPanel
+              conversation={activeConversation}
+              messages={activeMessages}
+              onQuickAnswer={setReply}
+              onReplyChange={setReply}
+              onSendReply={handleSendReply}
+              quickAnswers={quickAnswers}
+              reply={reply}
+            />
+            <CustomerInfoPanel conversation={activeConversation} />
+          </>
+        ) : null}
       </Paper>
     </div>
   );

@@ -58,12 +58,12 @@ export class Message {
   @Column({ type: 'text', nullable: true })
   content?: string | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({ type: 'timestamptz', nullable: true })
   deletedAt?: Date | null;
 }

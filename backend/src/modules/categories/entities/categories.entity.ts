@@ -44,9 +44,9 @@ export class Category {
   @OneToMany(() => CategorySizes, (categorySize) => categorySize.category)
   categorySizes: CategorySizes[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

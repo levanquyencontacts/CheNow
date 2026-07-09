@@ -45,15 +45,15 @@ export class ConversationParticipant {
   })
   participantRole: ConversationUserRole;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamptz' })
   joinedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   lastReadAt?: Date | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

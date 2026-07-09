@@ -84,10 +84,14 @@ export interface MessageResponse {
 }
 
 export type ChatAuthor = "admin" | "customer" | "staff";
+export type ChatMessageStatus = "failed" | "sending" | "sent";
+export type ChatMessageType = "file" | "image" | "text";
+export type ConversationUserRole = "admin" | "customer";
 
 export interface ChatMessage {
   id: number | string;
   author: ChatAuthor;
+  status?: ChatMessageStatus;
   text: string;
   time: string;
 }
@@ -102,6 +106,75 @@ export interface ChatConversation {
   status: string;
   orderCode: string;
   channel: string;
+}
+
+export interface ChatUserSummary {
+  id: number;
+  email: string;
+  fullName: string | null;
+  avatar: string | null;
+}
+
+export interface ChatMessageResponse {
+  id: number;
+  conversationId: number;
+  senderId: number;
+  senderRole: ConversationUserRole;
+  sender?: ChatUserSummary;
+  type: ChatMessageType;
+  content: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+export interface ChatMessageSummaryResponse {
+  id: number;
+  senderId: number;
+  senderRole: ConversationUserRole;
+  type: ChatMessageType;
+  content: string | null;
+  createdAt: string;
+}
+
+export interface ChatConversationResponse {
+  id: number;
+  title: string | null;
+  customerId?: number;
+  customer: ChatUserSummary | null;
+  lastMessage: ChatMessageResponse | ChatMessageSummaryResponse | null;
+  lastMessageAt: string | null;
+  unreadCount?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface SendChatMessagePayload {
+  conversationId?: number;
+  type?: ChatMessageType;
+  content: string;
+}
+
+export interface SendChatMessageResult {
+  message: ChatMessageResponse;
+  conversation: ChatConversationResponse;
+}
+
+export interface ChatSocketAck<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    message: string;
+    messageCode?: string;
+  };
 }
 
 export interface PaginationParams {

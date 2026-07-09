@@ -28,9 +28,9 @@ export class Role {
   @OneToMany(() => UserRole, (userRole) => userRole.role)
   userRoles: UserRole[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

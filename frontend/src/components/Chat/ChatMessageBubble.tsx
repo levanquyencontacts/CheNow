@@ -13,6 +13,7 @@ export function ChatMessageBubble({
   message,
 }: ChatMessageBubbleProps) {
   const ownMessage = isOwnChatMessage(message.author, currentUserRole);
+  const statusLabel = ownMessage ? getMessageStatusLabel(message.status) : null;
 
   return (
     <div
@@ -36,6 +37,7 @@ export function ChatMessageBubble({
           )}
         >
           {message.time}
+          {statusLabel ? ` · ${statusLabel}` : null}
         </p>
       </div>
     </div>
@@ -50,4 +52,20 @@ function isOwnChatMessage(author: ChatAuthor, currentUserRole: ChatAuthor) {
   const staffRoles: ChatAuthor[] = ["admin", "staff"];
 
   return staffRoles.includes(author) && staffRoles.includes(currentUserRole);
+}
+
+function getMessageStatusLabel(status: ChatMessage["status"]) {
+  if (status === "sending") {
+    return "Đang gửi...";
+  }
+
+  if (status === "failed") {
+    return "Gửi thất bại";
+  }
+
+  if (status === "sent") {
+    return "Đã gửi";
+  }
+
+  return null;
 }

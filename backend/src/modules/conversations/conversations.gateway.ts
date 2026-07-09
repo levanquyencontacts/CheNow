@@ -111,29 +111,33 @@ export class ConversationsGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() body: SendConversationMessageDto,
   ) {
-    const user = this.getCurrentUser(client);
-    const result = await this.conversationsService.sendMessage(user, body);
-    const conversationId = result.message.conversationId;
-    const room = this.conversationRoom(conversationId);
+    try {
+      const user = this.getCurrentUser(client);
+      const result = await this.conversationsService.sendMessage(user, body);
+      const conversationId = result.message.conversationId;
+      const room = this.conversationRoom(conversationId);
 
-    await client.join(room);
+      await client.join(room);
 
-    client.to(room).emit('message:new', result.message);
+      client.to(room).emit('message:new', result.message);
 
-    const audience =
-      await this.conversationsService.getConversationAudience(conversationId);
-    const rooms = audience.userIds.map((userId) => this.userRoom(userId));
+      const audience =
+        await this.conversationsService.getConversationAudience(conversationId);
+      const rooms = audience.userIds.map((userId) => this.userRoom(userId));
 
-    if (audience.notifyAdmins) {
-      rooms.push(this.adminRoom());
+      if (audience.notifyAdmins) {
+        rooms.push(this.adminRoom());
+      }
+
+      this.server.to(rooms).emit('conversation:updated', result.conversation);
+
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error) {
+      return this.toSocketErrorAck(error);
     }
-
-    this.server.to(rooms).emit('conversation:updated', result.conversation);
-
-    return {
-      success: true,
-      data: result,
-    };
   }
 
   @SubscribeMessage('message:read')
@@ -236,5 +240,39 @@ export class ConversationsGateway
 
   private conversationRoom(conversationId: number) {
     return `conversation:${conversationId}`;
+  }
+
+  private toSocketErrorAck(error: unknown) {
+    const response =
+      typeof error === 'object' && error !== null && 'getResponse' in error
+        ? (error as { getResponse: () => unknown }).getResponse()
+        : undefined;
+
+    if (typeof response === 'object' && response !== null) {
+      const message =
+        'message' in response && typeof response.message === 'string'
+          ? response.message
+          : 'Socket request failed';
+      const messageCode =
+        'messageCode' in response && typeof response.messageCode === 'string'
+          ? response.messageCode
+          : undefined;
+
+      return {
+        success: false,
+        error: {
+          message,
+          messageCode,
+        },
+      };
+    }
+
+    return {
+      success: false,
+      error: {
+        message:
+          error instanceof Error ? error.message : 'Socket request failed',
+      },
+    };
   }
 }
