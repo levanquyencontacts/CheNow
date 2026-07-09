@@ -11,7 +11,6 @@ export class AddConversation1783146456297 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "conversations" ("id" SERIAL NOT NULL, "customerId" integer NOT NULL, "title" character varying, "lastMessageId" integer, "lastMessageAt" TIMESTAMP, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_ee34f4f7ced4ec8681f26bf04ef" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE UNIQUE INDEX "IDX_5a4866f304edf4591ad785d34a" ON "conversations" ("customerId") `);
         await queryRunner.query(`CREATE INDEX "IDX_b853c3320df7cf06b7bfa413c8" ON "conversations" ("lastMessageAt") `);
-        await queryRunner.query(`CREATE TYPE "public"."conversation_user_role_enum" AS ENUM('customer', 'admin')`);
         await queryRunner.query(`CREATE TYPE "public"."message_type_enum" AS ENUM('text', 'image', 'file')`);
         await queryRunner.query(`CREATE TABLE "messages" ("id" SERIAL NOT NULL, "conversationId" integer NOT NULL, "senderId" integer NOT NULL, "senderRole" "public"."conversation_user_role_enum" NOT NULL, "type" "public"."message_type_enum" NOT NULL DEFAULT 'text', "content" text, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "deletedAt" TIMESTAMP, CONSTRAINT "PK_18325f38ae6de43878487eff986" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_2db9cf2b3ca111742793f6c37c" ON "messages" ("senderId") `);
@@ -47,7 +46,6 @@ export class AddConversation1783146456297 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX "public"."IDX_2db9cf2b3ca111742793f6c37c"`);
         await queryRunner.query(`DROP TABLE "messages"`);
         await queryRunner.query(`DROP TYPE "public"."message_type_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."conversation_user_role_enum"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_b853c3320df7cf06b7bfa413c8"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_5a4866f304edf4591ad785d34a"`);
         await queryRunner.query(`DROP TABLE "conversations"`);

@@ -83,6 +83,27 @@ export interface MessageResponse {
   message: string;
 }
 
+export type ChatAuthor = "admin" | "customer" | "staff";
+
+export interface ChatMessage {
+  id: number | string;
+  author: ChatAuthor;
+  text: string;
+  time: string;
+}
+
+export interface ChatConversation {
+  id: number;
+  customer: string;
+  phone: string;
+  lastMessage: string;
+  time: string;
+  unread: number;
+  status: string;
+  orderCode: string;
+  channel: string;
+}
+
 export interface PaginationParams {
   categoryId?: number;
   categoryIds?: number;

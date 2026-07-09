@@ -22,7 +22,6 @@ import { Users } from '../users/users.entities';
 import {
   ConversationPaginationDto,
   SendConversationMessageDto,
-  SendCustomerMessageDto,
 } from './dto/conversations.dto';
 import { ConversationParticipant } from './entities/conversation-participant.entity';
 import { Conversation } from './entities/conversation.entity';
@@ -35,6 +34,8 @@ export class ConversationsService {
     private readonly conversationsRepository: Repository<Conversation>,
     @InjectRepository(Message)
     private readonly messagesRepository: Repository<Message>,
+    @InjectRepository(ConversationParticipant)
+    private readonly participantsRepository: Repository<ConversationParticipant>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -115,58 +116,14 @@ export class ConversationsService {
     };
   }
 
-  async sendCustomerMessage(currentUser: Users, body: SendCustomerMessageDto) {
+  async sendMessage(currentUser: Users, body: SendConversationMessageDto) {
     this.validateMessageBody(body.type, body.content);
 
     return this.dataSource.transaction(async (manager) => {
-      await this.ensureUserHasRole(manager, currentUser.id, RoleCode.CUSTOMER);
+      const conversation = body.conversationId
+        ? await this.ensureConversation(body.conversationId, manager)
+        : await this.findOrCreateCustomerConversation(manager, currentUser);
 
-      let conversation = await manager.findOne(Conversation, {
-        where: { customerId: currentUser.id },
-      });
-
-      if (!conversation) {
-        conversation = manager.create(Conversation, {
-          customerId: currentUser.id,
-        });
-        conversation = await manager.save(Conversation, conversation);
-      }
-
-      await this.ensureParticipant(
-        manager,
-        conversation.id,
-        currentUser.id,
-        ConversationUserRole.CUSTOMER,
-      );
-
-      await this.createMessage(manager, conversation.id, {
-        senderId: currentUser.id,
-        senderRole: ConversationUserRole.CUSTOMER,
-        type: body.type ?? MessageType.TEXT,
-        content: body.content,
-      });
-
-      const latestConversation = await this.findConversationWithLatestData(
-        manager,
-        conversation.id,
-      );
-
-      return this.toConversationResponse(latestConversation);
-    });
-  }
-
-  async sendMessage(
-    conversationId: number,
-    currentUser: Users,
-    body: SendConversationMessageDto,
-  ) {
-    this.validateMessageBody(body.type, body.content);
-
-    return this.dataSource.transaction(async (manager) => {
-      const conversation = await this.ensureConversation(
-        conversationId,
-        manager,
-      );
       const senderRole = await this.resolveSenderRole(
         manager,
         conversation,
@@ -180,7 +137,7 @@ export class ConversationsService {
         senderRole,
       );
 
-      await this.createMessage(manager, conversation.id, {
+      const message = await this.createMessage(manager, conversation.id, {
         senderId: currentUser.id,
         senderRole,
         type: body.type ?? MessageType.TEXT,
@@ -192,8 +149,79 @@ export class ConversationsService {
         conversation.id,
       );
 
-      return this.toConversationResponse(latestConversation);
+      return {
+        message: this.toMessageResponse(message),
+        conversation: this.toConversationResponse(latestConversation),
+      };
     });
+  }
+
+  async joinConversation(conversationId: number, currentUser: Users) {
+    const conversation = await this.ensureConversation(conversationId);
+    this.ensureCanViewConversation(conversation, currentUser);
+
+    const senderRole = await this.resolveSenderRole(
+      this.dataSource.manager,
+      conversation,
+      currentUser.id,
+    );
+
+    await this.ensureParticipant(
+      this.dataSource.manager,
+      conversation.id,
+      currentUser.id,
+      senderRole,
+    );
+
+    return this.findById(conversation.id, currentUser);
+  }
+
+  async markAsRead(conversationId: number, currentUser: Users) {
+    const conversation = await this.ensureConversation(conversationId);
+    this.ensureCanViewConversation(conversation, currentUser);
+
+    const senderRole = await this.resolveSenderRole(
+      this.dataSource.manager,
+      conversation,
+      currentUser.id,
+    );
+
+    const participant = await this.ensureParticipant(
+      this.dataSource.manager,
+      conversation.id,
+      currentUser.id,
+      senderRole,
+    );
+
+    const lastReadAt = new Date();
+    await this.participantsRepository.update(participant.id, { lastReadAt });
+
+    return {
+      conversationId,
+      userId: currentUser.id,
+      lastReadAt,
+    };
+  }
+
+  async getConversationAudience(conversationId: number) {
+    const conversation = await this.conversationsRepository.findOne({
+      where: { id: conversationId },
+      relations: ['participants'],
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    const userIds = new Set<number>([conversation.customerId]);
+    conversation.participants?.forEach((participant) => {
+      userIds.add(participant.userId);
+    });
+
+    return {
+      userIds: [...userIds],
+      notifyAdmins: true,
+    };
   }
 
   async updateTitle(conversationId: number, currentUser: Users, title: string) {
@@ -225,7 +253,32 @@ export class ConversationsService {
       lastMessageAt: savedMessage.createdAt,
     });
 
-    return savedMessage;
+    const messageWithSender = await manager.findOne(Message, {
+      where: { id: savedMessage.id },
+      relations: ['sender'],
+    });
+
+    return messageWithSender ?? savedMessage;
+  }
+
+  private async findOrCreateCustomerConversation(
+    manager: EntityManager,
+    currentUser: Users,
+  ) {
+    await this.ensureUserHasRole(manager, currentUser.id, RoleCode.CUSTOMER);
+
+    let conversation = await manager.findOne(Conversation, {
+      where: { customerId: currentUser.id },
+    });
+
+    if (!conversation) {
+      conversation = manager.create(Conversation, {
+        customerId: currentUser.id,
+      });
+      conversation = await manager.save(Conversation, conversation);
+    }
+
+    return conversation;
   }
 
   private async ensureConversation(

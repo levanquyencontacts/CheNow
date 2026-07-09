@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -25,17 +26,13 @@ export class ConversationPaginationDto {
   limit?: number = 10;
 }
 
-export class SendCustomerMessageDto {
-  @IsEnum(MessageType)
-  @IsOptional()
-  type?: MessageType = MessageType.TEXT;
-
-  @IsString()
-  @IsOptional()
-  content?: string;
-}
-
 export class SendConversationMessageDto {
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  @Type(() => Number)
+  conversationId?: number;
+
   @IsEnum(MessageType)
   @IsOptional()
   type?: MessageType = MessageType.TEXT;
@@ -49,4 +46,21 @@ export class UpdateConversationTitleDto {
   @IsString()
   @IsNotEmpty()
   title: string;
+}
+
+export class JoinConversationDto {
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  conversationId: number;
+}
+
+export class LeaveConversationDto extends JoinConversationDto {}
+
+export class ReadConversationDto extends JoinConversationDto {}
+
+export class TypingConversationDto extends JoinConversationDto {
+  @IsBoolean()
+  @IsOptional()
+  isTyping?: boolean;
 }

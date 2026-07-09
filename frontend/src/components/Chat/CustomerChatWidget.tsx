@@ -1,21 +1,17 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import {
   Headphones,
   MessageCircle,
   Minimize2,
-  Send,
   Sparkles,
   X,
 } from "lucide-react";
-
-type ChatMessage = {
-  id: number;
-  author: "customer" | "staff";
-  text: string;
-  time: string;
-};
+import { ChatMessage } from "@/services/types/apiType";
+import { ChatComposer } from "./ChatComposer";
+import { ChatMessageList } from "./ChatMessageList";
+import { ChatQuickReplies } from "./ChatQuickReplies";
 
 const quickReplies = ["Tư vấn món", "Theo dõi đơn", "Khuyến mãi hôm nay"];
 
@@ -49,11 +45,6 @@ export function CustomerChatWidget() {
     setInputValue("");
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    addMessage(inputValue);
-  };
-
   return (
     <div className="fixed bottom-5 right-5 z-[90]">
       {open ? (
@@ -64,7 +55,9 @@ export function CustomerChatWidget() {
                 <Headphones size={18} />
               </div>
               <div>
-                <p className="text-sm font-black leading-none">Hỗ trợ CheNow</p>
+                <p className="text-sm font-black leading-none">
+                  Hỗ trợ CheNow
+                </p>
                 <p className="mt-1 text-[11px] text-white/60">
                   Thường phản hồi trong vài phút
                 </p>
@@ -90,66 +83,29 @@ export function CustomerChatWidget() {
             </div>
           </header>
 
-          <div className="max-h-[360px] space-y-3 overflow-y-auto bg-[#fffaf5] px-4 py-4">
-            <div className="rounded-xl bg-[#eef7ef] px-3 py-2 text-xs font-semibold text-[#315d3b]">
-              <Sparkles className="mr-1 inline-block" size={13} />
-              Bạn có thể hỏi về món, topping, phí giao hàng hoặc đơn hiện tại.
-            </div>
-            {messages.map((message) => (
-              <div
-                className={`flex ${message.author === "customer" ? "justify-end" : "justify-start"}`}
-                key={message.id}
-              >
-                <div
-                  className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                    message.author === "customer"
-                      ? "bg-[#2d6a4f] text-white"
-                      : "bg-white text-[#432010]"
-                  }`}
-                >
-                  <p>{message.text}</p>
-                  <p
-                    className={`mt-1 text-[10px] ${
-                      message.author === "customer"
-                        ? "text-white/60"
-                        : "text-[#9a8170]"
-                    }`}
-                  >
-                    {message.time}
-                  </p>
-                </div>
+          <ChatMessageList
+            className="max-h-[360px]"
+            currentUserRole="customer"
+            messages={messages}
+            notice={
+              <div className="rounded-xl bg-[#eef7ef] px-3 py-2 text-xs font-semibold text-[#315d3b]">
+                <Sparkles className="mr-1 inline-block" size={13} />
+                Bạn có thể hỏi về món, topping, phí giao hàng hoặc đơn hiện tại.
               </div>
-            ))}
-          </div>
+            }
+          />
 
           <div className="border-t border-[#eadfd4] bg-white p-3">
-            <div className="mb-3 flex flex-wrap gap-2">
-              {quickReplies.map((reply) => (
-                <button
-                  className="rounded-full border border-[#eadfd4] px-3 py-1 text-xs font-bold text-[#5f5148] hover:border-[#2d6a4f] hover:text-[#2d6a4f]"
-                  key={reply}
-                  onClick={() => addMessage(reply)}
-                  type="button"
-                >
-                  {reply}
-                </button>
-              ))}
-            </div>
-            <form className="flex gap-2" onSubmit={handleSubmit}>
-              <input
-                className="min-w-0 flex-1 rounded-xl border border-[#eadfd4] bg-[#fffaf5] px-3 text-sm text-[#432010] outline-none focus:border-[#2d6a4f]"
-                onChange={(event) => setInputValue(event.target.value)}
-                placeholder="Nhập tin nhắn..."
-                value={inputValue}
-              />
-              <button
-                aria-label="Gửi tin nhắn"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2d6a4f] text-white hover:bg-[#1b4332]"
-                type="submit"
-              >
-                <Send size={17} />
-              </button>
-            </form>
+            <ChatQuickReplies
+              className="mb-3"
+              items={quickReplies}
+              onSelect={addMessage}
+            />
+            <ChatComposer
+              onChange={setInputValue}
+              onSubmit={() => addMessage(inputValue)}
+              value={inputValue}
+            />
           </div>
         </section>
       ) : (

@@ -4,15 +4,12 @@ import {
   Get,
   Param,
   Patch,
-  Post,
   Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import {
   ConversationPaginationDto,
-  SendConversationMessageDto,
-  SendCustomerMessageDto,
   UpdateConversationTitleDto,
 } from './dto/conversations.dto';
 import { ConversationsService } from './conversations.service';
@@ -51,27 +48,6 @@ export class ConversationsController {
       Number(id),
       query,
       request.user,
-    );
-  }
-
-  @Post('customer-message')
-  sendCustomerMessage(
-    @Body() body: SendCustomerMessageDto,
-    @Request() request: AuthRequest,
-  ) {
-    return this.conversationsService.sendCustomerMessage(request.user, body);
-  }
-
-  @Post(':id/messages')
-  sendMessage(
-    @Param('id') id: string,
-    @Body() body: SendConversationMessageDto,
-    @Request() request: AuthRequest,
-  ) {
-    return this.conversationsService.sendMessage(
-      Number(id),
-      request.user,
-      body,
     );
   }
 
