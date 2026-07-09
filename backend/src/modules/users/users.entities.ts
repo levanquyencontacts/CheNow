@@ -43,9 +43,9 @@ export class Users {
   @OneToOne(() => CustomerProfile, (customerProfile) => customerProfile.user)
   customerProfile?: CustomerProfile;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

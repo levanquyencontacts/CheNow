@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Headphones,
   MessageCircle,
@@ -8,41 +8,137 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { ChatMessage } from "@/services/types/apiType";
+import { useChatSocket } from "@/hooks/useChatSocket";
+import {
+  useChatMessagesQuery,
+  useCustomerChatConversationQuery,
+} from "@/services/controllers/chat/ChatQueries";
+import {
+  createTempChatMessage,
+  mapChatMessageResponse,
+  markChatMessageFailed,
+  replaceChatMessage,
+} from "@/services/controllers/chat/chatMapper";
+import { ChatMessage, ChatMessageResponse } from "@/services/types/apiType";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatQuickReplies } from "./ChatQuickReplies";
 
 const quickReplies = ["Tư vấn món", "Theo dõi đơn", "Khuyến mãi hôm nay"];
 
-const initialMessages: ChatMessage[] = [
-  {
-    id: 1,
-    author: "staff",
-    text: "CheNow xin chào. Bạn cần tư vấn món, kiểm tra đơn hay hỏi khuyến mãi?",
-    time: "Vừa xong",
-  },
-];
+const greetingMessage: ChatMessage = {
+  id: "greeting",
+  author: "staff",
+  status: "sent",
+  text: "CheNow xin chào. Bạn cần tư vấn món, kiểm tra đơn hay hỏi khuyến mãi?",
+  time: "Vừa xong",
+};
 
 export function CustomerChatWidget() {
+  const [conversationId, setConversationId] = useState<number | undefined>();
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([greetingMessage]);
+  const conversationQuery = useCustomerChatConversationQuery(
+    { limit: 1, page: 1 },
+    open,
+  );
+  const currentConversation = conversationQuery.data?.data[0];
+  const messagesQuery = useChatMessagesQuery(
+    currentConversation?.id,
+    { limit: 100, page: 1 },
+    open,
+  );
+  const loadingHistory = conversationQuery.isLoading || messagesQuery.isLoading;
 
-  const addMessage = (text: string) => {
+  const handleNewMessage = useCallback(
+    (message: ChatMessageResponse) => {
+      if (conversationId && message.conversationId !== conversationId) {
+        return;
+      }
+
+      if (message.senderRole === "customer") {
+        return;
+      }
+
+      setMessages((current) => [...current, mapChatMessageResponse(message)]);
+    },
+    [conversationId],
+  );
+
+  const { joinConversation, sendMessage } = useChatSocket({
+    enabled: open,
+    onNewMessage: handleNewMessage,
+  });
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    window.queueMicrotask(() => {
+      if (!currentConversation) {
+        setConversationId(undefined);
+        setMessages([greetingMessage]);
+        return;
+      }
+
+      setConversationId(currentConversation.id);
+      void joinConversation(currentConversation.id);
+    });
+  }, [currentConversation, joinConversation, open]);
+
+  useEffect(() => {
+    if (!open || messagesQuery.isLoading) {
+      return;
+    }
+
+    const loadedMessages = messagesQuery.data?.data ?? [];
+
+    window.queueMicrotask(() => {
+      setMessages(
+        loadedMessages.length
+          ? loadedMessages.map(mapChatMessageResponse)
+          : [greetingMessage],
+      );
+    });
+  }, [messagesQuery.data?.data, messagesQuery.isLoading, open]);
+
+  const sendCustomerMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    setMessages((current) => [
-      ...current,
-      {
-        id: Date.now(),
-        author: "customer",
-        text: trimmed,
-        time: "Bây giờ",
-      },
-    ]);
+    const tempMessage = createTempChatMessage({
+      author: "customer",
+      text: trimmed,
+    });
+
+    setMessages((current) => [...current, tempMessage]);
     setInputValue("");
+
+    const ack = await sendMessage({
+      conversationId,
+      content: trimmed,
+      type: "text",
+    });
+
+    const data = ack.data;
+
+    if (!ack.success || !data) {
+      console.warn("Customer chat message failed", ack.error);
+      setMessages((current) => markChatMessageFailed(current, tempMessage.id));
+      return;
+    }
+
+    setConversationId(data.message.conversationId);
+    void joinConversation(data.message.conversationId);
+    setMessages((current) =>
+      replaceChatMessage(
+        current,
+        tempMessage.id,
+        mapChatMessageResponse(data.message),
+      ),
+    );
   };
 
   return (
@@ -55,9 +151,7 @@ export function CustomerChatWidget() {
                 <Headphones size={18} />
               </div>
               <div>
-                <p className="text-sm font-black leading-none">
-                  Hỗ trợ CheNow
-                </p>
+                <p className="text-sm font-black leading-none">Hỗ trợ CheNow</p>
                 <p className="mt-1 text-[11px] text-white/60">
                   Thường phản hồi trong vài phút
                 </p>
@@ -86,6 +180,7 @@ export function CustomerChatWidget() {
           <ChatMessageList
             className="max-h-[360px]"
             currentUserRole="customer"
+            emptyState={loadingHistory ? "Đang tải tin nhắn..." : undefined}
             messages={messages}
             notice={
               <div className="rounded-xl bg-[#eef7ef] px-3 py-2 text-xs font-semibold text-[#315d3b]">
@@ -99,11 +194,12 @@ export function CustomerChatWidget() {
             <ChatQuickReplies
               className="mb-3"
               items={quickReplies}
-              onSelect={addMessage}
+              onSelect={sendCustomerMessage}
             />
             <ChatComposer
+              disabled={loadingHistory}
               onChange={setInputValue}
-              onSubmit={() => addMessage(inputValue)}
+              onSubmit={() => sendCustomerMessage(inputValue)}
               value={inputValue}
             />
           </div>

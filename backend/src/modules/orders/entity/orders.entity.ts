@@ -83,9 +83,9 @@ export class Orders {
   @OneToMany(() => OrderItems, (orderItems) => orderItems.order)
   orderItems: OrderItems[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

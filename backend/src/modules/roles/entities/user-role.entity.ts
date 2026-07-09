@@ -30,6 +30,6 @@ export class UserRole {
   @JoinColumn({ name: 'roleId' })
   role: Role;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 }
