@@ -386,6 +386,36 @@ export interface GenerateProductDescriptionResponse {
   provider: "ollama-qwen" | "openai" | "gemini" | "local-fallback";
 }
 
+export type CustomerCartProduct = {
+  bg?: string;
+  categoryId?: number | string;
+  desc?: string;
+  id: number;
+  image: string;
+  name: string;
+  price: number;
+  rating?: number;
+  sold?: number;
+  tag?: string;
+};
+
+export type CustomerCartTopping = {
+  id: number | string;
+  name: string;
+  price: number;
+};
+
+export type CustomerCartItem = {
+  ice: string;
+  key: string;
+  linePrice: number;
+  product: CustomerCartProduct;
+  quantity: number;
+  size: string;
+  sugar: string;
+  toppings: CustomerCartTopping[];
+};
+
 export type CartItem = CreateOrderItemPayload & {
   key: string;
 };

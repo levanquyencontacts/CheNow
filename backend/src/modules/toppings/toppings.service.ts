@@ -21,6 +21,12 @@ export class ToppingsService {
       .leftJoinAndSelect('topping.categoryToppings', 'categoryToppings')
       .leftJoinAndSelect('categoryToppings.category', 'category');
 
+    if (paginationParams.categoryId) {
+      queryBuilder.andWhere('categoryToppings.categoryId = :categoryId', {
+        categoryId: paginationParams.categoryId,
+      });
+    }
+
     const result = await PaginationHelper.paginate(
       queryBuilder,
       paginationParams,
