@@ -22,3 +22,4 @@ export * from "./Table";
 export * from "./Pagination/Pagination";
 export * from "./StatusBadge";
 export * from "./TablePagination/TablePagination";
+export * from "./Chat";

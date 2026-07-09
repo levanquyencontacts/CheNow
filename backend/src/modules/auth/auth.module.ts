@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './refresh-token.entity';
 import { RolesModule } from '../roles/roles.module';
 import { CustomersModule } from '../customers/customers.module';
+import { getJwtExpiresIn, getJwtSecret } from '../../config/jwt.config';
 
 @Module({
   controllers: [AuthController],
@@ -19,8 +20,8 @@ import { CustomersModule } from '../customers/customers.module';
     CustomersModule,
     TypeOrmModule.forFeature([RefreshToken]),
     JwtModule.register({
-      secret: 'your-secret-key',
-      signOptions: { expiresIn: '1h' },
+      secret: getJwtSecret(),
+      signOptions: { expiresIn: getJwtExpiresIn() },
     }),
   ],
 })
