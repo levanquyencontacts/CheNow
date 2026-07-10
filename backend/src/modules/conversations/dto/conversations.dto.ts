@@ -9,7 +9,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { MessageType } from '../../../common/enums/common.enum';
+import { MessageType, Order } from '../../../common/enums/common.enum';
 
 export class ConversationPaginationDto {
   @IsInt()
@@ -24,6 +24,10 @@ export class ConversationPaginationDto {
   @IsOptional()
   @Type(() => Number)
   limit?: number = 10;
+
+  @IsEnum(Order)
+  @IsOptional()
+  order?: Order = Order.ASC;
 }
 
 export class SendConversationMessageDto {

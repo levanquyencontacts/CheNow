@@ -96,11 +96,11 @@ export class ConversationsService {
     const conversation = await this.ensureConversation(id);
     this.ensureCanViewConversation(conversation, currentUser);
 
-    const { page = 1, limit = 30 } = query;
+    const { page = 1, limit = 30, order = 'ASC' } = query;
     const [items, total] = await this.messagesRepository.findAndCount({
       where: { conversationId: id },
       relations: ['sender'],
-      order: { createdAt: 'ASC' },
+      order: { createdAt: order },
       skip: (page - 1) * limit,
       take: limit,
     });
