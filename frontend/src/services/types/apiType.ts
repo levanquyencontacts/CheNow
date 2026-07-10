@@ -91,6 +91,7 @@ export type ConversationUserRole = "admin" | "customer";
 export interface ChatMessage {
   id: number | string;
   author: ChatAuthor;
+  createdAt?: string;
   status?: ChatMessageStatus;
   text: string;
   time: string;
@@ -165,6 +166,13 @@ export interface SendChatMessagePayload {
 
 export interface SendChatMessageResult {
   message: ChatMessageResponse;
+  conversation: ChatConversationResponse;
+}
+
+export interface MarkChatConversationReadResult {
+  conversationId: number;
+  userId: number;
+  lastReadAt: string;
   conversation: ChatConversationResponse;
 }
 

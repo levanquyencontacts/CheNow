@@ -23,6 +23,7 @@ import {
 } from "@/services/types/apiType";
 import {
   filterConversationsByKeyword,
+  markConversationReadLocally,
   mergeConversations,
   mergeMessages,
 } from "./admin-ultils/admin-chat.utils";
@@ -55,6 +56,7 @@ export default function AdminChatPage() {
   const [activeId, setActiveId] = useState<number>();
   const [reply, setReply] = useState("");
   const [search, setSearch] = useState("");
+  const conversationItemsRef = useRef<ChatConversation[]>([]);
   const previousActiveId = useRef<number | undefined>(undefined);
 
   const conversationParams = useMemo(
@@ -91,6 +93,10 @@ export default function AdminChatPage() {
     return conversationItems[0]?.id;
   }, [activeId, conversationItems]);
 
+  useEffect(() => {
+    conversationItemsRef.current = conversationItems;
+  }, [conversationItems]);
+
   const messagesQuery = useChatMessagesInfiniteQuery(
     selectedConversationId,
     messageQueryParams,
@@ -115,19 +121,47 @@ export default function AdminChatPage() {
     });
   }, []);
 
-  const handleNewMessage = useCallback((message: ChatMessageResponse) => {
-    if (message.senderRole !== "customer") {
-      return;
-    }
+  const clearConversationUnread = useCallback((conversationId: number) => {
+    setLiveConversations((current) => {
+      const updatedCurrent = markConversationReadLocally(
+        current,
+        conversationId,
+      );
 
-    setLiveMessages((current) => ({
-      ...current,
-      [message.conversationId]: [
-        ...(current[message.conversationId] ?? []),
-        mapChatMessageResponse(message),
-      ],
-    }));
+      if (updatedCurrent.some((conversation) => conversation.id === conversationId)) {
+        return updatedCurrent;
+      }
+
+      const conversation = conversationItemsRef.current.find(
+        (item) => item.id === conversationId,
+      );
+
+      return conversation
+        ? [{ ...conversation, unread: 0 }, ...updatedCurrent]
+        : updatedCurrent;
+    });
   }, []);
+
+  const handleNewMessage = useCallback(
+    (message: ChatMessageResponse) => {
+      if (message.senderRole !== "customer") {
+        return;
+      }
+
+      setLiveMessages((current) => ({
+        ...current,
+        [message.conversationId]: [
+          ...(current[message.conversationId] ?? []),
+          mapChatMessageResponse(message),
+        ],
+      }));
+
+      if (message.conversationId === selectedConversationId) {
+        clearConversationUnread(message.conversationId);
+      }
+    },
+    [clearConversationUnread, selectedConversationId],
+  );
 
   const handleConversationUpdated = useCallback(
     (conversation: ChatConversationResponse) => {
@@ -136,10 +170,26 @@ export default function AdminChatPage() {
     [upsertConversation],
   );
 
-  const { joinConversation, leaveConversation, sendMessage } = useChatSocket({
+  const {
+    joinConversation,
+    leaveConversation,
+    markConversationRead,
+    sendMessage,
+  } = useChatSocket({
     onConversationUpdated: handleConversationUpdated,
     onNewMessage: handleNewMessage,
   });
+
+  const markConversationReadWithReason = useCallback(
+    (conversationId: number) => {
+      if (conversationId !== selectedConversationId) {
+        return;
+      }
+
+      void markConversationRead(conversationId);
+    },
+    [markConversationRead, selectedConversationId],
+  );
 
   const activeConversation = useMemo(
     () =>
@@ -169,7 +219,29 @@ export default function AdminChatPage() {
 
     previousActiveId.current = selectedConversationId;
     void joinConversation(selectedConversationId);
-  }, [selectedConversationId, joinConversation, leaveConversation]);
+    clearConversationUnread(selectedConversationId);
+    markConversationReadWithReason(selectedConversationId);
+  }, [
+    clearConversationUnread,
+    selectedConversationId,
+    joinConversation,
+    leaveConversation,
+    markConversationReadWithReason,
+  ]);
+
+  useEffect(() => {
+    if (!selectedConversationId || !activeMessages.length) {
+      return;
+    }
+
+    clearConversationUnread(selectedConversationId);
+    markConversationReadWithReason(selectedConversationId);
+  }, [
+    activeMessages.length,
+    clearConversationUnread,
+    markConversationReadWithReason,
+    selectedConversationId,
+  ]);
 
   const handleSelectConversation = (conversationId: number) => {
     setActiveId(conversationId);

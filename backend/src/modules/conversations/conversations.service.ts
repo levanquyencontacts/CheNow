@@ -65,7 +65,7 @@ export class ConversationsService {
 
     const data = await Promise.all(
       items.map((conversation) =>
-        this.toConversationListResponse(conversation, currentUser),
+        this.toConversationListResponse(conversation, currentUser.id),
       ),
     );
 
@@ -203,6 +203,16 @@ export class ConversationsService {
     };
   }
 
+  async getConversationListResponseForUser(
+    conversationId: number,
+    userId: number,
+  ) {
+    const conversation =
+      await this.findConversationWithRelations(conversationId);
+
+    return this.toConversationListResponse(conversation, userId);
+  }
+
   async getConversationAudience(conversationId: number) {
     const conversation = await this.conversationsRepository.findOne({
       where: { id: conversationId },
@@ -277,6 +287,13 @@ export class ConversationsService {
       });
       conversation = await manager.save(Conversation, conversation);
     }
+
+    await this.ensureParticipant(
+      manager,
+      conversation.id,
+      currentUser.id,
+      ConversationUserRole.CUSTOMER,
+    );
 
     return conversation;
   }
@@ -463,7 +480,7 @@ export class ConversationsService {
 
   private async toConversationListResponse(
     conversation: Conversation,
-    currentUser: Users,
+    currentUserId: number,
   ) {
     return {
       id: conversation.id,
@@ -479,7 +496,7 @@ export class ConversationsService {
         ? this.toListMessageResponse(conversation.lastMessage)
         : null,
       lastMessageAt: conversation.lastMessageAt ?? null,
-      unreadCount: await this.getUnreadCount(conversation, currentUser),
+      unreadCount: await this.getUnreadCount(conversation, currentUserId),
     };
   }
 
@@ -509,9 +526,12 @@ export class ConversationsService {
     };
   }
 
-  private async getUnreadCount(conversation: Conversation, currentUser: Users) {
+  private async getUnreadCount(
+    conversation: Conversation,
+    currentUserId: number,
+  ) {
     const participant = conversation.participants?.find(
-      (item) => item.userId === currentUser.id,
+      (item) => item.userId === currentUserId,
     );
 
     if (!participant) {
@@ -520,7 +540,7 @@ export class ConversationsService {
 
     const where: FindOptionsWhere<Message> = {
       conversationId: conversation.id,
-      senderId: Not(currentUser.id),
+      senderId: Not(currentUserId),
     };
 
     if (participant.lastReadAt) {

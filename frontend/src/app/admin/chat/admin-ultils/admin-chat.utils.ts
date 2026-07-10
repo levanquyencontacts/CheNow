@@ -48,3 +48,14 @@ export function filterConversationsByKeyword(
       .includes(normalizedKeyword),
   );
 }
+
+export function markConversationReadLocally(
+  conversations: ChatConversation[],
+  conversationId: number,
+) {
+  return conversations.map((conversation) =>
+    conversation.id === conversationId
+      ? { ...conversation, unread: 0 }
+      : conversation,
+  );
+}

@@ -123,13 +123,16 @@ export class ConversationsGateway
 
       const audience =
         await this.conversationsService.getConversationAudience(conversationId);
-      const rooms = audience.userIds.map((userId) => this.userRoom(userId));
+      await this.emitConversationUpdatedToUsers(
+        conversationId,
+        audience.userIds,
+      );
 
       if (audience.notifyAdmins) {
-        rooms.push(this.adminRoom());
+        this.server
+          .to(this.adminRoom())
+          .emit('conversation:broadcast', result.conversation);
       }
-
-      this.server.to(rooms).emit('conversation:updated', result.conversation);
 
       return {
         success: true,
@@ -140,8 +143,8 @@ export class ConversationsGateway
     }
   }
 
-  @SubscribeMessage('message:read')
-  async handleReadMessage(
+  @SubscribeMessage('conversation:read')
+  async handleReadConversation(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: ReadConversationDto,
   ) {
@@ -151,14 +154,31 @@ export class ConversationsGateway
       user,
     );
 
+    const conversation =
+      await this.conversationsService.getConversationListResponseForUser(
+        result.conversationId,
+        result.userId,
+      );
+
     this.server
-      .to(this.conversationRoom(result.conversationId))
-      .emit('message:read', result);
+      .to(this.userRoom(result.userId))
+      .emit('conversation:updated', conversation);
 
     return {
       success: true,
-      data: result,
+      data: {
+        ...result,
+        conversation,
+      },
     };
+  }
+
+  @SubscribeMessage('message:read')
+  handleReadMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: ReadConversationDto,
+  ) {
+    return this.handleReadConversation(client, body);
   }
 
   @SubscribeMessage('typing:start')
@@ -240,6 +260,25 @@ export class ConversationsGateway
 
   private conversationRoom(conversationId: number) {
     return `conversation:${conversationId}`;
+  }
+
+  private async emitConversationUpdatedToUsers(
+    conversationId: number,
+    userIds: number[],
+  ) {
+    await Promise.all(
+      userIds.map(async (userId) => {
+        const conversation =
+          await this.conversationsService.getConversationListResponseForUser(
+            conversationId,
+            userId,
+          );
+
+        this.server
+          .to(this.userRoom(userId))
+          .emit('conversation:updated', conversation);
+      }),
+    );
   }
 
   private toSocketErrorAck(error: unknown) {
