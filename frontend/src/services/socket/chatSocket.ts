@@ -3,6 +3,7 @@ import {
   ChatConversationResponse,
   ChatMessageResponse,
   ChatSocketAck,
+  MarkChatConversationReadResult,
   SendChatMessagePayload,
   SendChatMessageResult,
 } from "@/services/types/apiType";
@@ -51,6 +52,12 @@ export function joinConversation(conversationId: number) {
 
 export function leaveConversation(conversationId: number) {
   return emitWithAck<{ conversationId: number }>("conversation:leave", {
+    conversationId,
+  });
+}
+
+export function markConversationRead(conversationId: number) {
+  return emitWithAck<MarkChatConversationReadResult>("conversation:read", {
     conversationId,
   });
 }

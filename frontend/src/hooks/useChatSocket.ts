@@ -7,6 +7,7 @@ import {
   disconnectChatSocket,
   joinConversation,
   leaveConversation,
+  markConversationRead,
   onConversationUpdated,
   onNewMessage,
   sendChatMessage,
@@ -78,11 +79,16 @@ export function useChatSocket({
     return leaveConversation(conversationId);
   }, []);
 
+  const markRead = useCallback((conversationId: number) => {
+    return markConversationRead(conversationId);
+  }, []);
+
   return {
     connected,
     disconnect: disconnectChatSocket,
     joinConversation: join,
     leaveConversation: leave,
+    markConversationRead: markRead,
     sendMessage,
   };
 }

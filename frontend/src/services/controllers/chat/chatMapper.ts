@@ -13,12 +13,15 @@ export function createTempChatMessage({
   author: ChatAuthor;
   text: string;
 }): ChatMessage {
+  const createdAt = new Date().toISOString();
+
   return {
     id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     author,
+    createdAt,
     status: "sending",
     text,
-    time: formatChatTime(new Date().toISOString()),
+    time: formatChatTime(createdAt),
   };
 }
 
@@ -28,6 +31,7 @@ export function mapChatMessageResponse(
   return {
     id: message.id,
     author: message.senderRole,
+    createdAt: message.createdAt,
     status: "sent",
     text: message.content ?? "",
     time: formatChatTime(message.createdAt),
