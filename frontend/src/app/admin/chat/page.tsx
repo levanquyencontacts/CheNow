@@ -1,8 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LIMIT_PAGE } from "@/common/utils/constant";
 import { Paper } from "@/components";
 import { useChatSocket } from "@/hooks/useChatSocket";
+import {
+  useChatMessagesInfiniteQuery,
+  useCustomerChatConversationQuery,
+} from "@/services/controllers/chat/ChatQueries";
 import {
   createTempChatMessage,
   mapChatConversationResponse,
@@ -16,30 +21,95 @@ import {
   ChatMessage,
   ChatMessageResponse,
 } from "@/services/types/apiType";
+import {
+  filterConversationsByKeyword,
+  mergeConversations,
+  mergeMessages,
+} from "./admin-ultils/admin-chat.utils";
 import { AdminChatHeader } from "./components/AdminChatHeader";
 import { ConversationList } from "./components/ConversationList";
 import { ConversationPanel } from "./components/ConversationPanel";
 import { CustomerInfoPanel } from "./components/CustomerInfoPanel";
-import {
-  conversations,
-  messages as initialMessages,
-  quickAnswers,
-} from "./components/admin-chat.mock";
+import { quickAnswers } from "./components/admin-chat.mock";
+
+const conversationQueryParams = {
+  limit: LIMIT_PAGE * 2,
+  order: "DESC" as const,
+  page: 1,
+  sort: "lastMessageAt",
+};
+
+const messageQueryParams = {
+  limit: 30,
+  order: "DESC" as const,
+  sort: "createdAt",
+};
 
 export default function AdminChatPage() {
-  const [conversationItems, setConversationItems] =
-    useState<ChatConversation[]>(conversations);
-  const [conversationMessages, setConversationMessages] =
-    useState<Record<number, ChatMessage[]>>({
-      [conversations[0].id]: initialMessages,
-    });
-  const [activeId, setActiveId] = useState(conversations[0].id);
+  const [liveConversations, setLiveConversations] = useState<
+    ChatConversation[]
+  >([]);
+  const [liveMessages, setLiveMessages] = useState<Record<number, ChatMessage[]>>(
+    {},
+  );
+  const [activeId, setActiveId] = useState<number>();
   const [reply, setReply] = useState("");
   const [search, setSearch] = useState("");
+  const previousActiveId = useRef<number | undefined>(undefined);
+
+  const conversationParams = useMemo(
+    () => ({
+      ...conversationQueryParams,
+      searchValue: search.trim() || undefined,
+    }),
+    [search],
+  );
+
+  const conversationsQuery =
+    useCustomerChatConversationQuery(conversationParams);
+
+  const apiConversations = useMemo(
+    () =>
+      (conversationsQuery.data?.data ?? []).map(mapChatConversationResponse),
+    [conversationsQuery.data],
+  );
+
+  const conversationItems = useMemo(
+    () =>
+      filterConversationsByKeyword(
+        mergeConversations(apiConversations, liveConversations),
+        search,
+      ),
+    [apiConversations, liveConversations, search],
+  );
+
+  const selectedConversationId = useMemo(() => {
+    if (activeId && conversationItems.some((item) => item.id === activeId)) {
+      return activeId;
+    }
+
+    return conversationItems[0]?.id;
+  }, [activeId, conversationItems]);
+
+  const messagesQuery = useChatMessagesInfiniteQuery(
+    selectedConversationId,
+    messageQueryParams,
+    Boolean(selectedConversationId),
+  );
+
+  const apiMessages = useMemo(
+    () =>
+      (messagesQuery.data?.pages.flatMap((page) => page.data) ?? [])
+        .map(mapChatMessageResponse)
+        .reverse(),
+    [messagesQuery.data],
+  );
 
   const upsertConversation = useCallback((conversation: ChatConversation) => {
-    setConversationItems((current) => {
-      const withoutCurrent = current.filter((item) => item.id !== conversation.id);
+    setLiveConversations((current) => {
+      const withoutCurrent = current.filter(
+        (item) => item.id !== conversation.id,
+      );
 
       return [conversation, ...withoutCurrent];
     });
@@ -50,7 +120,7 @@ export default function AdminChatPage() {
       return;
     }
 
-    setConversationMessages((current) => ({
+    setLiveMessages((current) => ({
       ...current,
       [message.conversationId]: [
         ...(current[message.conversationId] ?? []),
@@ -66,38 +136,44 @@ export default function AdminChatPage() {
     [upsertConversation],
   );
 
-  const { joinConversation, sendMessage } = useChatSocket({
+  const { joinConversation, leaveConversation, sendMessage } = useChatSocket({
     onConversationUpdated: handleConversationUpdated,
     onNewMessage: handleNewMessage,
   });
 
-  const filteredConversations = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-
-    if (!keyword) {
-      return conversationItems;
-    }
-
-    return conversationItems.filter((conversation) =>
-      [conversation.customer, conversation.phone, conversation.lastMessage]
-        .join(" ")
-        .toLowerCase()
-        .includes(keyword),
-    );
-  }, [conversationItems, search]);
-
   const activeConversation = useMemo(
     () =>
-      conversationItems.find((conversation) => conversation.id === activeId) ??
-      conversationItems[0],
-    [activeId, conversationItems],
+      conversationItems.find(
+        (conversation) => conversation.id === selectedConversationId,
+      ) ?? null,
+    [selectedConversationId, conversationItems],
   );
 
-  const activeMessages = conversationMessages[activeId] ?? [];
+  const activeMessages = selectedConversationId
+    ? mergeMessages(apiMessages, liveMessages[selectedConversationId] ?? [])
+    : [];
+
+  useEffect(() => {
+    if (
+      !selectedConversationId ||
+      previousActiveId.current === selectedConversationId
+    ) {
+      return;
+    }
+
+    const oldActiveId = previousActiveId.current;
+
+    if (oldActiveId) {
+      void leaveConversation(oldActiveId);
+    }
+
+    previousActiveId.current = selectedConversationId;
+    void joinConversation(selectedConversationId);
+  }, [selectedConversationId, joinConversation, leaveConversation]);
 
   const handleSelectConversation = (conversationId: number) => {
     setActiveId(conversationId);
-    void joinConversation(conversationId);
+    setReply("");
   };
 
   const handleSendReply = async () => {
@@ -111,7 +187,7 @@ export default function AdminChatPage() {
       text: trimmed,
     });
 
-    setConversationMessages((current) => ({
+    setLiveMessages((current) => ({
       ...current,
       [activeConversation.id]: [
         ...(current[activeConversation.id] ?? []),
@@ -129,7 +205,7 @@ export default function AdminChatPage() {
     const data = ack.data;
 
     if (!ack.success || !data) {
-      setConversationMessages((current) => ({
+      setLiveMessages((current) => ({
         ...current,
         [activeConversation.id]: markChatMessageFailed(
           current[activeConversation.id] ?? [],
@@ -139,7 +215,7 @@ export default function AdminChatPage() {
       return;
     }
 
-    setConversationMessages((current) => ({
+    setLiveMessages((current) => ({
       ...current,
       [activeConversation.id]: replaceChatMessage(
         current[activeConversation.id] ?? [],
@@ -151,16 +227,18 @@ export default function AdminChatPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fff8f1] p-4 text-[#183d2b]">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#fff8f1] p-4 text-[#183d2b]">
       <AdminChatHeader />
 
       <Paper
-        className="grid min-h-[720px] overflow-hidden border border-[#eadfd4] lg:grid-cols-[310px_minmax(0,1fr)_280px]"
+        className="grid min-h-0 flex-1 overflow-hidden border border-[#eadfd4] lg:grid-cols-[310px_minmax(0,1fr)_280px]"
         elevation={1}
       >
         <ConversationList
-          activeId={activeId}
-          conversations={filteredConversations}
+          activeId={selectedConversationId}
+          conversations={conversationItems}
+          isError={conversationsQuery.isError}
+          isLoading={conversationsQuery.isLoading}
           onSearchChange={setSearch}
           onSelectConversation={handleSelectConversation}
           searchValue={search}
@@ -169,7 +247,15 @@ export default function AdminChatPage() {
           <>
             <ConversationPanel
               conversation={activeConversation}
+              disabled={!activeConversation}
+              hasOlderMessages={messagesQuery.hasNextPage}
+              isError={messagesQuery.isError}
+              isFetchingOlderMessages={messagesQuery.isFetchingNextPage}
+              isLoading={messagesQuery.isLoading}
               messages={activeMessages}
+              onLoadOlderMessages={() => {
+                return messagesQuery.fetchNextPage();
+              }}
               onQuickAnswer={setReply}
               onReplyChange={setReply}
               onSendReply={handleSendReply}
@@ -178,7 +264,11 @@ export default function AdminChatPage() {
             />
             <CustomerInfoPanel conversation={activeConversation} />
           </>
-        ) : null}
+        ) : (
+          <section className="flex min-h-[560px] items-center justify-center bg-[#fffaf5] px-6 text-center text-sm font-semibold text-[#8a7867] lg:col-span-2">
+            Chon mot hoi thoai de xem tin nhan.
+          </section>
+        )}
       </Paper>
     </div>
   );

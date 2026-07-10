@@ -7,7 +7,7 @@ type ChatHeaderProps = {
 
 export function ChatHeader({ conversation }: ChatHeaderProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-[#eadfd4] px-4">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-[#eadfd4] px-4">
       <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eef7ef] text-[#2d6a4f]">
           <UserRound size={18} />
