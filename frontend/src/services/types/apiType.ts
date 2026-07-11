@@ -102,6 +102,7 @@ export interface ChatConversation {
   customer: string;
   phone: string;
   lastMessage: string;
+  lastMessageId?: number;
   time: string;
   unread: number;
   status: string;

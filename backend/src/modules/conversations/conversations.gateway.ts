@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { Users } from '../users/users.entities';
 import { UsersService } from '../users/users.service';
-import { RoleCode } from '../../common/enums/common.enum';
+import { ConversationUserRole, RoleCode } from '../../common/enums/common.enum';
 import {
   JoinConversationDto,
   LeaveConversationDto,
@@ -119,7 +119,12 @@ export class ConversationsGateway
 
       await client.join(room);
 
-      client.to(room).emit('message:new', result.message);
+      const messageAudience =
+        result.message.senderRole === ConversationUserRole.CUSTOMER
+          ? client.to(room).to(this.adminRoom())
+          : client.to(room);
+
+      messageAudience.emit('message:new', result.message);
 
       const audience =
         await this.conversationsService.getConversationAudience(conversationId);

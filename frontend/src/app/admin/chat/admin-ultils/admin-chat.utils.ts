@@ -28,7 +28,14 @@ export function mergeMessages(
     merged.set(message.id, message);
   });
 
-  return Array.from(merged.values());
+  return Array.from(merged.values()).sort((first, second) => {
+    const firstTime = first.createdAt ? new Date(first.createdAt).getTime() : 0;
+    const secondTime = second.createdAt
+      ? new Date(second.createdAt).getTime()
+      : 0;
+
+    return firstTime - secondTime;
+  });
 }
 
 export function filterConversationsByKeyword(

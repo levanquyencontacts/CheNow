@@ -534,16 +534,12 @@ export class ConversationsService {
       (item) => item.userId === currentUserId,
     );
 
-    if (!participant) {
-      return 0;
-    }
-
     const where: FindOptionsWhere<Message> = {
       conversationId: conversation.id,
       senderId: Not(currentUserId),
     };
 
-    if (participant.lastReadAt) {
+    if (participant?.lastReadAt) {
       where.createdAt = MoreThan(participant.lastReadAt);
     }
 

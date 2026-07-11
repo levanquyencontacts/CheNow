@@ -74,9 +74,11 @@ export function onConversationUpdated(
   callback: (conversation: ChatConversationResponse) => void,
 ) {
   chatSocket?.on("conversation:updated", callback);
+  chatSocket?.on("conversation:broadcast", callback);
 
   return () => {
     chatSocket?.off("conversation:updated", callback);
+    chatSocket?.off("conversation:broadcast", callback);
   };
 }
 

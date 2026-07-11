@@ -52,6 +52,7 @@ export function mapChatConversationResponse(
       conversation.customer?.email ??
       "Khách hàng",
     lastMessage,
+    lastMessageId: conversation.lastMessage?.id,
     orderCode: "Chưa có đơn",
     phone: "",
     status: "Đang tư vấn",

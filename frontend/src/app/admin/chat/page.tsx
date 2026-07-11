@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { LIMIT_PAGE } from "@/common/utils/constant";
 import { Paper } from "@/components";
 import { useChatSocket } from "@/hooks/useChatSocket";
@@ -20,6 +21,7 @@ import {
   ChatConversationResponse,
   ChatMessage,
   ChatMessageResponse,
+  PaginatedResponse,
 } from "@/services/types/apiType";
 import {
   filterConversationsByKeyword,
@@ -46,7 +48,24 @@ const messageQueryParams = {
   sort: "createdAt",
 };
 
+type ChatMessagesInfiniteData = InfiniteData<
+  PaginatedResponse<ChatMessageResponse>,
+  number
+>;
+
+function isFullChatMessage(
+  message: ChatConversationResponse["lastMessage"],
+): message is ChatMessageResponse {
+  return Boolean(
+    message &&
+      "conversationId" in message &&
+      "updatedAt" in message &&
+      "deletedAt" in message,
+  );
+}
+
 export default function AdminChatPage() {
+  const queryClient = useQueryClient();
   const [liveConversations, setLiveConversations] = useState<
     ChatConversation[]
   >([]);
@@ -94,6 +113,16 @@ export default function AdminChatPage() {
   }, [activeId, conversationItems]);
 
   useEffect(() => {
+    if (activeId || !conversationItems[0]) {
+      return;
+    }
+
+    const firstConversationId = conversationItems[0].id;
+
+    window.queueMicrotask(() => setActiveId(firstConversationId));
+  }, [activeId, conversationItems]);
+
+  useEffect(() => {
     conversationItemsRef.current = conversationItems;
   }, [conversationItems]);
 
@@ -102,6 +131,7 @@ export default function AdminChatPage() {
     messageQueryParams,
     Boolean(selectedConversationId),
   );
+  const refetchMessages = messagesQuery.refetch;
 
   const apiMessages = useMemo(
     () =>
@@ -142,17 +172,89 @@ export default function AdminChatPage() {
     });
   }, []);
 
+  const refreshConversationMessages = useCallback(
+    (conversationId: number) => {
+      return queryClient.invalidateQueries({
+        queryKey: ["chat", "messages", "infinite", conversationId],
+      });
+    },
+    [queryClient],
+  );
+
+  const appendMessageToMessagesCache = useCallback(
+    (message: ChatMessageResponse) => {
+      queryClient.setQueriesData<ChatMessagesInfiniteData>(
+        {
+          queryKey: ["chat", "messages", "infinite", message.conversationId],
+        },
+        (current) => {
+          if (!current?.pages.length) {
+            return current;
+          }
+
+          const alreadyExists = current.pages.some((page) =>
+            page.data.some((item) => item.id === message.id),
+          );
+
+          if (alreadyExists) {
+            return current;
+          }
+
+          const [firstPage, ...restPages] = current.pages;
+
+          return {
+            ...current,
+            pages: [
+              {
+                ...firstPage,
+                data: [message, ...firstPage.data],
+                meta: {
+                  ...firstPage.meta,
+                  total: firstPage.meta.total + 1,
+                },
+              },
+              ...restPages,
+            ],
+          };
+        },
+      );
+    },
+    [queryClient],
+  );
+
   const handleNewMessage = useCallback(
     (message: ChatMessageResponse) => {
       if (message.senderRole !== "customer") {
         return;
       }
 
+      const currentConversation = conversationItemsRef.current.find(
+        (item) => item.id === message.conversationId,
+      );
+      const mappedMessage = mapChatMessageResponse(message);
+
+      appendMessageToMessagesCache(message);
+      if (
+        currentConversation &&
+        currentConversation.lastMessageId !== message.id
+      ) {
+        upsertConversation({
+          ...currentConversation,
+          lastMessage: message.content ?? "",
+          lastMessageId: message.id,
+          time: mappedMessage.time,
+          unread:
+            message.conversationId === selectedConversationId
+              ? 0
+              : currentConversation.unread + 1,
+        });
+      }
+
       setLiveMessages((current) => ({
         ...current,
         [message.conversationId]: [
           ...(current[message.conversationId] ?? []),
-          mapChatMessageResponse(message),
+          mappedMessage,
         ],
       }));
 
@@ -160,14 +262,59 @@ export default function AdminChatPage() {
         clearConversationUnread(message.conversationId);
       }
     },
-    [clearConversationUnread, selectedConversationId],
+    [
+      appendMessageToMessagesCache,
+      clearConversationUnread,
+      selectedConversationId,
+      upsertConversation,
+    ],
   );
 
   const handleConversationUpdated = useCallback(
     (conversation: ChatConversationResponse) => {
-      upsertConversation(mapChatConversationResponse(conversation));
+      const mappedConversation = mapChatConversationResponse(conversation);
+      const currentConversation = conversationItemsRef.current.find(
+        (item) => item.id === conversation.id,
+      );
+      const shouldPreserveLocalUnread =
+        conversation.unreadCount === undefined && currentConversation;
+      const shouldMarkNewConversationUnread =
+        conversation.unreadCount === undefined &&
+        !currentConversation &&
+        conversation.id !== selectedConversationId &&
+        conversation.lastMessage?.senderRole === "customer";
+      let nextConversation = mappedConversation;
+
+      if (shouldPreserveLocalUnread) {
+        nextConversation = {
+          ...mappedConversation,
+          unread: currentConversation.unread,
+        };
+      } else if (shouldMarkNewConversationUnread) {
+        nextConversation = {
+          ...mappedConversation,
+          unread: 1,
+        };
+      }
+
+      if (isFullChatMessage(conversation.lastMessage)) {
+        appendMessageToMessagesCache(conversation.lastMessage);
+      }
+
+      upsertConversation(nextConversation);
+      void refreshConversationMessages(conversation.id);
+
+      if (conversation.id === selectedConversationId) {
+        clearConversationUnread(conversation.id);
+      }
     },
-    [upsertConversation],
+    [
+      appendMessageToMessagesCache,
+      clearConversationUnread,
+      refreshConversationMessages,
+      selectedConversationId,
+      upsertConversation,
+    ],
   );
 
   const {
@@ -219,14 +366,16 @@ export default function AdminChatPage() {
 
     previousActiveId.current = selectedConversationId;
     void joinConversation(selectedConversationId);
+    void refetchMessages();
     clearConversationUnread(selectedConversationId);
     markConversationReadWithReason(selectedConversationId);
   }, [
     clearConversationUnread,
-    selectedConversationId,
     joinConversation,
     leaveConversation,
     markConversationReadWithReason,
+    refetchMessages,
+    selectedConversationId,
   ]);
 
   useEffect(() => {
@@ -246,6 +395,7 @@ export default function AdminChatPage() {
   const handleSelectConversation = (conversationId: number) => {
     setActiveId(conversationId);
     setReply("");
+    void refreshConversationMessages(conversationId);
   };
 
   const handleSendReply = async () => {
