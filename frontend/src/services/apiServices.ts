@@ -12,6 +12,7 @@ import { OrdersService } from "./controllers/orders/OrdersService";
 import { AiAssistantService } from "./controllers/ai-assistant/AiAssistantService";
 import { DashboardService } from "./controllers/dashboard/DashboardService";
 import { ChatService } from "./controllers/chat/ChatService";
+import { CartService } from "./controllers/cart/CartService";
 
 class ApiServices {
   public auth: AuthService;
@@ -27,6 +28,7 @@ class ApiServices {
   public aiAssistant: AiAssistantService;
   public file: FileService;
   public chat: ChatService;
+  public cart: CartService;
 
   constructor() {
     this.auth = new AuthService(apiClient);
@@ -42,6 +44,7 @@ class ApiServices {
     this.aiAssistant = new AiAssistantService(apiClient);
     this.file = new FileService(apiClient);
     this.chat = new ChatService(apiClient);
+    this.cart = new CartService(apiClient);
   }
 }
 

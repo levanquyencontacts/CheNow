@@ -2,25 +2,18 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import logoSamSam from "@/common/assets/images/logosamsam.png";
 import {
   BANNERS,
   FEATURED_PRODUCTS,
-  NAV_LINKS,
   NEWS,
   STATS,
   STORES,
   VALUES,
 } from "@/common/mocks/customerHome";
 import {
-  ShoppingCart,
   MapPin,
   Star,
-  Menu,
-  X,
   ChevronRight,
-  Phone,
-  Mail,
   Play,
   Apple,
   Download,
@@ -29,8 +22,6 @@ import {
 /* ─── COMPONENT ─── */
 export default function CustomerHomePage() {
   const [activeBanner, setActiveBanner] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [autoPlay, setAutoPlay] = useState(true);
 
   useEffect(() => {
@@ -45,79 +36,6 @@ export default function CustomerHomePage() {
 
   return (
     <div className="min-h-screen bg-[#fffaf5] text-[#432010] font-sans">
-      {/* ── NAVBAR ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#eadfd4] shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-transparent">
-              <Image
-                src={logoSamSam}
-                alt="CheNow Logo"
-                className="h-full w-full object-contain"
-                priority
-              />
-            </div>
-            <div>
-              <p className="font-black text-[#432010] leading-none text-lg tracking-tight">
-                CheNow
-              </p>
-              <p className="text-[9px] text-[#8c6a5a] leading-none tracking-widest uppercase">
-                Đậm vị thiên nhiên
-              </p>
-            </div>
-          </div>
-
-          <ul className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map((l) => (
-              <li key={l}>
-                <Link
-                  href={l === "Sản phẩm" ? "/customer/menu" : "#"}
-                  className="px-4 py-2 rounded-full text-sm font-medium text-[#5f5148] hover:bg-[#f5ede4] hover:text-[#2d6a4f] transition-all"
-                >
-                  {l}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex items-center gap-2">
-            <button className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#eadfd4] text-xs font-medium text-[#5f5148] hover:border-[#2d6a4f] transition-colors">
-              <MapPin size={12} className="text-[#2d6a4f]" /> Hà Nội
-            </button>
-            <button
-              className="relative p-2.5 rounded-full bg-[#f5ede4] hover:bg-[#eadfd4] transition-colors"
-              onClick={() => setCartCount((c) => c + 1)}
-            >
-              <ShoppingCart size={18} className="text-[#432010]" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#2d6a4f] text-white text-[10px] rounded-full flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-            <button
-              className="lg:hidden p-2"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </div>
-        {menuOpen && (
-          <div className="lg:hidden bg-white border-t border-[#eadfd4] px-6 py-4 flex flex-col gap-1">
-            {NAV_LINKS.map((l) => (
-              <Link
-                key={l}
-                href={l === "Sản phẩm" ? "/customer/menu" : "#"}
-                className="py-2 text-sm font-medium text-[#5f5148] border-b border-[#f5ede4] last:border-0"
-              >
-                {l}
-              </Link>
-            ))}
-          </div>
-        )}
-      </nav>
-
       {/* ── HERO BANNER CAROUSEL ── */}
       <section className="relative flex min-h-screen flex-col overflow-hidden pt-16 transition-all duration-500">
         <Image
@@ -198,7 +116,10 @@ export default function CustomerHomePage() {
       </section>
 
       {/* ── STORY SECTION ── */}
-      <section className="max-w-7xl mx-auto px-6 py-20 flex flex-col lg:flex-row items-center gap-12">
+      <section
+        className="max-w-7xl mx-auto px-6 py-20 flex flex-col lg:flex-row items-center gap-12"
+        id="story"
+      >
         <div className="flex-1">
           <p className="text-xs font-black uppercase tracking-widest text-[#2d6a4f] mb-3">
             CheNow Story
@@ -434,7 +355,10 @@ export default function CustomerHomePage() {
       </section>
 
       {/* ── PROMO FULLWIDTH ── */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#432010] to-[#7f5539] py-16">
+      <section
+        className="relative overflow-hidden bg-gradient-to-r from-[#432010] to-[#7f5539] py-16"
+        id="promotions"
+      >
         <div className="absolute inset-y-0 right-0 w-1/2 bg-white/5" />
         <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-white">
           <div>
@@ -473,7 +397,7 @@ export default function CustomerHomePage() {
       </section>
 
       {/* ── NEWS ── */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
+      <section className="max-w-7xl mx-auto px-6 py-16" id="news">
         <div className="flex items-end justify-between mb-8">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-[#2d6a4f] mb-2">
@@ -506,7 +430,7 @@ export default function CustomerHomePage() {
       </section>
 
       {/* ── STORES ── */}
-      <section className="bg-[#1b4332] py-16">
+      <section className="bg-[#1b4332] py-16" id="stores">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-xs font-black uppercase tracking-widest text-[#a8d5b5] mb-2">
             Hệ thống cửa hàng
@@ -572,89 +496,6 @@ export default function CustomerHomePage() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="bg-[#432010] text-white">
-        <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-4 gap-8">
-          <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-transparent">
-                <Image
-                  src={logoSamSam}
-                  alt="CheNow Logo"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-              <span className="font-black text-lg">CheNow</span>
-            </div>
-            <p className="text-sm text-white/60 leading-relaxed mb-4">
-              Đậm vị thiên nhiên, trọn vị hạnh phúc. Thương hiệu trà sữa tiên
-              phong sử dụng nông sản Việt.
-            </p>
-            <div className="flex gap-2">
-              {["fb", "ig", "yt", "tk"].map((s) => (
-                <div
-                  key={s}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer transition-colors text-xs font-bold"
-                >
-                  {s}
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="font-bold mb-3 text-sm">Về CheNow</p>
-            {[
-              "Câu chuyện thương hiệu",
-              "Nhượng quyền",
-              "Tuyển dụng",
-              "Chuỗi cửa hàng",
-            ].map((l) => (
-              <a
-                key={l}
-                href="#"
-                className="block text-sm text-white/60 hover:text-white py-1 transition-colors"
-              >
-                {l}
-              </a>
-            ))}
-          </div>
-          <div>
-            <p className="font-bold mb-3 text-sm">Chính sách</p>
-            {[
-              "Chính sách thành viên",
-              "Hình thức thanh toán",
-              "Vận chuyển giao nhận",
-              "Đổi trả & hoàn tiền",
-            ].map((l) => (
-              <a
-                key={l}
-                href="#"
-                className="block text-sm text-white/60 hover:text-white py-1 transition-colors"
-              >
-                {l}
-              </a>
-            ))}
-          </div>
-          <div>
-            <p className="font-bold mb-3 text-sm">Liên hệ</p>
-            <div className="space-y-2">
-              <p className="flex items-center gap-2 text-sm text-white/60">
-                <Phone size={13} /> 1800 6272
-              </p>
-              <p className="flex items-center gap-2 text-sm text-white/60">
-                <Mail size={13} /> hello@chenow.vn
-              </p>
-              <p className="flex items-start gap-2 text-sm text-white/60">
-                <MapPin size={13} className="mt-0.5 flex-shrink-0" /> 12 Hàng
-                Bài, Hoàn Kiếm, Hà Nội
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="border-t border-white/10 text-center py-4 text-xs text-white/30">
-          © 2026 CheNow. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 }

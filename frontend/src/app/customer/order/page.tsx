@@ -1,30 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { SAVED_ADDRESSES, TOPPINGS } from "@/common/mocks/customerOrder";
+import { useMemo, useState } from "react";
+import { SAVED_ADDRESSES } from "@/common/mocks/customerOrder";
+import {
+  useCustomerCartQuery,
+  useRemoveCartItemMutation,
+  useUpdateCartItemMutation,
+} from "@/services/controllers/cart/CartQueries";
 import { CartItemsSection } from "./components/CartItemsSection";
 import { DeliveryAddressSection } from "./components/DeliveryAddressSection";
 import { EditCartItemModal } from "./components/EditCartItemModal";
 import { OrderPageHeader } from "./components/OrderPageHeader";
 import { OrderSummaryCard } from "./components/OrderSummaryCard";
 import { PaymentMethodSection } from "./components/PaymentMethodSection";
-import { CART_STORAGE_KEY, readStoredCart, sizeExtra } from "./orderUtils";
 import type { CustomerCartItem } from "@/services/types/apiType";
 
 export default function CustomerOrderPage() {
-  const [cart, setCart] = useState<CustomerCartItem[]>(readStoredCart);
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [editingSize, setEditingSize] = useState<CustomerCartItem["size"]>("M");
-  const [editingSugar, setEditingSugar] = useState("70%");
-  const [editingIce, setEditingIce] = useState("70%");
+  const [editingNote, setEditingNote] = useState("");
   const [editingQuantity, setEditingQuantity] = useState(1);
   const [editingToppings, setEditingToppings] = useState<Array<number | string>>([]);
   const [selectedAddressId, setSelectedAddressId] = useState(SAVED_ADDRESSES[0].id);
   const [paymentMethod, setPaymentMethod] = useState("cod");
-
-  useEffect(() => {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-  }, [cart]);
+  const { data: cartResponse } = useCustomerCartQuery();
+  const updateCartItemMutation = useUpdateCartItemMutation();
+  const removeCartItemMutation = useRemoveCartItemMutation();
+  const cart = useMemo(() => cartResponse?.items ?? [], [cartResponse?.items]);
 
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.linePrice * item.quantity, 0), [cart]);
   const deliveryFee = subtotal >= 120000 || subtotal === 0 ? 0 : 15000;
@@ -32,69 +33,50 @@ export default function CustomerOrderPage() {
   const editingItem = cart.find((item) => item.key === editingKey);
   const editingLinePrice =
     (editingItem?.product.price ?? 0) +
-    sizeExtra(editingSize) +
+    (editingItem?.sizeExtraPrice ?? 0) +
     editingToppings.reduce<number>(
-      (sum, id) => sum + (TOPPINGS.find((topping) => topping.id === id)?.price ?? 0),
+      (sum, id) =>
+        sum +
+        (editingItem?.toppings.find(
+          (topping) => String(topping.id) === String(id),
+        )?.price ?? 0),
       0,
     );
 
   const updateQuantity = (key: string, nextQuantity: number) => {
-    setCart((current) =>
-      nextQuantity <= 0
-        ? current.filter((item) => item.key !== key)
-        : current.map((item) => (item.key === key ? { ...item, quantity: nextQuantity } : item)),
-    );
+    const id = Number(key);
+    if (!Number.isFinite(id)) return;
+
+    if (nextQuantity <= 0) {
+      removeCartItemMutation.mutate(id);
+      return;
+    }
+
+    updateCartItemMutation.mutate({ id, quantity: nextQuantity });
   };
 
   const openEditModal = (item: CustomerCartItem) => {
     setEditingKey(item.key);
-    setEditingSize(item.size);
-    setEditingSugar(item.sugar);
-    setEditingIce(item.ice);
+    setEditingNote(item.note ?? "");
     setEditingQuantity(item.quantity);
     setEditingToppings(item.toppings.map((topping) => topping.id));
   };
 
-  const saveEditedItem = () => {
-    if (!editingItem) return;
+  const saveEditedItem = async () => {
+    if (!editingItem?.id) return;
 
-    const toppings = TOPPINGS.filter((topping) => editingToppings.includes(topping.id));
-    const nextKey = [
-      editingItem.product.id,
-      editingSize,
-      editingSugar,
-      editingIce,
-      toppings.map((topping) => topping.id).join("-"),
-    ].join("|");
-
-    const updatedItem: CustomerCartItem = {
-      ...editingItem,
-      key: nextKey,
-      size: editingSize,
-      sugar: editingSugar,
-      ice: editingIce,
-      toppings,
+    await updateCartItemMutation.mutateAsync({
+      categorySizeId: editingItem.categorySizeId,
+      id: editingItem.id,
+      note: editingNote.trim(),
       quantity: editingQuantity,
-      linePrice: editingLinePrice,
-    };
-
-    setCart((current) => {
-      const withoutOriginal = current.filter((item) => item.key !== editingItem.key);
-      const duplicatedItem = withoutOriginal.find((item) => item.key === nextKey);
-
-      if (duplicatedItem) {
-        return withoutOriginal.map((item) =>
-          item.key === nextKey ? { ...item, quantity: item.quantity + updatedItem.quantity } : item,
-        );
-      }
-
-      return [...withoutOriginal, updatedItem];
+      toppingIds: editingToppings,
     });
     setEditingKey(null);
   };
 
   return (
-    <div className="min-h-screen bg-cream-white text-on-surface">
+    <div className="min-h-screen bg-cream-white pt-16 text-on-surface">
       <OrderPageHeader />
 
       <main className="mx-auto max-w-7xl px-6 py-10">
@@ -119,19 +101,15 @@ export default function CustomerOrderPage() {
 
       {editingItem && (
         <EditCartItemModal
-          editingIce={editingIce}
           editingItem={editingItem}
           editingLinePrice={editingLinePrice}
+          editingNote={editingNote}
           editingQuantity={editingQuantity}
-          editingSize={editingSize}
-          editingSugar={editingSugar}
           editingToppings={editingToppings}
           onClose={() => setEditingKey(null)}
-          onIceChange={setEditingIce}
+          onNoteChange={setEditingNote}
           onQuantityChange={setEditingQuantity}
           onSave={saveEditedItem}
-          onSizeChange={setEditingSize}
-          onSugarChange={setEditingSugar}
           onToppingsChange={setEditingToppings}
         />
       )}

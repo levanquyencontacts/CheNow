@@ -508,14 +508,41 @@ export type CustomerCartTopping = {
 };
 
 export type CustomerCartItem = {
-  ice: string;
+  categorySizeId?: number;
+  id?: number;
   key: string;
   linePrice: number;
+  note?: string;
   product: CustomerCartProduct;
   quantity: number;
   size: string;
-  sugar: string;
+  sizeCode?: string;
+  sizeExtraPrice?: number;
   toppings: CustomerCartTopping[];
+};
+
+export type CustomerCart = {
+  cartCount: number;
+  id: number;
+  items: CustomerCartItem[];
+  subtotal: number;
+  userId: number;
+};
+
+export type AddCartItemPayload = {
+  categorySizeId: number;
+  note?: string;
+  productId: number;
+  quantity: number;
+  toppingIds?: Array<number | string>;
+};
+
+export type UpdateCartItemPayload = {
+  categorySizeId?: number;
+  id: number;
+  note?: string;
+  quantity?: number;
+  toppingIds?: Array<number | string>;
 };
 
 export type CartItem = CreateOrderItemPayload & {

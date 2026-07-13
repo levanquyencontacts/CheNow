@@ -2,43 +2,34 @@
 
 import Image from "next/image";
 import { X } from "lucide-react";
-import { TOPPINGS } from "@/common/mocks/customerOrder";
+import { FALLBACK_PRODUCT_IMAGE } from "@/common/mocks/customerMenu";
 import type { CustomerCartItem } from "@/services/types/apiType";
 import { formatPrice } from "../orderUtils";
-import { OptionGroup } from "./OptionGroup";
 import { QuantityStepper } from "./QuantityStepper";
 
 type EditCartItemModalProps = {
-  editingIce: string;
   editingItem: CustomerCartItem;
   editingLinePrice: number;
+  editingNote: string;
   editingQuantity: number;
-  editingSize: CustomerCartItem["size"];
-  editingSugar: string;
   editingToppings: Array<number | string>;
   onClose: () => void;
-  onIceChange: (value: string) => void;
+  onNoteChange: (value: string) => void;
   onQuantityChange: (value: number) => void;
   onSave: () => void;
-  onSizeChange: (value: CustomerCartItem["size"]) => void;
-  onSugarChange: (value: string) => void;
   onToppingsChange: (value: Array<number | string>) => void;
 };
 
 export function EditCartItemModal({
-  editingIce,
   editingItem,
   editingLinePrice,
+  editingNote,
   editingQuantity,
-  editingSize,
-  editingSugar,
   editingToppings,
   onClose,
-  onIceChange,
+  onNoteChange,
   onQuantityChange,
   onSave,
-  onSizeChange,
-  onSugarChange,
   onToppingsChange,
 }: EditCartItemModalProps) {
   return (
@@ -46,8 +37,12 @@ export function EditCartItemModal({
       <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#eadfd4] bg-white p-5">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Sửa món</p>
-            <h3 className="text-xl font-bold text-charcoal-black">{editingItem.product.name}</h3>
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">
+              Sửa món
+            </p>
+            <h3 className="text-xl font-bold text-charcoal-black">
+              {editingItem.product.name}
+            </h3>
           </div>
           <button
             className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container text-on-surface"
@@ -66,39 +61,28 @@ export function EditCartItemModal({
                 className="object-cover"
                 fill
                 sizes="210px"
-                src={editingItem.product.image}
+                src={editingItem.product.image || FALLBACK_PRODUCT_IMAGE}
                 unoptimized
               />
             </div>
-            <p className="mt-3 text-sm font-bold text-primary">{formatPrice(editingLinePrice)} / món</p>
+            <p className="mt-3 text-sm font-bold text-primary">
+              {formatPrice(editingLinePrice)} / món
+            </p>
           </div>
           <div className="space-y-5">
-            <OptionGroup
-              active={editingSize}
-              items={[
-                { label: "M", value: "M", hint: "Giá gốc" },
-                { label: "L", value: "L", hint: "+7.000đ" },
-              ]}
-              label="Size"
-              onChange={(value) => onSizeChange(value as CustomerCartItem["size"])}
-            />
-            <OptionGroup
-              active={editingSugar}
-              items={["30%", "50%", "70%", "100%"].map((value) => ({ label: value, value }))}
-              label="Đường"
-              onChange={onSugarChange}
-            />
-            <OptionGroup
-              active={editingIce}
-              items={["Ít đá", "50%", "70%", "100%"].map((value) => ({ label: value, value }))}
-              label="Đá"
-              onChange={onIceChange}
-            />
+            <div>
+              <p className="mb-2 text-sm font-bold text-charcoal-black">Size</p>
+              <div className="inline-flex rounded-xl border border-primary bg-emerald/10 px-4 py-2 text-sm font-bold text-primary">
+                {editingItem.size}
+              </div>
+            </div>
 
             <div>
-              <p className="mb-2 text-sm font-bold text-charcoal-black">Topping</p>
+              <p className="mb-2 text-sm font-bold text-charcoal-black">
+                Topping
+              </p>
               <div className="grid gap-2 sm:grid-cols-2">
-                {TOPPINGS.map((topping) => {
+                {editingItem.toppings.map((topping) => {
                   const active = editingToppings.includes(topping.id);
 
                   return (
@@ -119,15 +103,33 @@ export function EditCartItemModal({
                       type="button"
                     >
                       <span className="font-semibold">{topping.name}</span>
-                      <span className="text-xs">{formatPrice(topping.price)}</span>
+                      <span className="text-xs">
+                        {formatPrice(topping.price)}
+                      </span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
+            <label className="block">
+              <span className="mb-2 block text-sm font-bold text-charcoal-black">
+                Ghi chú
+              </span>
+              <textarea
+                className="min-h-24 w-full resize-none rounded-xl border border-[#eadfd4] bg-white px-3 py-2 text-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant/70 focus:border-primary"
+                maxLength={200}
+                onChange={(event) => onNoteChange(event.target.value)}
+                placeholder="Ví dụ: ít ngọt, không topping, giao nhanh..."
+                value={editingNote}
+              />
+            </label>
+
             <div className="grid gap-3 border-t border-[#eadfd4] pt-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-              <QuantityStepper onChange={onQuantityChange} value={editingQuantity} />
+              <QuantityStepper
+                onChange={onQuantityChange}
+                value={editingQuantity}
+              />
               <button
                 className="flex h-12 items-center justify-center rounded-xl bg-amber px-5 text-sm font-black text-charcoal-black transition-transform hover:scale-[1.01] active:scale-[0.98]"
                 onClick={onSave}
