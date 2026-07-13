@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Pencil, ShoppingBag, Trash2 } from "lucide-react";
+import { FALLBACK_PRODUCT_IMAGE } from "@/common/mocks/customerMenu";
 import type { CustomerCartItem } from "@/services/types/apiType";
 import { formatPrice } from "../orderUtils";
 import { QuantityStepper } from "./QuantityStepper";
@@ -31,7 +32,7 @@ export function CartItemsSection({ cart, onEdit, onQuantityChange }: CartItemsSe
                     className="object-cover"
                     fill
                     sizes="96px"
-                    src={item.product.image}
+                    src={item.product.image || FALLBACK_PRODUCT_IMAGE}
                     unoptimized
                   />
                 </div>
@@ -40,11 +41,16 @@ export function CartItemsSection({ cart, onEdit, onQuantityChange }: CartItemsSe
                     <div>
                       <h3 className="font-bold leading-tight text-charcoal-black">{item.product.name}</h3>
                       <p className="mt-1 text-xs text-on-surface-variant">
-                        Size {item.size}, đường {item.sugar}, đá {item.ice}
+                        Size {item.size}
                       </p>
                       {item.toppings.length > 0 && (
                         <p className="mt-1 text-xs text-on-surface-variant">
                           Topping: {item.toppings.map((topping) => topping.name).join(", ")}
+                        </p>
+                      )}
+                      {item.note && (
+                        <p className="mt-1 text-xs text-on-surface-variant">
+                          Ghi chú: {item.note}
                         </p>
                       )}
                     </div>

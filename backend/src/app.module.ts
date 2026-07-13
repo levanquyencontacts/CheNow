@@ -17,6 +17,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { ConversationsModule } from './modules/conversations/conversations.module';
+import { CartsModule } from './modules/carts/carts.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ConversationsModule } from './modules/conversations/conversations.modul
     OrdersModule,
     DashboardModule,
     ConversationsModule,
+    CartsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

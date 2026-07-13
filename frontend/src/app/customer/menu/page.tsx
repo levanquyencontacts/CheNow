@@ -12,8 +12,6 @@ import {
   SlidersHorizontal,
   Star,
   X,
-  MapPin,
-  Menu,
 } from "lucide-react";
 import { useCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
 import { useCategorySizesQuery } from "@/services/controllers/category-sizes/CategorySizesQueries";
@@ -21,17 +19,19 @@ import { useCustomerProductsQuery } from "@/services/controllers/customer-produc
 import { useToppingsQuery } from "@/services/controllers/toppings/ToppingsQueries";
 import {
   CategorySize,
-  CustomerCartItem,
   CustomerProduct,
   Topping as ApiTopping,
 } from "@/services/types/apiType";
 import {
   FALLBACK_PRODUCT_IMAGE,
   MENU_CATEGORIES,
-  NAV_LINKS,
   PRODUCT_BACKGROUNDS,
   PRODUCTS,
 } from "@/common/mocks/customerMenu";
+import {
+  useAddCartItemMutation,
+  useCustomerCartQuery,
+} from "@/services/controllers/cart/CartQueries";
 
 type Product = {
   id: number;
@@ -99,29 +99,14 @@ const toToppingOption = (topping: ApiTopping): Topping => ({
   name: topping.name,
   price: Number(topping.price ?? 0),
 });
-const readStoredCart = () => {
-  if (typeof window === "undefined") return [];
-
-  try {
-    return JSON.parse(
-      window.localStorage.getItem("chenow-cart") ?? "[]",
-    ) as CustomerCartItem[];
-  } catch {
-    return [];
-  }
-};
-
 export default function MenuCustomerPage() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchValue, setSearchValue] = useState("");
   const [sortMode, setSortMode] = useState("popular");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [cart, setCart] = useState<CustomerCartItem[]>(readStoredCart);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [size, setSize] = useState("");
-  const [sugar, setSugar] = useState("70%");
-  const [ice, setIce] = useState("70%");
+  const [note, setNote] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedToppings, setSelectedToppings] = useState<
     Array<number | string>
@@ -169,6 +154,8 @@ export default function MenuCustomerPage() {
       limit: 200,
       order: "ASC",
     });
+  const { data: cartResponse } = useCustomerCartQuery();
+  const addCartItemMutation = useAddCartItemMutation();
 
   const apiProducts = useMemo(
     () =>
@@ -182,11 +169,7 @@ export default function MenuCustomerPage() {
       ? apiProducts
       : PRODUCTS;
 
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  useEffect(() => {
-    window.localStorage.setItem("chenow-cart", JSON.stringify(cart));
-  }, [cart]);
+  const cartCount = cartResponse?.cartCount ?? 0;
 
   const filteredProducts = useMemo(() => {
     const keyword = searchValue.trim().toLowerCase();
@@ -289,58 +272,28 @@ export default function MenuCustomerPage() {
   const openOrderModal = (product: Product) => {
     setSelectedProduct(product);
     setSize("");
-    setSugar("70%");
-    setIce("70%");
+    setNote("");
     setQuantity(1);
     setSelectedToppings([]);
   };
 
   const createConfiguredItem = () => {
-    if (!selectedProduct || !selectedSize) return null;
-
-    const toppings = toppingOptions.filter((topping) =>
-      selectedToppings.includes(topping.id),
-    );
-    const optionKey = [
-      selectedProduct.id,
-      selectedSize.value,
-      sugar,
-      ice,
-      toppings.map((topping) => topping.id).join("-"),
-    ].join("|");
+    if (!selectedProduct || !selectedSize?.categorySizeId) return null;
 
     return {
-      key: optionKey,
-      product: selectedProduct,
-      size: selectedSize.label,
-      sugar,
-      ice,
-      toppings,
+      categorySizeId: selectedSize.categorySizeId,
+      note: note.trim(),
+      productId: selectedProduct.id,
       quantity,
-      linePrice: currentPrice,
+      toppingIds: selectedToppings,
     };
   };
 
-  const mergeCartItem = (current: CustomerCartItem[], item: CustomerCartItem) => {
-    const existing = current.find((cartItem) => cartItem.key === item.key);
-    if (existing) {
-      return current.map((cartItem) =>
-        cartItem.key === item.key
-          ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
-          : cartItem,
-      );
-    }
-
-    return [...current, item];
-  };
-
-  const addConfiguredItem = (redirectToOrder = false) => {
+  const addConfiguredItem = async (redirectToOrder = false) => {
     const item = createConfiguredItem();
     if (!item) return;
 
-    const nextCart = mergeCartItem(cart, item);
-    setCart(nextCart);
-    window.localStorage.setItem("chenow-cart", JSON.stringify(nextCart));
+    await addCartItemMutation.mutateAsync(item);
     setSelectedProduct(null);
 
     if (redirectToOrder) {
@@ -356,24 +309,6 @@ export default function MenuCustomerPage() {
     router.push("/customer/order");
   };
 
-  const cartLabel = cartCount > 0 ? `Giỏ hàng, ${cartCount} món` : "Giỏ hàng";
-
-  const CartButton = (
-    <button
-      aria-label={cartLabel}
-      className="relative rounded-full bg-[#f5ede4] p-2.5 transition-colors hover:bg-[#eadfd4]"
-      onClick={openCartPage}
-      type="button"
-    >
-      <ShoppingCart className="text-[#432010]" size={18} />
-      {cartCount > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2d6a4f] px-1 text-[10px] font-bold text-white">
-          {cartCount}
-        </span>
-      )}
-    </button>
-  );
-
   const goToOrderButton = (
     <button
       className="hidden items-center gap-2 rounded-xl bg-amber px-4 py-3 text-sm font-black text-charcoal-black transition-transform hover:scale-[1.01] md:flex"
@@ -387,64 +322,6 @@ export default function MenuCustomerPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-cream-white font-body-lg text-on-surface selection:bg-emerald/30">
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#eadfd4] bg-white/90 shadow-sm backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#2d6a4f] to-[#1b4332] shadow">
-              <span className="text-base font-black text-white">C</span>
-            </div>
-            <div>
-              <p className="text-lg font-black leading-none tracking-tight text-[#432010]">
-                CheNow
-              </p>
-              <p className="text-[9px] uppercase leading-none tracking-widest text-[#8c6a5a]">
-                Đậm vị thiên nhiên
-              </p>
-            </div>
-          </div>
-
-          <ul className="hidden items-center gap-1 lg:flex">
-            {NAV_LINKS.map((link) => (
-              <li key={link}>
-                <a
-                  className="rounded-full px-4 py-2 text-sm font-medium text-[#5f5148] transition-all hover:bg-[#f5ede4] hover:text-[#2d6a4f]"
-                  href="#"
-                >
-                  {link}
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex items-center gap-2">
-            <button className="hidden items-center gap-1.5 rounded-full border border-[#eadfd4] px-3 py-1.5 text-xs font-medium text-[#5f5148] transition-colors hover:border-[#2d6a4f] md:flex">
-              <MapPin className="text-[#2d6a4f]" size={12} /> Hà Nội
-            </button>
-            {CartButton}
-            <button
-              className="p-2 lg:hidden"
-              onClick={() => setMenuOpen(!menuOpen)}
-              type="button"
-            >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </div>
-        {menuOpen && (
-          <div className="flex flex-col gap-1 border-t border-[#eadfd4] bg-white px-6 py-4 lg:hidden">
-            {NAV_LINKS.map((link) => (
-              <a
-                className="border-b border-[#f5ede4] py-2 text-sm font-medium text-[#5f5148] last:border-0"
-                href="#"
-                key={link}
-              >
-                {link}
-              </a>
-            ))}
-          </div>
-        )}
-      </nav>
-
       <main className="relative pt-28">
         <section className="mx-auto mb-20 max-w-[1280px] px-6">
           <div className="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
@@ -741,8 +618,6 @@ export default function MenuCustomerPage() {
         </section>
       </main>
 
-      <MenuFooter />
-
       {selectedProduct && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-charcoal-black/45 px-4 py-6 backdrop-blur-sm sm:items-center">
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
@@ -796,25 +671,6 @@ export default function MenuCustomerPage() {
                   label="Size"
                   onChange={setSize}
                 />
-                <OptionGroup
-                  active={sugar}
-                  items={["30%", "50%", "70%", "100%"].map((value) => ({
-                    label: value,
-                    value,
-                  }))}
-                  label="Đường"
-                  onChange={setSugar}
-                />
-                <OptionGroup
-                  active={ice}
-                  items={["Ít đá", "50%", "70%", "100%"].map((value) => ({
-                    label: value,
-                    value,
-                  }))}
-                  label="Đá"
-                  onChange={setIce}
-                />
-
                 <div>
                   <p className="mb-2 text-sm font-bold text-charcoal-black">
                     Topping
@@ -861,11 +717,28 @@ export default function MenuCustomerPage() {
                   </div>
                 </div>
 
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-charcoal-black">
+                    Ghi chú
+                  </span>
+                  <textarea
+                    className="min-h-24 w-full resize-none rounded-xl border border-[#eadfd4] bg-white px-3 py-2 text-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant/70 focus:border-primary"
+                    maxLength={200}
+                    onChange={(event) => setNote(event.target.value)}
+                    placeholder="Ví dụ: ít ngọt, không topping, giao nhanh..."
+                    value={note}
+                  />
+                </label>
+
                 <div className="grid gap-3 border-t border-[#eadfd4] pt-5 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
                   <QuantityStepper onChange={setQuantity} value={quantity} />
                   <button
                     className="flex h-12 items-center justify-center rounded-xl bg-emerald px-5 text-sm font-black text-white transition-colors hover:bg-primary"
-                    disabled={isCategorySizesLoading || !selectedSize}
+                    disabled={
+                      isCategorySizesLoading ||
+                      !selectedSize?.categorySizeId ||
+                      addCartItemMutation.isPending
+                    }
                     onClick={() => addConfiguredItem(false)}
                     type="button"
                   >
@@ -873,7 +746,11 @@ export default function MenuCustomerPage() {
                   </button>
                   <button
                     className="flex h-12 items-center justify-center rounded-xl bg-amber px-5 text-sm font-black text-charcoal-black transition-transform hover:scale-[1.01] active:scale-[0.98]"
-                    disabled={isCategorySizesLoading || !selectedSize}
+                    disabled={
+                      isCategorySizesLoading ||
+                      !selectedSize?.categorySizeId ||
+                      addCartItemMutation.isPending
+                    }
                     onClick={buyConfiguredItemNow}
                     type="button"
                   >
@@ -960,70 +837,3 @@ function QuantityStepper({
   );
 }
 
-function MenuFooter() {
-  return (
-    <footer className="bg-[#432010] text-white">
-      <div className="mx-auto grid max-w-7xl gap-8 px-6 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
-              <span className="font-black">C</span>
-            </div>
-            <div>
-              <p className="font-black">CheNow</p>
-              <p className="text-[10px] uppercase tracking-widest text-white/50">
-                Đậm vị thiên nhiên
-              </p>
-            </div>
-          </div>
-          <p className="max-w-sm text-sm leading-6 text-white/60">
-            Thức uống từ trà, sữa tươi và nông sản Việt được pha chế mỗi ngày để
-            giữ vị tự nhiên, dễ uống.
-          </p>
-        </div>
-        <div>
-          <p className="mb-3 text-sm font-bold">Thực đơn</p>
-          {["Món nổi bật", "Trà sữa", "Trà trái cây", "Macchiato"].map(
-            (item) => (
-              <a
-                className="block py-1 text-sm text-white/60 transition-colors hover:text-white"
-                href="#"
-                key={item}
-              >
-                {item}
-              </a>
-            ),
-          )}
-        </div>
-        <div>
-          <p className="mb-3 text-sm font-bold">Hỗ trợ</p>
-          {[
-            "Chính sách giao hàng",
-            "Đổi trả & hoàn tiền",
-            "Điều khoản thành viên",
-            "Liên hệ cửa hàng",
-          ].map((item) => (
-            <a
-              className="block py-1 text-sm text-white/60 transition-colors hover:text-white"
-              href="#"
-              key={item}
-            >
-              {item}
-            </a>
-          ))}
-        </div>
-        <div>
-          <p className="mb-3 text-sm font-bold">Liên hệ</p>
-          <div className="space-y-2 text-sm text-white/60">
-            <p>Hotline: 1800 6272</p>
-            <p>Email: hello@chenow.vn</p>
-            <p>12 Hàng Bài, Hoàn Kiếm, Hà Nội</p>
-          </div>
-        </div>
-      </div>
-      <div className="border-t border-white/10 py-4 text-center text-xs text-white/35">
-        © 2026 CheNow. All rights reserved.
-      </div>
-    </footer>
-  );
-}
