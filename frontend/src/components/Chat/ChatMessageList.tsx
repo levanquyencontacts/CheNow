@@ -20,7 +20,7 @@ type ChatTimelineItem =
       type: "date";
     }
   | {
-      id: ChatMessage["id"];
+      id: string;
       message: ChatMessage;
       type: "message";
     };
@@ -88,7 +88,7 @@ function buildChatTimeline(messages: ChatMessage[]) {
     }
 
     items.push({
-      id: message.id,
+      id: String(message.id),
       message,
       type: "message",
     });

@@ -12,7 +12,10 @@ import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { Users } from '../users/users.entities';
 import { UsersService } from '../users/users.service';
-import { RoleCode } from '../../common/enums/common.enum';
+import {
+  ConversationUserRole,
+  RoleCode,
+} from '../../common/enums/common.enum';
 import {
   JoinConversationDto,
   LeaveConversationDto,
@@ -119,7 +122,13 @@ export class ConversationsGateway
 
       await client.join(room);
 
-      client.to(room).emit('message:new', result.message);
+      // Customer messages also reach role:admin so inbox updates without joining the thread.
+      const messageAudience =
+        result.message.senderRole === ConversationUserRole.CUSTOMER
+          ? client.to(room).to(this.adminRoom())
+          : client.to(room);
+
+      messageAudience.emit('message:new', result.message);
 
       const audience =
         await this.conversationsService.getConversationAudience(conversationId);
@@ -129,9 +138,7 @@ export class ConversationsGateway
       );
 
       if (audience.notifyAdmins) {
-        this.server
-          .to(this.adminRoom())
-          .emit('conversation:broadcast', result.conversation);
+        await this.emitConversationBroadcastToAdmins(conversationId);
       }
 
       return {
@@ -277,6 +284,34 @@ export class ConversationsGateway
         this.server
           .to(this.userRoom(userId))
           .emit('conversation:updated', conversation);
+      }),
+    );
+  }
+
+  /**
+   * Push inbox updates to every connected admin with that admin's unreadCount.
+   */
+  private async emitConversationBroadcastToAdmins(conversationId: number) {
+    const adminSockets = await this.server.in(this.adminRoom()).fetchSockets();
+    const emittedUserIds = new Set<number>();
+
+    await Promise.all(
+      adminSockets.map(async (socket) => {
+        const user = (socket.data as { user?: Users }).user;
+
+        if (!user?.id || emittedUserIds.has(user.id)) {
+          return;
+        }
+
+        emittedUserIds.add(user.id);
+
+        const conversation =
+          await this.conversationsService.getConversationListResponseForUser(
+            conversationId,
+            user.id,
+          );
+
+        socket.emit('conversation:broadcast', conversation);
       }),
     );
   }

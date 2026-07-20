@@ -30,7 +30,7 @@ export function ConversationListItem({
             {conversation.lastMessage}
           </p>
         </div>
-        {conversation.unread ? (
+        {conversation.unread > 0 ? (
           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#d17345] px-1 text-[10px] font-black text-white">
             {conversation.unread}
           </span>
