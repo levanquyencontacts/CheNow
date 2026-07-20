@@ -51,6 +51,9 @@ export class ConversationParticipant {
   @Column({ type: 'timestamptz', nullable: true })
   lastReadAt?: Date | null;
 
+  @Column({ type: 'int', default: 0 })
+  unreadCount: number;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

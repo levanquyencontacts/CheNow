@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Headphones,
   MessageCircle,
@@ -8,6 +8,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import {
   useChatMessagesQuery,
@@ -17,8 +18,11 @@ import {
   createTempChatMessage,
   mapChatMessageResponse,
   markChatMessageFailed,
-  replaceChatMessage,
 } from "@/services/controllers/chat/chatMapper";
+import {
+  mergeMessages,
+  sortChatMessages,
+} from "@/services/controllers/chat/chatMessageOrder";
 import { ChatMessage, ChatMessageResponse } from "@/services/types/apiType";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessageList } from "./ChatMessageList";
@@ -34,26 +38,113 @@ const greetingMessage: ChatMessage = {
   time: "Vừa xong",
 };
 
+function getMessagesFromQueryData(
+  data: { data?: ChatMessageResponse[] } | ChatMessageResponse[] | undefined,
+) {
+  if (!data) {
+    return [] as ChatMessageResponse[];
+  }
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return Array.isArray(data.data) ? data.data : [];
+}
+
 export function CustomerChatWidget() {
+  const queryClient = useQueryClient();
+  const messageListRef = useRef<HTMLDivElement | null>(null);
   const [conversationId, setConversationId] = useState<number | undefined>();
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([greetingMessage]);
+  // Only optimistic temps / failed sends. History comes from the messages query.
+  const [pendingMessages, setPendingMessages] = useState<ChatMessage[]>([]);
+
   const conversationQuery = useCustomerChatConversationQuery(
-    { limit: 1, page: 1 },
+    { limit: 1, page: 1, order: "DESC" },
     open,
   );
-  const currentConversation = conversationQuery.data?.data[0];
+  const currentConversation = conversationQuery.data?.data?.[0];
+  const activeConversationId = currentConversation?.id ?? conversationId;
+
+  // DESC page 1 = newest window so a reload always includes the latest sends.
   const messagesQuery = useChatMessagesQuery(
-    currentConversation?.id,
-    { limit: 100, page: 1 },
-    open,
+    activeConversationId,
+    { limit: 100, page: 1, order: "DESC" },
+    open && Boolean(activeConversationId),
   );
-  const loadingHistory = conversationQuery.isLoading || messagesQuery.isLoading;
+
+  const historyMessages = useMemo(() => {
+    const loaded = getMessagesFromQueryData(messagesQuery.data);
+    return sortChatMessages(loaded.map(mapChatMessageResponse));
+  }, [messagesQuery.data]);
+
+  const displayMessages = useMemo(() => {
+    if (!activeConversationId && pendingMessages.length === 0) {
+      return [greetingMessage];
+    }
+
+    if (
+      messagesQuery.isLoading &&
+      historyMessages.length === 0 &&
+      pendingMessages.length === 0
+    ) {
+      return [greetingMessage];
+    }
+
+    const merged = mergeMessages(historyMessages, pendingMessages);
+    return merged.length > 0 ? merged : [greetingMessage];
+  }, [
+    activeConversationId,
+    historyMessages,
+    messagesQuery.isLoading,
+    pendingMessages,
+  ]);
+
+  const latestMessageId = displayMessages[displayMessages.length - 1]?.id;
+  const loadingHistory =
+    conversationQuery.isLoading ||
+    (Boolean(activeConversationId) && messagesQuery.isLoading);
+
+  const scrollMessagesToBottom = useCallback(
+    (behavior: ScrollBehavior = "auto") => {
+      const listElement = messageListRef.current;
+
+      if (!listElement) {
+        return;
+      }
+
+      listElement.scrollTo({
+        behavior,
+        top: listElement.scrollHeight,
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!open || loadingHistory || !displayMessages.length) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      scrollMessagesToBottom("auto");
+    });
+  }, [
+    open,
+    loadingHistory,
+    latestMessageId,
+    displayMessages.length,
+    scrollMessagesToBottom,
+  ]);
 
   const handleNewMessage = useCallback(
     (message: ChatMessageResponse) => {
-      if (conversationId && message.conversationId !== conversationId) {
+      if (
+        activeConversationId &&
+        message.conversationId !== activeConversationId
+      ) {
         return;
       }
 
@@ -61,9 +152,35 @@ export function CustomerChatWidget() {
         return;
       }
 
-      setMessages((current) => [...current, mapChatMessageResponse(message)]);
+      // Prefer query cache so reload/refetch stays consistent.
+      queryClient.setQueryData(
+        [
+          "chat",
+          "messages",
+          message.conversationId,
+          { limit: 100, page: 1, order: "DESC" },
+        ],
+        (current: { data?: ChatMessageResponse[]; meta?: unknown } | undefined) => {
+          if (!current?.data) {
+            return {
+              data: [message],
+              meta: { page: 1, limit: 100, total: 1, totalPages: 1 },
+            };
+          }
+
+          if (current.data.some((item) => item.id === message.id)) {
+            return current;
+          }
+
+          return {
+            ...current,
+            data: [message, ...current.data],
+            meta: current.meta,
+          };
+        },
+      );
     },
-    [conversationId],
+    [activeConversationId, queryClient],
   );
 
   const { joinConversation, sendMessage } = useChatSocket({
@@ -76,33 +193,46 @@ export function CustomerChatWidget() {
       return;
     }
 
-    window.queueMicrotask(() => {
-      if (!currentConversation) {
-        setConversationId(undefined);
-        setMessages([greetingMessage]);
-        return;
-      }
-
-      setConversationId(currentConversation.id);
-      void joinConversation(currentConversation.id);
-    });
-  }, [currentConversation, joinConversation, open]);
-
-  useEffect(() => {
-    if (!open || messagesQuery.isLoading) {
+    if (conversationQuery.isLoading) {
       return;
     }
 
-    const loadedMessages = messagesQuery.data?.data ?? [];
+    if (!currentConversation) {
+      return;
+    }
 
     window.queueMicrotask(() => {
-      setMessages(
-        loadedMessages.length
-          ? loadedMessages.map(mapChatMessageResponse)
-          : [greetingMessage],
-      );
+      setConversationId(currentConversation.id);
+      void joinConversation(currentConversation.id);
     });
-  }, [messagesQuery.data?.data, messagesQuery.isLoading, open]);
+  }, [
+    conversationQuery.isLoading,
+    currentConversation,
+    joinConversation,
+    open,
+  ]);
+
+  // Drop pending rows once the same message id appears in history.
+  useEffect(() => {
+    if (!historyMessages.length || !pendingMessages.length) {
+      return;
+    }
+
+    const historyIds = new Set(
+      historyMessages.map((message) => String(message.id)),
+    );
+
+    setPendingMessages((current) => {
+      const next = current.filter(
+        (message) =>
+          message.status === "sending" ||
+          message.status === "failed" ||
+          !historyIds.has(String(message.id)),
+      );
+
+      return next.length === current.length ? current : next;
+    });
+  }, [historyMessages, pendingMessages.length]);
 
   const sendCustomerMessage = async (text: string) => {
     const trimmed = text.trim();
@@ -113,11 +243,16 @@ export function CustomerChatWidget() {
       text: trimmed,
     });
 
-    setMessages((current) => [...current, tempMessage]);
+    setPendingMessages((current) =>
+      sortChatMessages([...current, tempMessage]),
+    );
     setInputValue("");
+    window.requestAnimationFrame(() => {
+      scrollMessagesToBottom("smooth");
+    });
 
     const ack = await sendMessage({
-      conversationId,
+      conversationId: activeConversationId,
       content: trimmed,
       type: "text",
     });
@@ -126,19 +261,53 @@ export function CustomerChatWidget() {
 
     if (!ack.success || !data) {
       console.warn("Customer chat message failed", ack.error);
-      setMessages((current) => markChatMessageFailed(current, tempMessage.id));
+      setPendingMessages((current) =>
+        markChatMessageFailed(current, tempMessage.id),
+      );
       return;
     }
 
-    setConversationId(data.message.conversationId);
-    void joinConversation(data.message.conversationId);
-    setMessages((current) =>
-      replaceChatMessage(
-        current,
-        tempMessage.id,
-        mapChatMessageResponse(data.message),
-      ),
+    const nextConversationId = data.message.conversationId;
+    setConversationId(nextConversationId);
+    void joinConversation(nextConversationId);
+
+    // Remove temp; put confirmed message into the messages query cache.
+    setPendingMessages((current) =>
+      current.filter((message) => message.id !== tempMessage.id),
     );
+
+    queryClient.setQueryData(
+      [
+        "chat",
+        "messages",
+        nextConversationId,
+        { limit: 100, page: 1, order: "DESC" },
+      ],
+      (current: { data?: ChatMessageResponse[]; meta?: unknown } | undefined) => {
+        if (!current?.data) {
+          return {
+            data: [data.message],
+            meta: { page: 1, limit: 100, total: 1, totalPages: 1 },
+          };
+        }
+
+        if (current.data.some((item) => item.id === data.message.id)) {
+          return current;
+        }
+
+        return {
+          ...current,
+          data: [data.message, ...current.data],
+        };
+      },
+    );
+
+    void queryClient.invalidateQueries({
+      queryKey: ["chat", "customer-conversation"],
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ["chat", "messages", nextConversationId],
+    });
   };
 
   return (
@@ -181,13 +350,14 @@ export function CustomerChatWidget() {
             className="max-h-[360px]"
             currentUserRole="customer"
             emptyState={loadingHistory ? "Đang tải tin nhắn..." : undefined}
-            messages={messages}
+            messages={displayMessages}
             notice={
               <div className="rounded-xl bg-[#eef7ef] px-3 py-2 text-xs font-semibold text-[#315d3b]">
                 <Sparkles className="mr-1 inline-block" size={13} />
                 Bạn có thể hỏi về món, topping, phí giao hàng hoặc đơn hiện tại.
               </div>
             }
+            ref={messageListRef}
           />
 
           <div className="border-t border-[#eadfd4] bg-white p-3">

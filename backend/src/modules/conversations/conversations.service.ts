@@ -9,7 +9,6 @@ import {
   DataSource,
   EntityManager,
   FindOptionsWhere,
-  MoreThan,
   Not,
   Repository,
 } from 'typeorm';
@@ -173,6 +172,7 @@ export class ConversationsService {
       senderRole,
     );
 
+    // lastReadAt is updated only via markAsRead / conversation:read
     return this.findById(conversation.id, currentUser);
   }
 
@@ -194,7 +194,10 @@ export class ConversationsService {
     );
 
     const lastReadAt = new Date();
-    await this.participantsRepository.update(participant.id, { lastReadAt });
+    await this.participantsRepository.update(participant.id, {
+      lastReadAt,
+      unreadCount: 0,
+    });
 
     return {
       conversationId,
@@ -262,6 +265,18 @@ export class ConversationsService {
       lastMessageId: savedMessage.id,
       lastMessageAt: savedMessage.createdAt,
     });
+
+    if (messageData.senderRole === ConversationUserRole.CUSTOMER) {
+      await manager.increment(
+        ConversationParticipant,
+        {
+          conversationId,
+          userId: Not(messageData.senderId),
+        },
+        'unreadCount',
+        1,
+      );
+    }
 
     const messageWithSender = await manager.findOne(Message, {
       where: { id: savedMessage.id },
@@ -461,7 +476,9 @@ export class ConversationsService {
       lastMessage: conversation.lastMessage
         ? this.toMessageResponse(conversation.lastMessage)
         : null,
-      lastMessageAt: conversation.lastMessageAt ?? null,
+      lastMessageAt: conversation.lastMessageAt
+        ? this.toIsoDate(conversation.lastMessageAt)
+        : null,
       participants:
         conversation.participants?.map((participant) => ({
           id: participant.id,
@@ -495,7 +512,9 @@ export class ConversationsService {
       lastMessage: conversation.lastMessage
         ? this.toListMessageResponse(conversation.lastMessage)
         : null,
-      lastMessageAt: conversation.lastMessageAt ?? null,
+      lastMessageAt: conversation.lastMessageAt
+        ? this.toIsoDate(conversation.lastMessageAt)
+        : null,
       unreadCount: await this.getUnreadCount(conversation, currentUserId),
     };
   }
@@ -509,9 +528,9 @@ export class ConversationsService {
       sender: message.sender ? this.toUserSummary(message.sender) : undefined,
       type: message.type,
       content: message.content ?? null,
-      createdAt: message.createdAt,
-      updatedAt: message.updatedAt,
-      deletedAt: message.deletedAt ?? null,
+      createdAt: this.toIsoDate(message.createdAt),
+      updatedAt: this.toIsoDate(message.updatedAt),
+      deletedAt: message.deletedAt ? this.toIsoDate(message.deletedAt) : null,
     };
   }
 
@@ -522,8 +541,17 @@ export class ConversationsService {
       type: message.type,
       senderId: message.senderId,
       senderRole: message.senderRole,
-      createdAt: message.createdAt,
+      createdAt: this.toIsoDate(message.createdAt),
     };
+  }
+
+  private toIsoDate(value: Date | string) {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value) : date.toISOString();
   }
 
   private async getUnreadCount(
@@ -534,20 +562,41 @@ export class ConversationsService {
       (item) => item.userId === currentUserId,
     );
 
-    if (!participant) {
-      return 0;
+    // Durable unread stored on participant (incremented on customer message).
+    if (participant) {
+      return Math.max(0, participant.unreadCount ?? 0);
     }
 
-    const where: FindOptionsWhere<Message> = {
-      conversationId: conversation.id,
-      senderId: Not(currentUserId),
-    };
+    // Never joined: unanswered customer messages after the last staff reply.
+    const lastStaffMessage = await this.messagesRepository
+      .createQueryBuilder('message')
+      .where('message.conversationId = :conversationId', {
+        conversationId: conversation.id,
+      })
+      .andWhere('message.senderRole = :adminRole', {
+        adminRole: ConversationUserRole.ADMIN,
+      })
+      .andWhere('message.deletedAt IS NULL')
+      .orderBy('message.id', 'DESC')
+      .getOne();
 
-    if (participant.lastReadAt) {
-      where.createdAt = MoreThan(participant.lastReadAt);
+    const query = this.messagesRepository
+      .createQueryBuilder('message')
+      .where('message.conversationId = :conversationId', {
+        conversationId: conversation.id,
+      })
+      .andWhere('message.senderRole = :customerRole', {
+        customerRole: ConversationUserRole.CUSTOMER,
+      })
+      .andWhere('message.deletedAt IS NULL');
+
+    if (lastStaffMessage) {
+      query.andWhere('message.id > :lastStaffMessageId', {
+        lastStaffMessageId: lastStaffMessage.id,
+      });
     }
 
-    return this.messagesRepository.count({ where });
+    return query.getCount();
   }
 
   private toUserSummary(user: Users) {
