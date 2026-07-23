@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Pencil, ShoppingBag, Trash2 } from "lucide-react";
 import { FALLBACK_PRODUCT_IMAGE } from "@/common/mocks/customerMenu";
+import { resolveProductImageUrl } from "@/common/utils/media";
 import type { CustomerCartItem } from "@/services/types/apiType";
 import { formatPrice } from "../orderUtils";
 import { QuantityStepper } from "./QuantityStepper";
@@ -32,7 +33,7 @@ export function CartItemsSection({ cart, onEdit, onQuantityChange }: CartItemsSe
                     className="object-cover"
                     fill
                     sizes="96px"
-                    src={item.product.image || FALLBACK_PRODUCT_IMAGE}
+                    src={resolveProductImageUrl(item.product.image, FALLBACK_PRODUCT_IMAGE)}
                     unoptimized
                   />
                 </div>
