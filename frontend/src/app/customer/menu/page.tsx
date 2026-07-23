@@ -23,11 +23,11 @@ import {
   Topping as ApiTopping,
 } from "@/services/types/apiType";
 import {
-  FALLBACK_PRODUCT_IMAGE,
   MENU_CATEGORIES,
   PRODUCT_BACKGROUNDS,
   PRODUCTS,
 } from "@/common/mocks/customerMenu";
+import { resolveProductImageUrl } from "@/common/utils/media";
 import {
   useAddCartItemMutation,
   useCustomerCartQuery,
@@ -71,7 +71,7 @@ const toProductCard = (product: CustomerProduct, index: number): Product => ({
     product.description ||
     product.categoryName ||
     "Thức uống được pha chế mỗi ngày từ nguyên liệu chọn lọc.",
-  image: product.imageUrl || FALLBACK_PRODUCT_IMAGE,
+  image: resolveProductImageUrl(product.imageUrl),
   bg: PRODUCT_BACKGROUNDS[index % PRODUCT_BACKGROUNDS.length],
 });
 const getNumericCategoryId = (product?: Product | null) => {
