@@ -42,7 +42,8 @@ export const useUpdateCartItemMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: UpdateCartItemPayload) => api.cart.updateItem(payload),
+    mutationFn: (payload: UpdateCartItemPayload) =>
+      api.cart.updateItem(payload),
     onSuccess: (cart) => {
       setCartCache(queryClient, cart);
       toast.success("Đã cập nhật giỏ hàng.");
@@ -63,6 +64,17 @@ export const useRemoveCartItemMutation = () => {
     },
     onError: () => {
       toast.error("Không thể xóa món khỏi giỏ.");
+    },
+  });
+};
+
+export const useClearCartMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.cart.clearCart(),
+    onSuccess: (cart) => {
+      setCartCache(queryClient, cart);
     },
   });
 };

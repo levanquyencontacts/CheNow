@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { CustomerProfile } from '../customers/entities/customer-profile.entity';
 import { UserRole } from '../roles/entities/user-role.entity';
+import { UserAddress } from '../addresses/entity/user-address.entity';
 
 @Entity('users')
 export class Users {
@@ -42,6 +43,9 @@ export class Users {
 
   @OneToOne(() => CustomerProfile, (customerProfile) => customerProfile.user)
   customerProfile?: CustomerProfile;
+
+  @OneToMany(() => UserAddress, (address) => address.user)
+  addresses: UserAddress[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

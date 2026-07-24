@@ -49,6 +49,37 @@ export interface UpdateUserPayload {
   avatar?: string | null;
 }
 
+export interface UserAddress {
+  id: number;
+  userId: number;
+  label: string;
+  receiverName: string;
+  receiverPhone: string;
+  fullAddress: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAddressPayload {
+  label: string;
+  receiverName: string;
+  receiverPhone: string;
+  fullAddress: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateAddressPayload extends Partial<
+  Omit<CreateAddressPayload, "isDefault">
+> {
+  id: number;
+}
+
+export interface DeleteAddressResult {
+  message: string;
+  defaultAddressId: number | null;
+}
+
 // ─── Auth Payloads ────────────────────────────────────────────────────────────
 
 export interface LoginPayload {
@@ -392,7 +423,7 @@ export interface CreateOrderItemPayload {
 }
 
 export interface CreateOrderPayload {
-  userId: number;
+  addressId?: number;
   subtotalAmount: number;
   discountAmount?: number;
   shippingFee?: number;

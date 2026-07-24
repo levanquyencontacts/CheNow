@@ -3,11 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { OrderStatus } from '../../common/enums/common.enum';
+import { OrderType, RoleCode } from '../../common/enums/common.enum';
 import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
 import { CategorySizes } from '../category-sizes/entity/category-sizes.entity';
 import { Products } from '../products/entity/products.entity';
 import { Toppings } from '../toppings/entity/toppings.entity';
+import { UserAddress } from '../addresses/entity/user-address.entity';
+import { Users } from '../users/users.entities';
 import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
 import { OrderItemToppings } from './entity/order-item-toppings';
 import { OrderItems } from './entity/order-items';
@@ -21,21 +24,40 @@ export class OrdersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(currentUser: Users, createOrderDto: CreateOrderDto) {
     const {
+      addressId,
       orderItems,
       discountAmount = 0,
       shippingFee = 0,
+      receiverName,
+      receiverPhone,
+      deliveryAddress,
       ...orderData
     } = createOrderDto;
 
     return this.dataSource.transaction(async (manager) => {
+      const deliverySnapshot = await this.resolveDeliverySnapshot(
+        manager,
+        currentUser,
+        orderData.orderType,
+        addressId,
+        {
+          receiverName,
+          receiverPhone,
+          deliveryAddress,
+        },
+      );
+      const isPrivileged = this.isPrivileged(currentUser);
       const invoiceCode = await this.generateInvoiceCode(manager);
       const order = manager.create(Orders, {
         ...orderData,
         discountAmount,
+        ...deliverySnapshot,
         invoiceCode,
         shippingFee,
+        status: isPrivileged ? orderData.status : OrderStatus.PENDING,
+        userId: currentUser.id,
       });
       const savedOrder = await manager.save(Orders, order);
 
@@ -263,6 +285,60 @@ export class OrdersService {
 
   private toNumber(value: number | string | null | undefined) {
     return Number(value ?? 0);
+  }
+
+  private async resolveDeliverySnapshot(
+    manager: EntityManager,
+    currentUser: Users,
+    orderType: OrderType,
+    addressId: number | undefined,
+    manualSnapshot: {
+      receiverName?: string;
+      receiverPhone?: string;
+      deliveryAddress?: string;
+    },
+  ) {
+    if (orderType !== OrderType.DELIVERY) {
+      return {};
+    }
+
+    if (addressId) {
+      const address = await manager.findOne(UserAddress, {
+        where: { id: addressId, userId: currentUser.id },
+      });
+
+      if (!address) {
+        throw new BadRequestException(
+          'Delivery address not found for current user',
+        );
+      }
+
+      return {
+        receiverName: address.receiverName,
+        receiverPhone: address.receiverPhone,
+        deliveryAddress: address.fullAddress,
+      };
+    }
+
+    if (
+      this.isPrivileged(currentUser) &&
+      manualSnapshot.receiverName &&
+      manualSnapshot.receiverPhone &&
+      manualSnapshot.deliveryAddress
+    ) {
+      return manualSnapshot;
+    }
+
+    throw new BadRequestException('A valid delivery address is required');
+  }
+
+  private isPrivileged(user: Users) {
+    return Boolean(
+      user.userRoles?.some(
+        ({ role }) =>
+          role.code === RoleCode.ADMIN || role.code === RoleCode.STAFF,
+      ),
+    );
   }
 
   private async generateInvoiceCode(manager: EntityManager) {

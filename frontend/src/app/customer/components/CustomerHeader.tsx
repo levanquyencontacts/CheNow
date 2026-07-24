@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { MapPin, Menu, ShoppingCart, X } from "lucide-react";
 import logoSamSam from "@/common/assets/images/logosamsam.png";
 import { NAV_LINKS } from "@/common/mocks/customerHome";
+import { routes } from "@/common/utils/constant";
 import { useCustomerCartQuery } from "@/services/controllers/cart/CartQueries";
 
 const getNavHref = (label: string) => {
@@ -66,12 +67,12 @@ export function CustomerHeader() {
         </ul>
 
         <div className="flex items-center gap-2">
-          <button
+          <Link
             className="hidden items-center gap-1.5 rounded-full border border-[#eadfd4] px-3 py-1.5 text-xs font-medium text-[#5f5148] transition-colors hover:border-[#2d6a4f] md:flex"
-            type="button"
+            href={routes.CUSTOMER_ADDRESSES}
           >
-            <MapPin className="text-[#2d6a4f]" size={12} /> Hà Nội
-          </button>
+            <MapPin className="text-[#2d6a4f]" size={12} /> Địa chỉ
+          </Link>
           <button
             aria-label={cartLabel}
             className="relative rounded-full bg-[#f5ede4] p-2.5 transition-colors hover:bg-[#eadfd4]"
@@ -107,6 +108,13 @@ export function CustomerHeader() {
               {link}
             </Link>
           ))}
+          <Link
+            className="border-b border-[#f5ede4] py-2 text-sm font-medium text-[#5f5148] last:border-0"
+            href={routes.CUSTOMER_ADDRESSES}
+            onClick={() => setMenuOpen(false)}
+          >
+            Địa chỉ giao hàng
+          </Link>
         </div>
       )}
     </nav>

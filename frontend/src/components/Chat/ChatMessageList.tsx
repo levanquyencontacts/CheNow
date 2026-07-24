@@ -11,6 +11,7 @@ type ChatMessageListProps = {
   messages: ChatMessage[];
   notice?: ReactNode;
   onScroll?: (event: UIEvent<HTMLDivElement>) => void;
+  variant?: "customer" | "default";
 };
 
 type ChatTimelineItem =
@@ -34,6 +35,7 @@ export const ChatMessageList = forwardRef<HTMLDivElement, ChatMessageListProps>(
       messages,
       notice,
       onScroll,
+      variant = "default",
     },
     ref,
   ) {
@@ -42,7 +44,8 @@ export const ChatMessageList = forwardRef<HTMLDivElement, ChatMessageListProps>(
     return (
       <div
         className={clsx(
-          "space-y-3 overflow-y-auto bg-[#fffaf5] px-4 py-4",
+          "space-y-3 overflow-y-auto px-4 py-4",
+          variant === "customer" ? "bg-[#fcfbfa]" : "bg-[#fffaf5]",
           className,
         )}
         onScroll={onScroll}
@@ -58,6 +61,7 @@ export const ChatMessageList = forwardRef<HTMLDivElement, ChatMessageListProps>(
                 currentUserRole={currentUserRole}
                 key={item.id}
                 message={item.message}
+                variant={variant}
               />
             ),
           )
@@ -115,11 +119,11 @@ function formatChatDateLabel(dateKey: string) {
   const yesterdayKey = getDateKeyFromDate(yesterday);
 
   if (dateKey === todayKey) {
-    return "Hom nay";
+    return "Hôm nay";
   }
 
   if (dateKey === yesterdayKey) {
-    return "Hom qua";
+    return "Hôm qua";
   }
 
   const date = new Date(`${dateKey}T00:00:00+07:00`);
