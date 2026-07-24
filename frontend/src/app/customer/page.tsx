@@ -6,18 +6,85 @@ import {
   BANNERS,
   FEATURED_PRODUCTS,
   NEWS,
-  STATS,
   STORES,
-  VALUES,
 } from "@/common/mocks/customerHome";
 import {
-  MapPin,
-  Star,
-  ChevronRight,
-  Play,
   Apple,
+  ArrowRight,
+  ChevronRight,
+  CupSoda,
   Download,
+  Heart,
+  Leaf,
+  MapPin,
+  Play,
+  ShieldCheck,
+  ShoppingCart,
+  Star,
+  Store,
 } from "lucide-react";
+
+const HOME_STATS = [
+  {
+    icon: Store,
+    value: "300+",
+    label: "Cửa hàng toàn quốc",
+    description: "Phục vụ khắp 63 tỉnh thành",
+  },
+  {
+    icon: ShoppingCart,
+    value: "5M+",
+    label: "Khách hàng thân thiết",
+    description: "Tin tưởng và lựa chọn",
+  },
+  {
+    icon: Leaf,
+    value: "10+",
+    label: "Năm kinh nghiệm",
+    description: "Trong lĩnh vực F&B",
+  },
+  {
+    icon: ShieldCheck,
+    value: "99%",
+    label: "Hài lòng dịch vụ",
+    description: "Cam kết chất lượng",
+  },
+];
+
+const STORY_VALUES = [
+  {
+    icon: Leaf,
+    iconColor: "text-[#68a62f]",
+    iconBg: "bg-[#eff5e5]",
+    accent: "bg-[#73b436]",
+    title: "Nguyên liệu sạch",
+    description: "100% nông sản Việt Nam tuyển chọn kỹ lưỡng.",
+  },
+  {
+    icon: CupSoda,
+    iconColor: "text-[#dc6411]",
+    iconBg: "bg-[#fff0e5]",
+    accent: "bg-[#f06c18]",
+    title: "Công thức độc quyền",
+    description: "Hương vị riêng biệt, không thể lặp lại.",
+  },
+  {
+    icon: Store,
+    iconColor: "text-[#6550c7]",
+    iconBg: "bg-[#f0ecff]",
+    accent: "bg-[#7057d8]",
+    title: "300+ cửa hàng",
+    description: "Phục vụ khắp toàn quốc, gần bạn nhất.",
+  },
+  {
+    icon: Heart,
+    iconColor: "text-[#cc2e69]",
+    iconBg: "bg-[#fde9f1]",
+    accent: "bg-[#df447c]",
+    title: "5M+ khách hàng",
+    description: "Tin tưởng và yêu thích CheNow.",
+  },
+];
 
 /* ─── COMPONENT ─── */
 export default function CustomerHomePage() {
@@ -104,58 +171,114 @@ export default function CustomerHomePage() {
       </section>
 
       {/* ── STATS ── */}
-      <section className="bg-[#2d6a4f]">
-        <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 lg:grid-cols-4 gap-6 text-white text-center">
-          {STATS.map((s) => (
-            <div key={s.value}>
-              <p className="text-3xl md:text-4xl font-black">{s.value}</p>
-              <p className="text-sm text-white/60 mt-1">{s.label}</p>
-            </div>
-          ))}
+      <section className="bg-[#fffaf5] px-4 py-8 sm:px-6 lg:py-10">
+        <div className="mx-auto grid max-w-7xl overflow-hidden rounded-[24px] border border-[#e7e7e2] bg-white px-6 py-5 shadow-[0_12px_36px_rgba(36,69,51,0.07)] sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:py-7">
+          {HOME_STATS.map((stat, index) => {
+            const Icon = stat.icon;
+
+            return (
+              <div
+                key={stat.label}
+                className={`flex items-center gap-5 py-5 sm:px-5 lg:py-1 ${
+                  index > 0 ? "border-t border-[#e7e7e2]" : ""
+                } ${index === 1 ? "sm:border-t-0" : ""} ${
+                  index > 0 ? "lg:border-t-0 lg:border-l" : ""
+                }`}
+              >
+                <div className="flex size-[70px] shrink-0 items-center justify-center rounded-full bg-[#f2f6ed] text-[#237a4b]">
+                  <Icon className="size-9 stroke-[1.8]" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[34px] leading-none font-bold tracking-tight text-[#237a4b]">
+                    {stat.value}
+                  </p>
+                  <p className="mt-2.5 text-base font-medium text-[#20201e]">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 text-sm text-[#74777e]">
+                    {stat.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       {/* ── STORY SECTION ── */}
-      <section
-        className="max-w-7xl mx-auto px-6 py-20 flex flex-col lg:flex-row items-center gap-12"
-        id="story"
-      >
-        <div className="flex-1">
-          <p className="text-xs font-black uppercase tracking-widest text-[#2d6a4f] mb-3">
-            CheNow Story
-          </p>
-          <h2 className="text-4xl md:text-5xl font-black leading-tight text-[#432010] mb-6">
-            Đậm vị
-            <br />
-            thiên nhiên,
-            <br />
-            <span className="text-[#2d6a4f]">trọn vị hạnh phúc</span>
-          </h2>
-          <p className="text-[#5f5148] leading-relaxed mb-4 max-w-lg">
-            Bên cạnh niềm tự hào về những ly trà sữa ngon – sạch – tươi, chúng
-            tôi luôn tự tin mang đến khách hàng những trải nghiệm tốt nhất về
-            dịch vụ và không gian.
-          </p>
-          <p className="text-[#5f5148] leading-relaxed mb-8 max-w-lg">
-            Mỗi nguyên liệu đều được tuyển chọn kỹ lưỡng từ các vùng nông sản
-            Việt Nam nổi tiếng, đảm bảo hương vị tự nhiên và an toàn cho sức
-            khỏe.
-          </p>
-          <button className="flex items-center gap-2 text-sm font-bold text-[#2d6a4f] hover:gap-4 transition-all">
-            Tìm hiểu thêm <ChevronRight size={16} />
-          </button>
-        </div>
-        <div className="flex-1 grid grid-cols-2 gap-4">
-          {VALUES.map((item) => (
-            <div
-              key={item.title}
-              className="bg-white rounded-2xl p-5 border border-[#eadfd4] hover:shadow-lg hover:-translate-y-1 transition-all"
-            >
-              <div className="text-3xl mb-3">{item.emoji}</div>
-              <p className="font-bold text-[#432010] text-sm">{item.title}</p>
-              <p className="text-xs text-[#8c6a5a] mt-1">{item.desc}</p>
+      <section className="bg-[#fffaf5] px-4 pt-2 pb-20 sm:px-6" id="story">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[24px] border border-[#e8e1da] bg-[radial-gradient(circle_at_92%_72%,rgba(225,239,213,0.5),transparent_25%),linear-gradient(120deg,#fffdf9_0%,#fffaf6_100%)] px-6 py-10 shadow-[0_12px_40px_rgba(89,66,46,0.04)] sm:px-10 lg:px-12 lg:py-12">
+          <BotanicalDecoration />
+
+          <div className="relative z-10 grid items-center gap-12 lg:grid-cols-[0.92fr_1.25fr] lg:gap-16">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#eaf2e6] px-5 py-2 text-sm font-bold tracking-[0.08em] text-[#237a4b] uppercase shadow-sm">
+                <Leaf className="size-5" aria-hidden="true" />
+                Về CheNow
+              </div>
+
+              <h2 className="mt-5 font-serif text-[42px] leading-[1.08] font-bold tracking-[-0.02em] text-[#34261f] sm:text-5xl lg:text-[52px]">
+                Đậm vị
+                <br />
+                thiên nhiên,
+                <br />
+                <span className="text-[#237a4b]">trọn vị hạnh phúc</span>
+              </h2>
+
+              <div className="mt-5 h-0.5 w-10 rounded-full bg-[#237a4b]" />
+
+              <p className="mt-5 text-[15px] leading-7 text-[#62656a] sm:text-base">
+                CheNow mang đến những lựa chọn đồ uống và món ăn được chuẩn bị
+                từ nguyên liệu tự nhiên, chất lượng cao, vì sức khỏe và niềm vui
+                của bạn.
+              </p>
+              <p className="mt-3 text-[15px] leading-7 text-[#62656a] sm:text-base">
+                Mỗi sản phẩm đều được chăm chút tỉ mỉ bởi đội ngũ barista và đầu
+                bếp tâm huyết, luôn đặt trải nghiệm của bạn lên hàng đầu.
+              </p>
+
+              <Link
+                href="/customer/menu"
+                className="mt-6 inline-flex items-center gap-5 rounded-xl bg-[#237a4b] px-5 py-3 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(35,122,75,0.22)] transition hover:-translate-y-0.5 hover:bg-[#1a643d]"
+              >
+                Tìm hiểu thêm
+                <ArrowRight className="size-5" aria-hidden="true" />
+              </Link>
             </div>
-          ))}
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              {STORY_VALUES.map((value) => {
+                const Icon = value.icon;
+
+                return (
+                  <article
+                    key={value.title}
+                    className="grid min-h-[174px] grid-cols-[62px_1fr] gap-x-5 rounded-[20px] border border-[#ece8e3] bg-white/95 p-6 shadow-[0_10px_25px_rgba(68,55,44,0.06)] backdrop-blur-sm transition hover:-translate-y-1 hover:shadow-[0_15px_32px_rgba(68,55,44,0.1)]"
+                  >
+                    <div
+                      className={`flex size-[62px] items-center justify-center rounded-full ${value.iconBg} ${value.iconColor}`}
+                    >
+                      <Icon
+                        className="size-8 stroke-[1.8]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="pt-2">
+                      <h3 className="font-serif text-[19px] font-bold text-[#28221e]">
+                        {value.title}
+                      </h3>
+                      <div
+                        className={`mt-5 h-0.5 w-5 rounded-full ${value.accent}`}
+                      />
+                      <p className="mt-4 text-sm leading-6 text-[#74777e]">
+                        {value.description}
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -495,7 +618,75 @@ export default function CustomerHomePage() {
           <div className="flex-shrink-0 text-8xl md:text-9xl">📱</div>
         </div>
       </section>
-
     </div>
+  );
+}
+
+function BotanicalDecoration() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute -right-12 -bottom-20 h-[360px] w-[360px] opacity-45 sm:opacity-65 lg:h-[430px] lg:w-[430px]"
+      viewBox="0 0 430 430"
+      fill="none"
+    >
+      <defs>
+        <linearGradient id="story-leaf" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#cfe6a9" />
+          <stop offset="0.55" stopColor="#77ad55" />
+          <stop offset="1" stopColor="#2b7449" />
+        </linearGradient>
+        <linearGradient id="story-leaf-light" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#edf5d9" />
+          <stop offset="1" stopColor="#9fc47b" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M365 422C350 339 326 276 281 218M333 331C293 302 253 285 203 281M311 266C312 222 322 185 344 151M278 218C244 194 214 178 172 171"
+        stroke="#477f4b"
+        strokeWidth="5"
+        strokeLinecap="round"
+        opacity="0.72"
+      />
+      <path
+        d="M335 337C291 322 263 331 247 360C285 371 316 360 335 337Z"
+        fill="url(#story-leaf)"
+      />
+      <path
+        d="M307 277C267 242 227 238 192 258C218 292 263 301 307 277Z"
+        fill="url(#story-leaf)"
+      />
+      <path
+        d="M314 247C337 209 367 196 400 204C391 241 355 264 314 247Z"
+        fill="url(#story-leaf-light)"
+      />
+      <path
+        d="M281 218C249 177 213 166 178 178C194 216 236 233 281 218Z"
+        fill="url(#story-leaf-light)"
+      />
+      <path
+        d="M343 153C353 113 380 92 415 91C417 130 386 159 343 153Z"
+        fill="url(#story-leaf)"
+      />
+      <path
+        d="M204 281C170 258 139 261 116 286C145 310 178 307 204 281Z"
+        fill="url(#story-leaf-light)"
+      />
+      <path
+        d="M173 171C143 139 112 132 82 147C102 179 137 188 173 171Z"
+        fill="url(#story-leaf)"
+      />
+      <path
+        d="M365 421C310 397 261 397 205 414"
+        stroke="#477f4b"
+        strokeWidth="5"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+      <path
+        d="M244 406C205 381 170 383 143 409C172 433 211 430 244 406Z"
+        fill="url(#story-leaf-light)"
+      />
+    </svg>
   );
 }

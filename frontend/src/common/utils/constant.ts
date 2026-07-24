@@ -5,6 +5,8 @@ export const routes = {
   SELECT_WORKSPACE: "/select-workspace",
   ADMIN_HOME: "/admin/home",
   CUSTOMER_HOME: "/customer",
+  CUSTOMER_ADDRESSES: "/customer/addresses",
+  CUSTOMER_ORDER: "/customer/order",
   CATEGORY: "/admin/category",
   PRODUCTS: "/admin/products",
   ORDERS: "/admin/orders",

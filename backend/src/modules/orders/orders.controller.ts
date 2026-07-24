@@ -7,19 +7,31 @@ import {
   Patch,
   Post,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
 import { OrdersService } from './orders.service';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { OrderStatus } from '../../common/enums/common.enum';
+import { JwtAuthGuard } from '../../guards/jwtauth.guath';
+import { Users } from '../users/users.entities';
+
+interface AuthRequest {
+  user: Users;
+}
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  create(
+    @Request() request: AuthRequest,
+    @Body() createOrderDto: CreateOrderDto,
+  ) {
+    return this.ordersService.create(request.user, createOrderDto);
   }
 
   @Get()

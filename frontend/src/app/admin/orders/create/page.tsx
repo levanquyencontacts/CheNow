@@ -174,7 +174,6 @@ export default function CreateOrderPage() {
 
     createOrderMutation.mutate(
       {
-        userId: authUser.id,
         subtotalAmount,
         discountAmount,
         shippingFee,

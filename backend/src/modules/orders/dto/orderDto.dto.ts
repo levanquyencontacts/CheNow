@@ -7,6 +7,8 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Length,
+  Matches,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -21,8 +23,9 @@ import { UpdateOrderItemDto } from './order-itemDto.dto';
 
 export class CreateOrderDto {
   @IsInt()
-  @IsNotEmpty()
-  userId: number;
+  @Min(1)
+  @IsOptional()
+  addressId?: number;
 
   @IsNumber()
   @Min(0)
@@ -57,14 +60,22 @@ export class CreateOrderDto {
   status?: OrderStatus;
 
   @IsString()
+  @IsNotEmpty()
+  @Length(2, 100)
   @IsOptional()
   receiverName?: string;
 
   @IsString()
+  @Length(9, 20)
+  @Matches(/^\+?[0-9][0-9 .-]{7,18}[0-9]$/, {
+    message: 'receiverPhone must be a valid phone number',
+  })
   @IsOptional()
   receiverPhone?: string;
 
   @IsString()
+  @IsNotEmpty()
+  @Length(5, 500)
   @IsOptional()
   deliveryAddress?: string;
 
