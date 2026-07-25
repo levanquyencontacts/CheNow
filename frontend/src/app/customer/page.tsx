@@ -66,7 +66,7 @@ const STORY_VALUES = [
     iconBg: "bg-[#fff0e5]",
     accent: "bg-[#f06c18]",
     title: "Công thức độc quyền",
-    description: "Hương vị riêng biệt, không thể lặp lại.",
+    description: "Hương  vị riêng biệt, không thể lặp lại.",
   },
   {
     icon: Store,
