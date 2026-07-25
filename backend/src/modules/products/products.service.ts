@@ -12,6 +12,7 @@ import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
 import { ProductStocks } from '../product-stocks/entities/product-stocks.entity';
 import {
+  OrderStatus,
   ProductAvailability,
   ProductStatus,
 } from '../../common/enums/common.enum';
@@ -120,6 +121,49 @@ export class ProductsService {
       result,
       (product) => new CustomerProductListResponseDto(product),
     );
+  }
+
+  async findFeaturedForCustomer(type: string = 'new', limit: number = 4) {
+    const safeLimit = Math.min(Math.max(Number(limit) || 4, 1), 12);
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.productStocks', 'productStocks')
+      .andWhere('product.status = :status', {
+        status: ProductStatus.ACTIVE,
+      })
+      .andWhere('category.status = :categoryStatus', {
+        categoryStatus: CategoryStatus.ACTIVE,
+      })
+      .andWhere('productStocks.quantity > 0');
+
+    if (type === 'best-seller') {
+      queryBuilder
+        .leftJoin('product.orderItems', 'orderItem')
+        .leftJoin('orderItem.order', 'order')
+        .andWhere('(order.id IS NULL OR order.status != :cancelled)', {
+          cancelled: OrderStatus.CANCELLED,
+        })
+        .addSelect('COALESCE(SUM(orderItem.quantity), 0)', 'sold_quantity')
+        .groupBy('product.id')
+        .addGroupBy('category.id')
+        .addGroupBy('productStocks.id')
+        .orderBy('sold_quantity', 'DESC')
+        .addOrderBy('product.createdAt', 'DESC')
+        .limit(safeLimit);
+    } else {
+      queryBuilder
+        .andWhere('product.isNew = :isNew', { isNew: true })
+        .orderBy('product.createdAt', 'DESC')
+        .take(safeLimit);
+    }
+
+    const products = await queryBuilder.getMany();
+    await this.hydrateProductStocks(products);
+
+    return {
+      data: products.map((product) => new CustomerProductListResponseDto(product)),
+    };
   }
 
   async createProduct(products: ProductsDto) {

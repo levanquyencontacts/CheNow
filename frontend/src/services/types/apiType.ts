@@ -256,6 +256,7 @@ export interface Product {
   imageUrl: string | null;
   description: string | null;
   status: ProductStatus;
+  isNew: boolean;
   availability: ProductAvailability;
   categoryName: string;
   quantity: number;
@@ -272,6 +273,7 @@ export interface CustomerProduct {
   price: number;
   imageUrl: string | null;
   description: string | null;
+  isNew: boolean;
   availability: ProductAvailability;
 }
 
@@ -282,6 +284,7 @@ export interface CreateProductPayload {
   imageUrl?: string | null;
   description?: string | null;
   status: ProductStatus;
+  isNew?: boolean;
   quantity: number;
   minQuantity: number;
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -15,7 +15,10 @@ import {
 } from "lucide-react";
 import { useCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
 import { useCategorySizesQuery } from "@/services/controllers/category-sizes/CategorySizesQueries";
-import { useCustomerProductsQuery } from "@/services/controllers/customer-products/CustomerProductsQueries";
+import {
+  useCustomerFeaturedProductsQuery,
+  useCustomerProductsQuery,
+} from "@/services/controllers/customer-products/CustomerProductsQueries";
 import { useToppingsQuery } from "@/services/controllers/toppings/ToppingsQueries";
 import {
   CategorySize,
@@ -58,13 +61,44 @@ type SizeOption = {
   value: string;
 };
 
+const PRODUCT_PAGE_SIZE = 12;
+const SIBLING_PAGE_COUNT = 1;
+
 const formatPrice = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
+const getPaginationItems = (currentPage: number, totalPages: number) => {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const leftSibling = Math.max(currentPage - SIBLING_PAGE_COUNT, 2);
+  const rightSibling = Math.min(
+    currentPage + SIBLING_PAGE_COUNT,
+    totalPages - 1,
+  );
+  const items: Array<number | "ellipsis-left" | "ellipsis-right"> = [1];
+
+  if (leftSibling > 2) {
+    items.push("ellipsis-left");
+  }
+
+  for (let page = leftSibling; page <= rightSibling; page += 1) {
+    items.push(page);
+  }
+
+  if (rightSibling < totalPages - 1) {
+    items.push("ellipsis-right");
+  }
+
+  items.push(totalPages);
+
+  return items;
+};
 const toProductCard = (product: CustomerProduct, index: number): Product => ({
   id: product.id,
   categoryId: product.categoryId,
   name: product.productName,
   price: Number(product.price),
-  tag: index < 4 ? (index % 2 === 0 ? "Mới" : "Bán chạy") : undefined,
+  tag: product.isNew ? "Mới" : undefined,
   rating: 4.6 + (index % 4) / 10,
   sold: 240 + product.id * 17,
   desc:
@@ -104,6 +138,7 @@ export default function MenuCustomerPage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchValue, setSearchValue] = useState("");
   const [sortMode, setSortMode] = useState("popular");
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [size, setSize] = useState("");
   const [note, setNote] = useState("");
@@ -136,11 +171,19 @@ export default function MenuCustomerPage() {
     isLoading: isCustomerProductsLoading,
   } = useCustomerProductsQuery({
     categoryId,
-    limit: 200,
+    limit: PRODUCT_PAGE_SIZE,
     order: productOrder,
-    page: 1,
+    page: currentPage,
     searchValue: searchValue.trim() || undefined,
     sort: productSort,
+  });
+  const { data: bestSellerProductsResponse } = useCustomerFeaturedProductsQuery({
+    limit: 4,
+    type: "best-seller",
+  });
+  const { data: newProductsResponse } = useCustomerFeaturedProductsQuery({
+    limit: 4,
+    type: "new",
   });
   const { data: categorySizesResponse, isLoading: isCategorySizesLoading } =
     useCategorySizesQuery({
@@ -163,6 +206,21 @@ export default function MenuCustomerPage() {
         toProductCard(product, index),
       ) ?? [],
     [customerProductsResponse?.data],
+  );
+  const bestSellerProducts = useMemo(
+    () =>
+      bestSellerProductsResponse?.data.map((product, index) => ({
+        ...toProductCard(product, index),
+        tag: product.isNew ? "Mới" : "Bán chạy",
+      })) ?? [],
+    [bestSellerProductsResponse?.data],
+  );
+  const newProducts = useMemo(
+    () =>
+      newProductsResponse?.data.map((product, index) =>
+        toProductCard(product, index),
+      ) ?? [],
+    [newProductsResponse?.data],
   );
   const productsSource: Product[] =
     customerProductsResponse && !isCustomerProductsError
@@ -192,6 +250,30 @@ export default function MenuCustomerPage() {
       return b.sold - a.sold;
     });
   }, [activeCategory, productsSource, searchValue, sortMode]);
+
+  const apiPagination = customerProductsResponse?.metadata.pagination;
+  const isUsingApiProducts =
+    Boolean(customerProductsResponse) && !isCustomerProductsError;
+  const totalProductCount = isUsingApiProducts
+    ? (apiPagination?.total ?? filteredProducts.length)
+    : filteredProducts.length;
+  const totalProductPages = Math.max(
+    1,
+    isUsingApiProducts
+      ? (apiPagination?.totalPages ?? 1)
+      : Math.ceil(filteredProducts.length / PRODUCT_PAGE_SIZE),
+  );
+  const effectiveCurrentPage = Math.min(currentPage, totalProductPages);
+  const displayedProducts = isUsingApiProducts
+    ? filteredProducts
+    : filteredProducts.slice(
+        (effectiveCurrentPage - 1) * PRODUCT_PAGE_SIZE,
+        effectiveCurrentPage * PRODUCT_PAGE_SIZE,
+      );
+  const paginationItems = getPaginationItems(
+    effectiveCurrentPage,
+    totalProductPages,
+  );
 
   const menuCategories = useMemo(() => {
     const categories = categoriesResponse?.data ?? [];
@@ -227,10 +309,18 @@ export default function MenuCustomerPage() {
     productsSource,
   ]);
 
-  const featuredProducts = useMemo(
-    () => productsSource.filter((product) => product.tag).slice(0, 4),
-    [productsSource],
-  );
+
+  const featuredProducts = useMemo(() => {
+    if (bestSellerProducts.length > 0) {
+      return bestSellerProducts;
+    }
+
+    if (newProducts.length > 0) {
+      return newProducts;
+    }
+
+    return productsSource.filter((product) => product.tag).slice(0, 4);
+  }, [bestSellerProducts, newProducts, productsSource]);
 
   useEffect(() => {
     if (featuredProducts.length <= 1) return;
@@ -456,7 +546,10 @@ export default function MenuCustomerPage() {
                           : "bg-[#fffaf5] font-semibold text-on-surface-variant hover:bg-emerald/10 hover:text-primary"
                       }`}
                       key={category.id}
-                      onClick={() => setActiveCategory(category.id)}
+                      onClick={() => {
+                        setActiveCategory(category.id);
+                        setCurrentPage(1);
+                      }}
                       type="button"
                     >
                       <span>{category.name}</span>
@@ -497,7 +590,10 @@ export default function MenuCustomerPage() {
                     <Search size={18} />
                     <input
                       className="h-full min-w-0 flex-1 bg-transparent text-charcoal-black outline-none placeholder:text-[#9d8b78]"
-                      onChange={(event) => setSearchValue(event.target.value)}
+                      onChange={(event) => {
+                        setSearchValue(event.target.value);
+                        setCurrentPage(1);
+                      }}
                       placeholder="Tìm trà sữa, ô long, matcha..."
                       value={searchValue}
                     />
@@ -506,7 +602,10 @@ export default function MenuCustomerPage() {
                     <SlidersHorizontal size={18} />
                     <select
                       className="h-full min-w-0 flex-1 bg-transparent text-charcoal-black outline-none"
-                      onChange={(event) => setSortMode(event.target.value)}
+                      onChange={(event) => {
+                        setSortMode(event.target.value);
+                        setCurrentPage(1);
+                      }}
                       value={sortMode}
                     >
                       <option value="popular">Bán chạy</option>
@@ -528,7 +627,7 @@ export default function MenuCustomerPage() {
                     }
                   </h2>
                   <p className="mt-1 text-sm text-on-surface-variant">
-                    {filteredProducts.length} món phù hợp
+                    {totalProductCount.toLocaleString("vi-VN")} món phù hợp
                   </p>
                   {(isCustomerProductsLoading || isCategoriesLoading) && (
                     <p className="mt-1 text-xs font-semibold text-primary">
@@ -545,7 +644,7 @@ export default function MenuCustomerPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.map((product) => (
+                {displayedProducts.map((product) => (
                   <article
                     className="group overflow-hidden rounded-2xl border border-[#eadfd4] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#cdb8a5] hover:shadow-xl"
                     key={product.id}
@@ -613,6 +712,69 @@ export default function MenuCustomerPage() {
                   </article>
                 ))}
               </div>
+
+              {totalProductPages > 1 ? (
+                <nav
+                  aria-label="Phân trang sản phẩm"
+                  className="mt-8 flex flex-wrap items-center justify-center gap-2"
+                >
+                  <button
+                    aria-label="Trang trước"
+                    className="h-10 rounded-full border border-[#d9c9b8] bg-white px-4 text-sm font-bold text-[#6d625b] transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled={effectiveCurrentPage === 1}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.max(1, page - 1))
+                    }
+                    type="button"
+                  >
+                    Trước
+                  </button>
+
+                  {paginationItems.map((item) =>
+                    typeof item === "number" ? (
+                      <button
+                        aria-current={
+                          item === effectiveCurrentPage ? "page" : undefined
+                        }
+                        aria-label={`Trang ${item}`}
+                        className={[
+                          "flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-black transition-all",
+                          item === effectiveCurrentPage
+                            ? "bg-primary text-white shadow-[0_10px_24px_rgba(7,132,95,0.24)]"
+                            : "border border-[#d9c9b8] bg-white text-[#6d625b] hover:border-primary hover:text-primary",
+                        ].join(" ")}
+                        key={item}
+                        onClick={() => setCurrentPage(item)}
+                        type="button"
+                      >
+                        {item}
+                      </button>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="flex h-10 min-w-10 items-center justify-center rounded-full text-sm font-black text-[#8c6a5a]"
+                        key={item}
+                      >
+                        …
+                      </span>
+                    ),
+                  )}
+
+                  <button
+                    aria-label="Trang sau"
+                    className="h-10 rounded-full border border-[#d9c9b8] bg-white px-4 text-sm font-bold text-[#6d625b] transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled={effectiveCurrentPage === totalProductPages}
+                    onClick={() =>
+                      setCurrentPage((page) =>
+                        Math.min(totalProductPages, page + 1),
+                      )
+                    }
+                    type="button"
+                  >
+                    Sau
+                  </button>
+                </nav>
+              ) : null}
             </div>
           </div>
         </section>
