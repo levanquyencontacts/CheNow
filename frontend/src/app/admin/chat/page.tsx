@@ -110,7 +110,18 @@ export default function AdminChatPage() {
       return;
     }
 
-    setActiveId(conversationItems[0].id);
+    const firstConversationId = conversationItems[0].id;
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setActiveId(firstConversationId);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeId, conversationItems]);
 
   useEffect(() => {
