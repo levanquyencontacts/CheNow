@@ -1,19 +1,24 @@
 import {
-  BadRequestException,
   Controller,
   Get,
   NotFoundException,
   Param,
   Post,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import type { Response } from 'express';
+import { diskStorage } from 'multer';
+import { existsSync } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
+import { extname, join } from 'path';
+import sharp from 'sharp';
 import { FileService } from './file.service';
 
 type UploadedImage = {
-  buffer: Buffer;
+  filename: string;
   originalname: string;
   mimetype: string;
   size: number;
@@ -26,8 +31,19 @@ export class FileController {
   @Post('image')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: memoryStorage(),
-
+      storage: diskStorage({
+        destination: join(
+          process.cwd(),
+          'public',
+          'upload',
+          'images',
+          'originals',
+        ),
+        filename: (_req, file, callback) => {
+          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
+          callback(null, uniqueName);
+        },
+      }),
       fileFilter: (_req, file, callback) => {
         if (!file.mimetype.match(/^image\/(jpeg|png|webp|gif)$/)) {
           callback(new Error('Only image files are allowed'), false);
@@ -36,32 +52,62 @@ export class FileController {
 
         callback(null, true);
       },
-
       limits: {
         fileSize: 5 * 1024 * 1024,
       },
     }),
   )
-  async uploadImage(@UploadedFile() file?: UploadedImage) {
-    if (!file) {
-      throw new BadRequestException('Image is required');
-    }
+  async uploadImage(@UploadedFile() file: UploadedImage) {
+    const originalPath = join(
+      process.cwd(),
+      'public',
+      'upload',
+      'images',
+      'originals',
+      file.filename,
+    );
+    const thumbnailDir = join(
+      process.cwd(),
+      'public',
+      'upload',
+      'images',
+      'thumbnails',
+    );
+    const thumbnailPath = join(thumbnailDir, file.filename);
+
+    await mkdir(thumbnailDir, { recursive: true });
+    await sharp(originalPath)
+      .resize(300, 300, { fit: 'cover' })
+      .png({
+        compressionLevel: 9,
+      })
+      .toFile(thumbnailPath);
 
     return {
-      message: 'Image upload is temporarily disabled',
-      fileName: file.originalname,
-      mimeType: file.mimetype,
-      size: file.size,
+      message: 'successfully uploaded',
+      fileName: file.filename,
     };
   }
 
   @Get('image/:type/:fileName')
   getImage(
-    @Param('type') _type: string,
-    @Param('fileName') _fileName: string,
+    @Param('type') type: string,
+    @Param('fileName') fileName: string,
+    @Res() response: Response,
   ) {
-    throw new NotFoundException(
-      'Image storage is temporarily unavailable',
+    const folder = type === 'thumbnails' ? 'thumbnails' : 'originals';
+    const imagePath = join(
+      process.cwd(),
+      'public',
+      'upload',
+      'images',
+      folder,
+      fileName,
     );
+    if (!existsSync(imagePath)) {
+      throw new NotFoundException('Image not found');
+    }
+
+    return response.sendFile(imagePath);
   }
 }
