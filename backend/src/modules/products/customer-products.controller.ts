@@ -6,6 +6,14 @@ import { ProductsService } from './products.service';
 export class CustomerProductsController {
   constructor(private service: ProductsService) {}
 
+  @Get('featured')
+  findFeatured(
+    @Query('type') type?: 'new' | 'best-seller',
+    @Query('limit') limit?: number,
+  ) {
+    return this.service.findFeaturedForCustomer(type, Number(limit) || 4);
+  }
+
   @Get()
   findAll(@Query() paginationParams: PaginationParamsDto) {
     return this.service.findAllForCustomer(paginationParams);

@@ -1,14 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Headphones,
-  Leaf,
-  MessageCircle,
-  Minus,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { Headphones, Leaf, Minus, Sparkles, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import {
@@ -28,6 +21,7 @@ import { ChatMessage, ChatMessageResponse } from "@/services/types/apiType";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatQuickReplies } from "./ChatQuickReplies";
+import { FloatingHumanBot } from "@/components/FloatingHumanBot";
 
 const quickReplies = ["Tư vấn món", "Theo dõi đơn", "Khuyến mãi hôm nay"];
 
@@ -326,10 +320,13 @@ export function CustomerChatWidget() {
     });
   };
 
+  if (!open) {
+    return <FloatingHumanBot onActivate={() => setOpen(true)} />;
+  }
+
   return (
     <div className="fixed bottom-3 right-3 z-[90] sm:bottom-5 sm:right-5">
-      {open ? (
-        <section className="flex h-[590px] max-h-[calc(100dvh-24px)] w-[calc(100vw-24px)] max-w-[340px] flex-col overflow-hidden rounded-[22px] border border-[#e8e0d9] bg-[#fcfbfa] shadow-[0_16px_45px_rgba(67,32,16,0.2)]">
+      <section className="flex h-[590px] max-h-[calc(100dvh-24px)] w-[calc(100vw-24px)] max-w-[340px] flex-col overflow-hidden rounded-[22px] border border-[#e8e0d9] bg-[#fcfbfa] shadow-[0_16px_45px_rgba(67,32,16,0.2)]">
           <header className="flex shrink-0 items-center justify-between bg-gradient-to-br from-[#0a936b] to-[#057958] px-4 py-3 text-white">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/15 shadow-inner">
@@ -406,21 +403,7 @@ export function CustomerChatWidget() {
               <strong className="font-black text-[#6d625b]">CheNow</strong>
             </span>
           </footer>
-        </section>
-      ) : (
-        <button
-          aria-label="Mở chat hỗ trợ"
-          className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-[#07845f] text-white shadow-[0_10px_28px_rgba(7,132,95,0.32)] transition-transform hover:scale-105"
-          onClick={() => setOpen(true)}
-          type="button"
-        >
-          <MessageCircle size={24} />
-          <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#f4b544]" />
-          <span className="pointer-events-none absolute right-16 hidden whitespace-nowrap rounded-full bg-[#432010] px-3 py-2 text-xs font-bold text-white shadow-lg group-hover:block">
-            Chat với CheNow
-          </span>
-        </button>
-      )}
+      </section>
     </div>
   );
 }

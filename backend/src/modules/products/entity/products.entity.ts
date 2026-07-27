@@ -33,6 +33,8 @@ export class Products {
   imageUrl: string;
   @Column({ nullable: true, type: 'text' })
   description: string;
+  @Column({ default: false })
+  isNew: boolean;
   @Column({
     type: 'enum',
     enumName: 'products_status_enum',

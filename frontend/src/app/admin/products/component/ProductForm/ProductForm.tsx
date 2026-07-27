@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, TextArea, TextInput } from "@/components";
+import { Box, Button, Checkbox, TextArea, TextInput } from "@/components";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useGenerateProductDescriptionMutation } from "@/services/controllers/ai-assistant/AiAssistantQueries";
 import { useInfiniteCategoriesQuery } from "@/services/controllers/categories/CategoriesQueries";
@@ -28,6 +28,7 @@ const productSchema = z.object({
   quantity: z.number().min(0, "Quantity must be 0 or greater."),
   minQuantity: z.number().min(0, "Minimum quantity must be 0 or greater."),
   imageUrl: z.string().nullable(),
+  isNew: z.boolean(),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
@@ -36,6 +37,7 @@ export interface ProductSubmitPayload {
   categoryId: number;
   description: string | null;
   imageUrl: string | null;
+  isNew: boolean;
   minQuantity: number;
   price: number;
   productName: string;
@@ -61,6 +63,7 @@ const emptyValues: ProductFormValues = {
   quantity: 0,
   minQuantity: 0,
   imageUrl: null,
+  isNew: false,
 };
 
 export function ProductForm({
@@ -170,6 +173,7 @@ export function ProductForm({
       quantity: values.quantity,
       minQuantity: values.minQuantity,
       imageUrl: values.imageUrl,
+      isNew: values.isNew,
       description: values.description?.trim() || null,
     });
   };
@@ -292,6 +296,23 @@ export function ProductForm({
                     placeholder="Describe flavor, ingredients, and notes..."
                     {...register("description")}
                   />
+                </label>
+
+                <label className="flex cursor-pointer items-start gap-3 rounded-md border border-[#eadfd4] bg-white px-4 py-3">
+                  <Checkbox
+                    className="mt-0.5"
+                    controlSize="medium"
+                    disabled={isLoading}
+                    {...register("isNew")}
+                  />
+                  <span>
+                    <span className="block text-sm font-semibold text-[#183d2b]">
+                      Mark as new product
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-[#765a45]">
+                      Show the “Mới” badge on the customer product card.
+                    </span>
+                  </span>
                 </label>
               </Box>
             </Box>

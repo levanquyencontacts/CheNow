@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
 import {
   IsEnum,
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -34,6 +35,9 @@ export class ProductsDto {
   @IsEnum(ProductStatus)
   @IsOptional()
   status?: ProductStatus;
+  @IsBoolean()
+  @IsOptional()
+  isNew?: boolean;
   @IsNumber()
   @IsNotEmpty()
   quantity: number;
@@ -60,6 +64,7 @@ export class ProductsListResponseDto {
   @IsOptional()
   description: string;
   status: ProductStatus;
+  isNew: boolean;
   availability: ProductAvailability;
   categoryName?: string;
   quantity?: number;
@@ -89,6 +94,7 @@ export class CustomerProductListResponseDto {
   price: number;
   imageUrl: string;
   description: string;
+  isNew: boolean;
   availability: ProductAvailability;
 
   constructor(product: Products) {
@@ -99,6 +105,7 @@ export class CustomerProductListResponseDto {
     this.price = Number(product.price);
     this.imageUrl = product.imageUrl;
     this.description = product.description;
+    this.isNew = product.isNew;
     this.availability = getProductAvailability(
       product.productStocks?.quantity ?? 0,
       product.productStocks?.minQuantity ?? 0,

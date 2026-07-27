@@ -39,9 +39,8 @@ export function Typography({
   className,
   ...props
 }: TypographyProps) {
-  const Component = component || defaultElements[variant];
-
-  return (
-    <Component className={clsx(variants[variant], className)} {...props} />
-  );
+  return React.createElement(component || defaultElements[variant], {
+    ...props,
+    className: clsx(variants[variant], className),
+  });
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ElementType } from "react";
+import { createElement } from "react";
 import { type ModalType, useModal } from "@/providers";
 import { AccountModal } from "./AccountModal";
 import { CategoryModal } from "./CategoryModal";
@@ -31,5 +32,5 @@ export function GlobalModalManager() {
     return null;
   }
 
-  return <SpecificModal {...modalProps} />;
+  return createElement(SpecificModal, modalProps);
 }
