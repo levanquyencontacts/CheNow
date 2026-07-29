@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Orders } from './entity/orders.entity';
 import { OrderItems } from './entity/order-items';
 import { OrderItemToppings } from './entity/order-item-toppings';
+import { OrderStatusLogs } from './entity/order-status-logs.entity';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { UserAddress } from '../addresses/entity/user-address.entity';
@@ -13,6 +14,7 @@ import { UserAddress } from '../addresses/entity/user-address.entity';
       Orders,
       OrderItems,
       OrderItemToppings,
+      OrderStatusLogs,
       UserAddress,
     ]),
   ],

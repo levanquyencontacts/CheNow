@@ -31,6 +31,21 @@ export class OrdersService {
     return data;
   }
 
+  async getMyOrders(params?: PaginationParams): Promise<OrdersResponse> {
+    const { data } = await this.apiClient.get("/orders/my-orders", { params });
+    return data;
+  }
+
+  async getMyOrderById(id: number): Promise<Order> {
+    const { data } = await this.apiClient.get(`/orders/my-orders/${id}`);
+    return data;
+  }
+
+  async cancelMyOrder(id: number): Promise<Order> {
+    const { data } = await this.apiClient.patch(`/orders/my-orders/${id}/cancel`);
+    return data;
+  }
+
   async createOrder(payload: CreateOrderPayload): Promise<Order> {
     const { data } = await this.apiClient.post("/orders", payload);
     return data;

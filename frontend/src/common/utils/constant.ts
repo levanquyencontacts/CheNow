@@ -7,6 +7,8 @@ export const routes = {
   CUSTOMER_HOME: "/customer",
   CUSTOMER_ADDRESSES: "/customer/addresses",
   CUSTOMER_ORDER: "/customer/order",
+  CUSTOMER_ORDERS: "/customer/orders",
+  CUSTOMER_ORDER_DETAIL: (id: number) => `/customer/orders/${id}`,
   CATEGORY: "/admin/category",
   PRODUCTS: "/admin/products",
   ORDERS: "/admin/orders",

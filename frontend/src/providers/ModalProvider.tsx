@@ -9,6 +9,7 @@ import {
 
 export type ModalType =
   | "ACCOUNT"
+  | "CANCEL_CUSTOMER_ORDER"
   | "CATEGORY"
   | "DELETE_PRODUCT"
   | "DELETE_PRODUCT_SIZE"
