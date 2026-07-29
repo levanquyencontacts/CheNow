@@ -1,9 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
-import { OrderStatus } from '../../common/enums/common.enum';
-import { OrderType, RoleCode } from '../../common/enums/common.enum';
+import {
+  Order,
+  OrderStatus,
+  OrderType,
+  RoleCode,
+} from '../../common/enums/common.enum';
 import { PaginationHelper } from '../../common/helpers/pagination.helper';
 import { ResponseHelper } from '../../common/helpers/response.helper';
 import { CategorySizes } from '../category-sizes/entity/category-sizes.entity';
@@ -14,6 +22,7 @@ import { Users } from '../users/users.entities';
 import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
 import { OrderItemToppings } from './entity/order-item-toppings';
 import { OrderItems } from './entity/order-items';
+import { OrderStatusLogs } from './entity/order-status-logs.entity';
 import { Orders } from './entity/orders.entity';
 
 @Injectable()
@@ -60,6 +69,13 @@ export class OrdersService {
         userId: currentUser.id,
       });
       const savedOrder = await manager.save(Orders, order);
+      await this.createStatusLog(manager, {
+        changedByUserId: currentUser.id,
+        fromStatus: null,
+        note: 'Order created',
+        orderId: savedOrder.id,
+        toStatus: savedOrder.status,
+      });
 
       for (const orderItemDto of orderItems) {
         const { orderItemToppings = [], ...orderItemData } = orderItemDto;
@@ -84,9 +100,53 @@ export class OrdersService {
           'orderItems',
           'orderItems.orderItemToppings',
           'orderItems.product',
+          'statusLogs',
         ],
       });
     });
+  }
+
+  async findMyOrders(currentUser: Users, paginationParams: PaginationParamsDto) {
+    const { status, ...paginationOptions } = paginationParams;
+    const queryBuilder = this.ordersRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.orderItems', 'orderItems')
+      .leftJoinAndSelect('orderItems.orderItemToppings', 'orderItemToppings')
+      .leftJoinAndSelect('orderItems.product', 'product')
+      .where('order.userId = :userId', { userId: currentUser.id });
+
+    if (status) {
+      queryBuilder.andWhere('order.status = :status', { status });
+    }
+
+    const result = await PaginationHelper.paginate(
+      queryBuilder,
+      {
+        ...paginationOptions,
+        order: paginationOptions.order ?? Order.DESC,
+        sort: paginationOptions.sort ?? 'createdAt',
+      },
+      [
+        'id',
+        'invoiceCode',
+        'subtotalAmount',
+        'discountAmount',
+        'shippingFee',
+        'totalAmount',
+        'orderType',
+        'paymentMethod',
+        'paymentStatus',
+        'status',
+        'receiverName',
+        'receiverPhone',
+        'createdAt',
+        'updatedAt',
+      ],
+      'createdAt',
+      ['invoiceCode'],
+    );
+
+    return ResponseHelper.createPaginatedResponse(result, (order) => order);
   }
 
   async findAll(paginationParams: PaginationParamsDto) {
@@ -122,19 +182,73 @@ export class OrdersService {
         'updatedAt',
       ],
       'id',
-      ['receiverName', 'receiverPhone', 'deliveryAddress', 'note'],
+      [
+        'invoiceCode',
+        'receiverName',
+        'receiverPhone',
+        'deliveryAddress',
+        'note',
+      ],
     );
 
     return ResponseHelper.createPaginatedResponse(result, (order) => order);
   }
 
+  async findMyOrderById(currentUser: Users, id: number) {
+    const order = await this.ordersRepository.findOne({
+      order: { statusLogs: { createdAt: 'ASC' } },
+      relations: [
+        'orderItems',
+        'orderItems.orderItemToppings',
+        'orderItems.product',
+        'statusLogs',
+      ],
+      where: { id, userId: currentUser.id },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
+  }
+
+  async cancelMyOrder(currentUser: Users, id: number) {
+    const order = await this.ordersRepository.findOne({
+      where: { id, userId: currentUser.id },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException('Order cannot be cancelled at this stage');
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(Orders, id, { status: OrderStatus.CANCELLED });
+      await this.createStatusLog(manager, {
+        changedByUserId: currentUser.id,
+        fromStatus: order.status,
+        note: 'Order cancelled by customer',
+        orderId: id,
+        toStatus: OrderStatus.CANCELLED,
+      });
+    });
+
+    return this.findMyOrderById(currentUser, id);
+  }
+
   async findById(id: number) {
     const order = await this.ordersRepository.findOne({
+      order: { statusLogs: { createdAt: 'ASC' } },
       where: { id },
       relations: [
         'orderItems',
         'orderItems.orderItemToppings',
         'orderItems.product',
+        'statusLogs',
       ],
     });
 
@@ -259,26 +373,38 @@ export class OrdersService {
           'orderItems',
           'orderItems.orderItemToppings',
           'orderItems.product',
+          'statusLogs',
         ],
       });
     });
   }
 
-  async updateStatus(id: number, status: OrderStatus) {
+  async updateStatus(id: number, status: OrderStatus, changedByUser?: Users) {
     const order = await this.ordersRepository.findOne({ where: { id } });
 
     if (!order) {
       return { message: 'Order not found' };
     }
 
-    await this.ordersRepository.update(id, { status });
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(Orders, id, { status });
+      await this.createStatusLog(manager, {
+        changedByUserId: changedByUser?.id ?? null,
+        fromStatus: order.status,
+        note: 'Order status updated',
+        orderId: id,
+        toStatus: status,
+      });
+    });
 
     return this.ordersRepository.findOne({
+      order: { statusLogs: { createdAt: 'ASC' } },
       where: { id },
       relations: [
         'orderItems',
         'orderItems.orderItemToppings',
         'orderItems.product',
+        'statusLogs',
       ],
     });
   }
@@ -339,6 +465,21 @@ export class OrdersService {
           role.code === RoleCode.ADMIN || role.code === RoleCode.STAFF,
       ),
     );
+  }
+
+  private async createStatusLog(
+    manager: EntityManager,
+    payload: {
+      changedByUserId?: number | null;
+      fromStatus: OrderStatus | null;
+      note?: string | null;
+      orderId: number;
+      toStatus: OrderStatus;
+    },
+  ) {
+    const statusLog = manager.create(OrderStatusLogs, payload);
+
+    return manager.save(OrderStatusLogs, statusLog);
   }
 
   private async generateInvoiceCode(manager: EntityManager) {

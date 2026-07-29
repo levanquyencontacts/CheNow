@@ -385,8 +385,19 @@ export interface OrderItem {
   product?: Product;
 }
 
+export interface OrderStatusLog {
+  id: number;
+  orderId: number;
+  fromStatus: OrderStatus | null;
+  toStatus: OrderStatus;
+  note?: string | null;
+  changedByUserId?: number | null;
+  createdAt: string;
+}
+
 export interface Order {
   id: number;
+  invoiceCode?: string | null;
   userId: number;
   subtotalAmount: string | number;
   discountAmount: string | number;
@@ -401,6 +412,7 @@ export interface Order {
   deliveryAddress?: string | null;
   note?: string | null;
   orderItems?: OrderItem[];
+  statusLogs?: OrderStatusLog[];
   createdAt: string;
   updatedAt: string;
 }

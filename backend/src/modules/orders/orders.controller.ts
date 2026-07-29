@@ -39,17 +39,40 @@ export class OrdersController {
     return this.ordersService.findAll(paginationParams);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('my-orders')
+  findMyOrders(
+    @Request() request: AuthRequest,
+    @Query() paginationParams: PaginationParamsDto,
+  ) {
+    return this.ordersService.findMyOrders(request.user, paginationParams);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my-orders/:id')
+  findMyOrderById(@Request() request: AuthRequest, @Param('id') id: string) {
+    return this.ordersService.findMyOrderById(request.user, Number(id));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('my-orders/:id/cancel')
+  cancelMyOrder(@Request() request: AuthRequest, @Param('id') id: string) {
+    return this.ordersService.cancelMyOrder(request.user, Number(id));
+  }
+
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.ordersService.findById(Number(id));
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   updateStatus(
+    @Request() request: AuthRequest,
     @Param('id') id: string,
     @Body('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
   ) {
-    return this.ordersService.updateStatus(Number(id), status);
+    return this.ordersService.updateStatus(Number(id), status, request.user);
   }
 
   @Patch(':id')

@@ -4,6 +4,7 @@ import type { ElementType } from "react";
 import { createElement } from "react";
 import { type ModalType, useModal } from "@/providers";
 import { AccountModal } from "./AccountModal";
+import { CancelCustomerOrderModal } from "./CancelCustomerOrderModal";
 import { CategoryModal } from "./CategoryModal";
 import { DeleteProductModal } from "./DeleteProductModal";
 import { DeleteProductSizeModal } from "./DeleteProductSizeModal";
@@ -12,6 +13,7 @@ import { ToppingModal } from "./ToppingModal";
 
 const modalComponents: Partial<Record<ModalType, ElementType>> = {
   ACCOUNT: AccountModal,
+  CANCEL_CUSTOMER_ORDER: CancelCustomerOrderModal,
   CATEGORY: CategoryModal,
   DELETE_PRODUCT: DeleteProductModal,
   DELETE_PRODUCT_SIZE: DeleteProductSizeModal,

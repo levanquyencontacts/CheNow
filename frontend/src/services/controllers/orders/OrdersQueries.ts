@@ -22,6 +22,37 @@ export const useOrderQuery = (id?: number) => {
   });
 };
 
+export const useMyOrdersQuery = (params?: PaginationParams) => {
+  return useQuery({
+    queryKey: ["my-orders", params],
+    queryFn: () => api.orders.getMyOrders({ ...params }),
+  });
+};
+
+export const useMyOrderQuery = (id?: number) => {
+  return useQuery({
+    enabled: Boolean(id),
+    queryKey: ["my-order", id],
+    queryFn: () => api.orders.getMyOrderById(Number(id)),
+  });
+};
+
+export const useCancelMyOrderMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => api.orders.cancelMyOrder(id),
+    onSuccess: (order) => {
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.setQueryData(["my-order", order.id], order);
+      toast.success("Order cancelled successfully.");
+    },
+    onError: () => {
+      toast.error("Cannot cancel this order.");
+    },
+  });
+};
+
 export const useCreateOrderMutation = () => {
   const queryClient = useQueryClient();
 
@@ -29,6 +60,7 @@ export const useCreateOrderMutation = () => {
     mutationFn: (payload: CreateOrderPayload) => api.orders.createOrder(payload),
     onSuccess: (order) => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
       queryClient.setQueryData(["order", order.id], order);
       toast.success("Order created successfully.");
     },

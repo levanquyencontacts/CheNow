@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapPin, Menu, ShoppingCart, X } from "lucide-react";
+import { MapPin, Menu, PackageCheck, ShoppingCart, X } from "lucide-react";
 import logoSamSam from "@/common/assets/images/logosamsam.png";
 import { NAV_LINKS } from "@/common/mocks/customerHome";
 import { routes } from "@/common/utils/constant";
@@ -73,6 +73,12 @@ export function CustomerHeader() {
           >
             <MapPin className="text-[#2d6a4f]" size={12} /> Địa chỉ
           </Link>
+          <Link
+            className="hidden items-center gap-1.5 rounded-full border border-[#eadfd4] px-3 py-1.5 text-xs font-medium text-[#5f5148] transition-colors hover:border-[#2d6a4f] md:flex"
+            href={routes.CUSTOMER_ORDERS}
+          >
+            <PackageCheck className="text-[#2d6a4f]" size={12} /> Đơn hàng
+          </Link>
           <button
             aria-label={cartLabel}
             className="relative rounded-full bg-[#f5ede4] p-2.5 transition-colors hover:bg-[#eadfd4]"
@@ -114,6 +120,13 @@ export function CustomerHeader() {
             onClick={() => setMenuOpen(false)}
           >
             Địa chỉ giao hàng
+          </Link>
+          <Link
+            className="border-b border-[#f5ede4] py-2 text-sm font-medium text-[#5f5148] last:border-0"
+            href={routes.CUSTOMER_ORDERS}
+            onClick={() => setMenuOpen(false)}
+          >
+            Đơn hàng của tôi
           </Link>
         </div>
       )}

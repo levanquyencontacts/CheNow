@@ -16,6 +16,7 @@ import {
   PaymentStatus,
 } from '../../../common/enums/common.enum';
 import { OrderItems } from './order-items';
+import { OrderStatusLogs } from './order-status-logs.entity';
 
 @Entity('orders')
 export class Orders {
@@ -82,6 +83,9 @@ export class Orders {
   note?: string;
   @OneToMany(() => OrderItems, (orderItems) => orderItems.order)
   orderItems: OrderItems[];
+
+  @OneToMany(() => OrderStatusLogs, (statusLog) => statusLog.order)
+  statusLogs: OrderStatusLogs[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
