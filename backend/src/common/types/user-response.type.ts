@@ -13,7 +13,7 @@ export interface UserProfileResponse {
   phone: string | null;
   isActive: boolean;
   avatar: string | null;
-  userRoles: UserProfileRoleResponse[];
+  role: UserProfileRoleResponse;
   customerProfile: {
     id: number;
     gender: Gender | null;

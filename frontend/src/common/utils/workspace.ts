@@ -25,30 +25,27 @@ export const workspaceOptions: Record<WorkspaceCode, WorkspaceOption> = {
   },
 };
 
-const workspaceRoles: Record<WorkspaceCode, AuthUser["userRoles"][number]["code"][]> = {
-  admin: ["admin", "staff"],
-  customer: ["customer"],
-};
-
-export function getAvailableWorkspaces(user?: AuthUser | null): WorkspaceOption[] {
+export function getAvailableWorkspaces(
+  user?: AuthUser | null,
+): WorkspaceOption[] {
   if (!user) {
     return [];
   }
 
-  const roleCodes = new Set(user.userRoles.map((role) => role.code));
+  if (user.role.code === "admin" || user.role.code === "staff") {
+    return [workspaceOptions.admin];
+  }
 
-  return (Object.keys(workspaceOptions) as WorkspaceCode[]).flatMap((workspace) =>
-    workspaceRoles[workspace].some((role) => roleCodes.has(role))
-      ? [workspaceOptions[workspace]]
-      : [],
-  );
+  return user.role.code === "customer" ? [workspaceOptions.customer] : [];
 }
 
 export function canAccessWorkspace(
   user: AuthUser | null | undefined,
   workspace: WorkspaceCode,
 ): boolean {
-  return getAvailableWorkspaces(user).some((option) => option.code === workspace);
+  return getAvailableWorkspaces(user).some(
+    (option) => option.code === workspace,
+  );
 }
 
 export function getPostLoginRedirect(user?: AuthUser | null): string {
@@ -58,14 +55,12 @@ export function getPostLoginRedirect(user?: AuthUser | null): string {
     return workspaces[0].href;
   }
 
-  if (workspaces.length > 1) {
-    return routes.SELECT_WORKSPACE;
-  }
-
   return routes.LOGIN;
 }
 
-export function getSingleWorkspace(user?: AuthUser | null): WorkspaceCode | null {
+export function getSingleWorkspace(
+  user?: AuthUser | null,
+): WorkspaceCode | null {
   const workspaces = getAvailableWorkspaces(user);
   return workspaces.length === 1 ? workspaces[0].code : null;
 }

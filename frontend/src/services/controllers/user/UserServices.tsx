@@ -1,4 +1,9 @@
-import type { AuthUser, UpdateUserPayload } from "@/services/types/apiType";
+import type {
+  AccountRoleCode,
+  AdminUsersResponse,
+  AuthUser,
+  UpdateUserPayload,
+} from "@/services/types/apiType";
 import type { AxiosInstance } from "axios";
 
 interface UploadImageResponse {
@@ -22,6 +27,25 @@ class UserService {
     const { data } = await this.apiClient.put<AuthUser>("/users/me", payload);
 
     return data;
+  };
+
+  getAdminUsers = async (params?: {
+    page?: number;
+    limit?: number;
+    searchValue?: string;
+  }): Promise<AdminUsersResponse> => {
+    const { data } = await this.apiClient.get<AdminUsersResponse>(
+      "/admin/users",
+      { params },
+    );
+    return data;
+  };
+
+  changeRole = async (
+    userId: number,
+    roleCode: AccountRoleCode,
+  ): Promise<void> => {
+    await this.apiClient.patch(`/admin/users/${userId}/role`, { roleCode });
   };
 
   uploadImage = async (file: File): Promise<string> => {

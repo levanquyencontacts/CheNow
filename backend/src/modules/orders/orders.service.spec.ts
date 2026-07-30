@@ -22,11 +22,9 @@ describe('OrdersService address ownership', () => {
 
   const user = {
     id: 7,
-    userRoles: [
-      {
-        role: { code: RoleCode.CUSTOMER },
-      },
-    ],
+    userRole: {
+      role: { code: RoleCode.CUSTOMER },
+    },
   } as Users;
   const payload: CreateOrderDto = {
     addressId: 4,

@@ -15,6 +15,7 @@ export const routes = {
   ORDER_CREATE: "/admin/orders/create",
   AI_ASSISTANT: "/ai",
   CUSTOMERS: "/admin/customer",
+  ACCOUNTS: "/admin/customer",
   REPORTS: "/admin/reports",
   CHAT: "/admin/chat",
   SETTINGS: "/admin/settings",

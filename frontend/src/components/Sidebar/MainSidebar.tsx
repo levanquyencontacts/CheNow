@@ -12,10 +12,13 @@ import {
   MessagesSquare,
   Package,
   ShoppingBag,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/services/store";
 
 type NavItem = {
   href: string;
@@ -49,6 +52,7 @@ const navSections: NavSection[] = [
   {
     title: "Management",
     items: [
+      { href: routes.ACCOUNTS, label: "Accounts", icon: UsersRound },
       // { href: routes.CUSTOMERS, label: "Khách hàng", icon: UsersRound },
       { href: routes.CHAT, label: "Chat", icon: MessagesSquare, badge: 3 },
       { href: routes.REPORTS, label: "Reports", icon: BarChart3 },
@@ -60,6 +64,9 @@ const navSections: NavSection[] = [
 export function MainSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const roleCode = useSelector(
+    (state: RootState) => state.auth.user?.role.code,
+  );
 
   return (
     <Box
@@ -95,32 +102,40 @@ export function MainSidebar() {
             </p>
 
             <Box className="space-y-1">
-              {section.items.map(({ href, icon: Icon, label, badge }) => {
-                const isActive =
-                  pathname === href || pathname.startsWith(`${href}/`);
+              {section.items
+                .filter(
+                  (item) =>
+                    item.href !== routes.ACCOUNTS || roleCode === "admin",
+                )
+                .map(({ href, icon: Icon, label, badge }) => {
+                  const isActive =
+                    pathname === href || pathname.startsWith(`${href}/`);
 
-                return (
-                  <Button
-                    className={[
-                      "flex h-9 w-full items-center justify-start gap-2.5 rounded-md px-3 text-left text-xs font-semibold transition",
-                      isActive
-                        ? "bg-[#d17345] text-white shadow-sm"
-                        : "text-[#f5bd83] hover:bg-[#5a2a15] hover:text-white",
-                    ].join(" ")}
-                    key={href}
-                    onClick={() => router.push(href)}
-                    variant="text"
-                  >
-                    <Icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-                    <span className="min-w-0 flex-1 truncate">{label}</span>
-                    {badge ? (
-                      <span className="rounded-full bg-[#d17345] px-1.5 py-0.5 text-[9px] font-bold leading-none text-white">
-                        {badge}
-                      </span>
-                    ) : null}
-                  </Button>
-                );
-              })}
+                  return (
+                    <Button
+                      className={[
+                        "flex h-9 w-full items-center justify-start gap-2.5 rounded-md px-3 text-left text-xs font-semibold transition",
+                        isActive
+                          ? "bg-[#d17345] text-white shadow-sm"
+                          : "text-[#f5bd83] hover:bg-[#5a2a15] hover:text-white",
+                      ].join(" ")}
+                      key={href}
+                      onClick={() => router.push(href)}
+                      variant="text"
+                    >
+                      <Icon
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 shrink-0"
+                      />
+                      <span className="min-w-0 flex-1 truncate">{label}</span>
+                      {badge ? (
+                        <span className="rounded-full bg-[#d17345] px-1.5 py-0.5 text-[9px] font-bold leading-none text-white">
+                          {badge}
+                        </span>
+                      ) : null}
+                    </Button>
+                  );
+                })}
             </Box>
           </Box>
         ))}

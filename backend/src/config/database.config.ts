@@ -22,7 +22,7 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     autoLoadEntities: true,
-    synchronize: process.env.DB_SYNCHRONIZE !== 'false',
+    synchronize: process.env.DB_SYNCHRONIZE === 'true',
     entities: [],
     // ssl:
     //   process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,

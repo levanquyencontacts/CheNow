@@ -38,8 +38,8 @@ export class Users {
   @Column({ type: 'varchar', nullable: true })
   avatar?: string | null;
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user)
-  userRoles: UserRole[];
+  @OneToOne(() => UserRole, (userRole) => userRole.user)
+  userRole: UserRole;
 
   @OneToOne(() => CustomerProfile, (customerProfile) => customerProfile.user)
   customerProfile?: CustomerProfile;

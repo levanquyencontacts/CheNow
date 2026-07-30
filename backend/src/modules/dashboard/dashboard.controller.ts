@@ -1,7 +1,13 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
+import { JwtAuthGuard } from '../../guards/jwtauth.guath';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleCode } from '../../common/enums/common.enum';
 
 @Controller('dashboard')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleCode.ADMIN, RoleCode.STAFF)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 

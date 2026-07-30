@@ -245,6 +245,14 @@ export class ConversationsService {
     return this.findById(conversationId, currentUser);
   }
 
+  async assertCanAccessConversation(
+    conversationId: number,
+    currentUser: Users,
+  ): Promise<void> {
+    const conversation = await this.ensureConversation(conversationId);
+    this.ensureCanViewConversation(conversation, currentUser);
+  }
+
   private async createMessage(
     manager: EntityManager,
     conversationId: number,
@@ -339,6 +347,12 @@ export class ConversationsService {
     });
 
     if (participant) {
+      if (participant.participantRole !== participantRole) {
+        participant.participantRole = participantRole;
+        // Unread messages remain unread across a role-context transition.
+        // Only participantRole changes; markAsRead remains the reset mechanism.
+        return manager.save(ConversationParticipant, participant);
+      }
       return participant;
     }
 
@@ -359,16 +373,14 @@ export class ConversationsService {
   ) {
     const user = await manager.findOne(Users, {
       where: { id: userId },
-      relations: ['userRoles', 'userRoles.role'],
+      relations: ['userRole', 'userRole.role'],
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const hasRole = user.userRoles?.some(
-      (userRole) => userRole.role.code === roleCode,
-    );
+    const hasRole = user.userRole?.role.code === roleCode;
 
     if (!hasRole) {
       throw new ForbiddenException(`User must have ${roleCode} role`);
@@ -382,13 +394,24 @@ export class ConversationsService {
     conversation: Conversation,
     senderId: number,
   ) {
-    if (conversation.customerId === senderId) {
-      await this.ensureUserHasRole(manager, senderId, RoleCode.CUSTOMER);
+    const sender = await manager.findOne(Users, {
+      where: { id: senderId },
+      relations: ['userRole', 'userRole.role'],
+    });
+    const roleCode = sender?.userRole?.role.code;
+
+    if (roleCode === RoleCode.CUSTOMER) {
+      if (conversation.customerId !== senderId) {
+        throw new ForbiddenException('Cannot access this conversation');
+      }
       return ConversationUserRole.CUSTOMER;
     }
 
-    await this.ensureUserHasRole(manager, senderId, RoleCode.ADMIN);
-    return ConversationUserRole.ADMIN;
+    if (roleCode === RoleCode.ADMIN || roleCode === RoleCode.STAFF) {
+      return ConversationUserRole.ADMIN;
+    }
+
+    throw new ForbiddenException('User must have a chat-enabled role');
   }
 
   private validateMessageBody(
@@ -434,13 +457,13 @@ export class ConversationsService {
   }
 
   private getConversationRole(user: Users) {
-    const roleCodes = user.userRoles?.map((userRole) => userRole.role.code);
+    const roleCode = user.userRole?.role.code;
 
-    if (roleCodes?.includes(RoleCode.ADMIN)) {
+    if (roleCode === RoleCode.ADMIN || roleCode === RoleCode.STAFF) {
       return ConversationUserRole.ADMIN;
     }
 
-    if (roleCodes?.includes(RoleCode.CUSTOMER)) {
+    if (roleCode === RoleCode.CUSTOMER) {
       return ConversationUserRole.CUSTOMER;
     }
 

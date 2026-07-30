@@ -1,13 +1,15 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './users.entities';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserProfileResponse } from '../../common/types/user-response.type';
+import { RoleCode } from '../../common/enums/common.enum';
 
 const bcryptService = bcrypt as unknown as {
   hashSync(password: string, saltRounds: number): string;
@@ -21,21 +23,30 @@ export class UsersService {
     private readonly usersRepository: Repository<Users>,
   ) {}
 
-  create(user: Partial<Users>): Promise<Users> {
+  async create(user: Partial<Users>): Promise<Users> {
     if (!user.password) {
       throw new BadRequestException('Password is required');
     }
 
-    const newUser = this.usersRepository.create(user);
+    const newUser = this.usersRepository.create({
+      ...user,
+      email: this.normalizeEmail(user.email ?? ''),
+    });
     const hashedPassword = bcryptService.hashSync(user.password, 10);
     newUser.password = hashedPassword;
-    return this.usersRepository.save(newUser);
+    try {
+      return await this.usersRepository.save(newUser);
+    } catch (error) {
+      this.rethrowEmailConflict(error);
+    }
   }
 
   findByEmail(email: string, includePassword = false) {
     const query = this.usersRepository
       .createQueryBuilder('user')
-      .where('user.email = :email', { email });
+      .where('LOWER(user.email) = :email', {
+        email: this.normalizeEmail(email),
+      });
 
     if (includePassword) {
       query.addSelect('user.password');
@@ -47,7 +58,7 @@ export class UsersService {
   findProfileById(id: number) {
     return this.usersRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.userRoles', 'userRole')
+      .leftJoinAndSelect('user.userRole', 'userRole')
       .leftJoinAndSelect('userRole.role', 'role')
       .leftJoinAndSelect('user.customerProfile', 'customerProfile')
       .where('user.id = :id', { id })
@@ -79,7 +90,17 @@ export class UsersService {
     id: number,
     profile: Pick<Partial<Users>, 'email' | 'fullName' | 'phone' | 'avatar'>,
   ) {
-    await this.usersRepository.update(id, profile);
+    const normalizedProfile = {
+      ...profile,
+      ...(profile.email
+        ? { email: this.normalizeEmail(profile.email) }
+        : undefined),
+    };
+    try {
+      await this.usersRepository.update(id, normalizedProfile);
+    } catch (error) {
+      this.rethrowEmailConflict(error);
+    }
 
     const user = await this.findProfileById(id);
 
@@ -94,6 +115,37 @@ export class UsersService {
     await this.usersRepository.update(id, { password: passwordHash });
   }
 
+  async findAllForAdmin(page = 1, limit = 20, searchValue = '') {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(100, Math.max(1, limit));
+    const query = this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userRole', 'userRole')
+      .leftJoinAndSelect('userRole.role', 'role')
+      .leftJoinAndSelect('user.customerProfile', 'customerProfile')
+      .orderBy('user.createdAt', 'DESC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    if (searchValue.trim()) {
+      query.where(
+        "(LOWER(user.email) LIKE :search OR LOWER(COALESCE(user.fullName, '')) LIKE :search)",
+        { search: `%${searchValue.trim().toLowerCase()}%` },
+      );
+    }
+
+    const [users, total] = await query.getManyAndCount();
+    return {
+      data: users.map((user) => this.toProfileResponse(user)),
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
+  }
+
   toProfileResponse(user: Users): UserProfileResponse {
     return {
       id: user.id,
@@ -102,22 +154,36 @@ export class UsersService {
       phone: user.phone ?? null,
       isActive: user.isActive,
       avatar: user.avatar ?? null,
-      userRoles:
-        user.userRoles?.map((userRole) => ({
-          id: userRole.role.id,
-          code: userRole.role.code,
-          name: userRole.role.name,
-        })) ?? [],
-      customerProfile: user.customerProfile
-        ? {
-            id: user.customerProfile.id,
-            gender: user.customerProfile.gender ?? null,
-            points: user.customerProfile.points,
-            rank: user.customerProfile.rank,
-          }
-        : null,
+      role: {
+        id: user.userRole.role.id,
+        code: user.userRole.role.code,
+        name: user.userRole.role.name,
+      },
+      customerProfile:
+        user.userRole.role.code === RoleCode.CUSTOMER && user.customerProfile
+          ? {
+              id: user.customerProfile.id,
+              gender: user.customerProfile.gender ?? null,
+              points: user.customerProfile.points,
+              rank: user.customerProfile.rank,
+            }
+          : null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
+  }
+
+  private normalizeEmail(email: string): string {
+    return email.trim().toLowerCase();
+  }
+
+  private rethrowEmailConflict(error: unknown): never {
+    if (
+      error instanceof QueryFailedError &&
+      (error.driverError as { code?: string }).code === '23505'
+    ) {
+      throw new ConflictException('Email already exists');
+    }
+    throw error;
   }
 }
