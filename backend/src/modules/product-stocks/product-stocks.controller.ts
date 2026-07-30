@@ -6,11 +6,18 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductStocksService } from './product-stocks.service';
 import { ProductStocksDto } from './dto/product-stocksDto.dto';
+import { JwtAuthGuard } from '../../guards/jwtauth.guath';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleCode } from '../../common/enums/common.enum';
 
 @Controller('product-stocks')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleCode.ADMIN, RoleCode.STAFF)
 export class ProductStocksController {
   constructor(private readonly service: ProductStocksService) {}
   @Get()

@@ -6,7 +6,7 @@ import { getJwtSecret } from '../config/jwt.config';
 
 interface JwtPayload {
   sub: number;
-  type?: string;
+  type?: 'access' | 'password-reset' | 'refresh';
 }
 
 @Injectable()
@@ -19,13 +19,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
-    if (payload.type === 'refresh') {
+    if (payload.type !== 'access') {
       throw new UnauthorizedException();
     }
 
     const user = await this.usersService.findProfileById(payload.sub);
 
-    if (!user) {
+    if (!user || !user.isActive || !user.userRole?.role) {
       throw new UnauthorizedException();
     }
 

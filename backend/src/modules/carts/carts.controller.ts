@@ -13,12 +13,16 @@ import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 import { Users } from '../users/users.entities';
 import { CartsService } from './carts.service';
 import { AddCartItemDto, UpdateCartItemDto } from './dto/cart.dto';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleCode } from '../../common/enums/common.enum';
 
 interface AuthRequest {
   user: Users;
 }
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleCode.CUSTOMER)
 @Controller('customer/cart')
 export class CartsController {
   constructor(private readonly cartsService: CartsService) {}

@@ -16,11 +16,11 @@ export interface AuthUser {
   phone: string | null;
   isActive: boolean;
   avatar: string | null;
-  userRoles: Array<{
+  role: {
     id: number;
     code: "admin" | "staff" | "customer";
     name: string;
-  }>;
+  };
   customerProfile: {
     id: number;
     gender: "male" | "female" | "other" | null;
@@ -47,6 +47,18 @@ export interface UpdateUserPayload {
   fullName?: string;
   phone?: string;
   avatar?: string | null;
+}
+
+export type AccountRoleCode = AuthUser["role"]["code"];
+
+export interface AdminUsersResponse {
+  data: AuthUser[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface UserAddress {

@@ -6,6 +6,7 @@ import {
   Post,
   Res,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -16,6 +17,7 @@ import { mkdir } from 'node:fs/promises';
 import { extname, join } from 'path';
 import sharp from 'sharp';
 import { FileService } from './file.service';
+import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 
 type UploadedImage = {
   filename: string;
@@ -29,6 +31,7 @@ export class FileController {
   constructor(private readonly fileService: FileService) {}
 
   @Post('image')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({

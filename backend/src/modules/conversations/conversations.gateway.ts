@@ -8,14 +8,17 @@ import {
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
+import {
+  OnModuleDestroy,
+  OnModuleInit,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { Users } from '../users/users.entities';
 import { UsersService } from '../users/users.service';
-import {
-  ConversationUserRole,
-  RoleCode,
-} from '../../common/enums/common.enum';
+import { ConversationUserRole, RoleCode } from '../../common/enums/common.enum';
 import {
   JoinConversationDto,
   LeaveConversationDto,
@@ -24,10 +27,11 @@ import {
   TypingConversationDto,
 } from './dto/conversations.dto';
 import { ConversationsService } from './conversations.service';
+import { RoleSessionService } from '../roles/role-session.service';
 
 interface JwtPayload {
   sub: number;
-  type?: string;
+  type?: 'access' | 'password-reset' | 'refresh';
 }
 
 @WebSocketGateway({
@@ -35,37 +39,70 @@ interface JwtPayload {
     origin: process.env.FRONTEND_URL,
   },
 })
+@UsePipes(
+  new ValidationPipe({
+    transform: true,
+    whitelist: true,
+  }),
+)
 export class ConversationsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnModuleInit,
+    OnModuleDestroy
 {
   @WebSocketServer()
   private readonly server: Server;
+  private unsubscribeRoleChanges?: () => void;
 
   constructor(
     private readonly conversationsService: ConversationsService,
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly roleSessionService: RoleSessionService,
   ) {}
+
+  onModuleInit() {
+    this.unsubscribeRoleChanges = this.roleSessionService.subscribe(
+      async (userId) => {
+        const sockets = await this.server
+          .in(this.userRoom(userId))
+          .fetchSockets();
+        sockets.forEach((socket) => {
+          socket.emit('auth:role-changed');
+          socket.disconnect(true);
+        });
+      },
+    );
+  }
+
+  onModuleDestroy() {
+    this.unsubscribeRoleChanges?.();
+  }
 
   async handleConnection(client: Socket) {
     try {
       const token = this.getToken(client);
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
 
-      if (payload.type === 'refresh') {
-        throw new WsException('Refresh token cannot connect socket');
+      if (payload.type !== 'access') {
+        throw new WsException('Only access tokens can connect socket');
       }
 
       const user = await this.usersService.findProfileById(payload.sub);
 
-      if (!user) {
-        throw new WsException('User not found');
+      if (!user?.isActive || !user.userRole?.role) {
+        throw new WsException('User is inactive or has no role');
       }
 
       this.setCurrentUser(client, user);
       await client.join(this.userRoom(user.id));
 
-      if (this.hasRole(user, RoleCode.ADMIN)) {
+      if (
+        this.hasRole(user, RoleCode.ADMIN) ||
+        this.hasRole(user, RoleCode.STAFF)
+      ) {
         await client.join(this.adminRoom());
       }
     } catch {
@@ -189,35 +226,19 @@ export class ConversationsGateway
   }
 
   @SubscribeMessage('typing:start')
-  handleTypingStart(
+  async handleTypingStart(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: TypingConversationDto,
   ) {
-    const user = this.getCurrentUser(client);
-    client
-      .to(this.conversationRoom(Number(body.conversationId)))
-      .emit('typing:start', {
-        conversationId: Number(body.conversationId),
-        userId: user.id,
-      });
-
-    return { success: true };
+    return this.handleTypingEvent(client, body, 'typing:start');
   }
 
   @SubscribeMessage('typing:stop')
-  handleTypingStop(
+  async handleTypingStop(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: TypingConversationDto,
   ) {
-    const user = this.getCurrentUser(client);
-    client
-      .to(this.conversationRoom(Number(body.conversationId)))
-      .emit('typing:stop', {
-        conversationId: Number(body.conversationId),
-        userId: user.id,
-      });
-
-    return { success: true };
+    return this.handleTypingEvent(client, body, 'typing:stop');
   }
 
   private getToken(client: Socket) {
@@ -254,7 +275,7 @@ export class ConversationsGateway
   }
 
   private hasRole(user: Users, roleCode: RoleCode) {
-    return user.userRoles?.some((userRole) => userRole.role.code === roleCode);
+    return user.userRole?.role.code === roleCode;
   }
 
   private userRoom(userId: number) {
@@ -348,5 +369,30 @@ export class ConversationsGateway
           error instanceof Error ? error.message : 'Socket request failed',
       },
     };
+  }
+
+  private async handleTypingEvent(
+    client: Socket,
+    body: TypingConversationDto,
+    eventName: 'typing:start' | 'typing:stop',
+  ) {
+    try {
+      const user = this.getCurrentUser(client);
+      await this.conversationsService.assertCanAccessConversation(
+        body.conversationId,
+        user,
+      );
+      client.to(this.conversationRoom(body.conversationId)).emit(eventName, {
+        conversationId: body.conversationId,
+        userId: user.id,
+      });
+
+      return {
+        success: true,
+        data: { conversationId: body.conversationId },
+      };
+    } catch (error) {
+      return this.toSocketErrorAck(error);
+    }
   }
 }

@@ -14,12 +14,16 @@ import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 import { Users } from '../users/users.entities';
 import { AddressesService } from './addresses.service';
 import { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleCode } from '../../common/enums/common.enum';
 
 interface AuthRequest {
   user: Users;
 }
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleCode.CUSTOMER)
 @Controller('customer/addresses')
 export class AddressesController {
   constructor(private readonly addressesService: AddressesService) {}

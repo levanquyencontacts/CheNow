@@ -3,6 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   Column,
@@ -11,7 +12,7 @@ import { Users } from '../../users/users.entities';
 import { Role } from './role.entity';
 
 @Entity('user_roles')
-@Unique(['userId', 'roleId'])
+@Unique(['userId'])
 export class UserRole {
   @PrimaryGeneratedColumn()
   id: number;
@@ -22,11 +23,11 @@ export class UserRole {
   @Column()
   roleId: number;
 
-  @ManyToOne(() => Users, (user) => user.userRoles, { onDelete: 'CASCADE' })
+  @OneToOne(() => Users, (user) => user.userRole, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: Users;
 
-  @ManyToOne(() => Role, (role) => role.userRoles, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Role, (role) => role.userRoles, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'roleId' })
   role: Role;
 

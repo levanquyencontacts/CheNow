@@ -106,7 +106,10 @@ export class OrdersService {
     });
   }
 
-  async findMyOrders(currentUser: Users, paginationParams: PaginationParamsDto) {
+  async findMyOrders(
+    currentUser: Users,
+    paginationParams: PaginationParamsDto,
+  ) {
     const { status, ...paginationOptions } = paginationParams;
     const queryBuilder = this.ordersRepository
       .createQueryBuilder('order')
@@ -459,12 +462,8 @@ export class OrdersService {
   }
 
   private isPrivileged(user: Users) {
-    return Boolean(
-      user.userRoles?.some(
-        ({ role }) =>
-          role.code === RoleCode.ADMIN || role.code === RoleCode.STAFF,
-      ),
-    );
+    const roleCode = user.userRole?.role.code;
+    return roleCode === RoleCode.ADMIN || roleCode === RoleCode.STAFF;
   }
 
   private async createStatusLog(

@@ -11,15 +11,12 @@ import {
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 import { Users } from './users.entities';
 import { UsersService } from './users.service';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleCode } from '../../common/enums/common.enum';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 interface AuthRequest {
   user: Users;
-}
-
-interface UpdateProfilePayload {
-  email?: string;
-  fullName?: string;
-  phone?: string;
-  avatar?: string | null;
 }
 
 @Controller('users')
@@ -35,12 +32,14 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Put('me')
   updateMyProfile(
-    @Body() profile: UpdateProfilePayload,
+    @Body() profile: UpdateProfileDto,
     @Request() request: AuthRequest,
   ) {
     return this.usersService.updateProfile(request.user.id, profile);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleCode.ADMIN)
   @Get(':id')
   getProfileById(@Param('id') id: string) {
     return this.usersService.getMe(Number(id));
@@ -50,7 +49,7 @@ export class UsersController {
   @Put(':id')
   updateProfile(
     @Param('id') id: string,
-    @Body() profile: UpdateProfilePayload,
+    @Body() profile: UpdateProfileDto,
     @Request() request: AuthRequest,
   ) {
     const userId = Number(id);

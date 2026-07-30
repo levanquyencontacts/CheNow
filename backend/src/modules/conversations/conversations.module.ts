@@ -9,10 +9,12 @@ import { ConversationParticipant } from './entities/conversation-participant.ent
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { getJwtExpiresIn, getJwtSecret } from '../../config/jwt.config';
+import { RolesModule } from '../roles/roles.module';
 
 @Module({
   imports: [
     UsersModule,
+    RolesModule,
     JwtModule.register({
       secret: getJwtSecret(),
       signOptions: { expiresIn: getJwtExpiresIn() },

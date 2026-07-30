@@ -7,6 +7,7 @@ import {
   SendChatMessagePayload,
   SendChatMessageResult,
 } from "@/services/types/apiType";
+import { clearStoredTokens } from "@/services/controllers/auth/tokenStorage";
 
 const socketURL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
@@ -23,6 +24,10 @@ export function connectChatSocket(token: string) {
     auth: { token },
     autoConnect: true,
     transports: ["websocket"],
+  });
+  chatSocket.on("auth:role-changed", () => {
+    clearStoredTokens();
+    window.location.assign("/login");
   });
 
   return chatSocket;

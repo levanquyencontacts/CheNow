@@ -60,6 +60,30 @@ export function RequireAuth({ allowedWorkspaces, children }: RequireAuthProps) {
   }, [accessToken, authUser, router]);
 
   useEffect(() => {
+    if (!accessToken || !authUser) {
+      return;
+    }
+
+    const revalidate = () => {
+      void api.auth
+        .getMe(accessToken)
+        .then((user) => store.dispatch(setUser(user)))
+        .catch(() => {
+          clearStoredTokens();
+          store.dispatch(clearSession());
+          router.replace(routes.LOGIN);
+        });
+    };
+    const intervalId = window.setInterval(revalidate, 30_000);
+    window.addEventListener("focus", revalidate);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", revalidate);
+    };
+  }, [accessToken, authUser, router]);
+
+  useEffect(() => {
     if (!accessToken || !authUser || !allowedWorkspaces?.length) {
       return;
     }
@@ -88,7 +112,7 @@ export function RequireAuth({ allowedWorkspaces, children }: RequireAuthProps) {
       router.replace(
         availableWorkspaces.length > 1
           ? routes.SELECT_WORKSPACE
-          : availableWorkspaces[0]?.href ?? routes.LOGIN,
+          : (availableWorkspaces[0]?.href ?? routes.LOGIN),
       );
     }
   }, [accessToken, activeWorkspace, allowedWorkspaces, authUser, router]);

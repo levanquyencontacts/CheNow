@@ -15,12 +15,16 @@ import {
 import { ConversationsService } from './conversations.service';
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 import { Users } from '../users/users.entities';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RoleCode } from '../../common/enums/common.enum';
 
 interface AuthRequest {
   user: Users;
 }
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleCode.ADMIN, RoleCode.STAFF, RoleCode.CUSTOMER)
 @Controller('conversations')
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}

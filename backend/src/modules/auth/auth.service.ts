@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -7,17 +8,19 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Users } from '../users/users.entities';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull, QueryFailedError, Repository } from 'typeorm';
 import { RefreshToken } from './refresh-token.entity';
 import * as bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 import { RoleCode } from '../../common/enums/common.enum';
-import { RolesService } from '../roles/roles.service';
-import { CustomersService } from '../customers/customers.service';
 import {
   AuthResponse,
   RefreshTokenResponse,
 } from '../../common/types/user-response.type';
+import { Role } from '../roles/entities/role.entity';
+import { UserRole } from '../roles/entities/user-role.entity';
+import { CustomerProfile } from '../customers/entities/customer-profile.entity';
+import { RegisterDto } from './dto/register.dto';
 
 interface RefreshTokenPayload {
   email: string;
@@ -45,10 +48,9 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly rolesService: RolesService,
-    private readonly customersService: CustomersService,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async validateUser(email: string, password: string): Promise<Users> {
@@ -56,21 +58,78 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Email khong ton tai');
     }
+    if (!user.isActive) {
+      throw new UnauthorizedException('Tai khoan khong hoat dong');
+    }
 
     const validatedUser = await this.usersService.validateUser(email, password);
     if (!validatedUser) {
       throw new UnauthorizedException('Mat khau khong dung');
     }
 
-    return validatedUser;
+    const authUser = await this.usersService.findProfileById(validatedUser.id);
+    if (!authUser?.isActive || !authUser.userRole?.role) {
+      throw new UnauthorizedException('Tai khoan khong co role hop le');
+    }
+
+    return authUser;
   }
 
-  async register(user: Partial<Users>): Promise<AuthResponse> {
-    const newUser = await this.usersService.create(user);
-    await this.rolesService.assignRoleToUser(newUser.id, RoleCode.CUSTOMER);
-    await this.customersService.createProfileForUser(newUser.id);
+  async register(user: RegisterDto): Promise<AuthResponse> {
+    const normalizedEmail = user.email.trim().toLowerCase();
+    let newUserId: number;
 
-    const createdUser = await this.usersService.findProfileById(newUser.id);
+    try {
+      newUserId = await this.dataSource.transaction(async (manager) => {
+        const existing = await manager
+          .createQueryBuilder(Users, 'user')
+          .where('LOWER(user.email) = :email', { email: normalizedEmail })
+          .getOne();
+        if (existing) {
+          throw new ConflictException('Email already exists');
+        }
+
+        const password = await bcryptService.hash(user.password, 10);
+        const newUser = await manager.save(
+          Users,
+          manager.create(Users, {
+            email: normalizedEmail,
+            fullName: user.fullName,
+            phone: user.phone,
+            password,
+          }),
+        );
+        const customerRole = await manager.findOne(Role, {
+          where: { code: RoleCode.CUSTOMER },
+        });
+        if (!customerRole) {
+          throw new BadRequestException('Customer role does not exist');
+        }
+
+        await manager.save(
+          UserRole,
+          manager.create(UserRole, {
+            userId: newUser.id,
+            roleId: customerRole.id,
+          }),
+        );
+        await manager.save(
+          CustomerProfile,
+          manager.create(CustomerProfile, { userId: newUser.id }),
+        );
+        return newUser.id;
+      });
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string }).code === '23505'
+      ) {
+        throw new ConflictException('Email already exists');
+      }
+      throw error;
+    }
+
+    const createdUser = await this.usersService.findProfileById(newUserId);
 
     if (!createdUser) {
       throw new BadRequestException('Tao tai khoan khong thanh cong');
@@ -82,7 +141,7 @@ export class AuthService {
   async login(user: Users): Promise<AuthResponse> {
     const authUser = await this.usersService.findProfileById(user.id);
 
-    if (!authUser) {
+    if (!authUser?.isActive || !authUser.userRole?.role) {
       throw new UnauthorizedException('Tai khoan khong hop le');
     }
 
@@ -108,7 +167,12 @@ export class AuthService {
     }
 
     const user = await this.usersService.findProfileById(payload.sub);
-    if (!user || user.email !== payload.email || !user.isActive) {
+    if (
+      !user ||
+      user.email !== payload.email ||
+      !user.isActive ||
+      !user.userRole?.role
+    ) {
       throw new UnauthorizedException('Refresh token khong hop le');
     }
 
@@ -212,7 +276,11 @@ export class AuthService {
   }
 
   private signAccessToken(user: Users): string {
-    return this.jwtService.sign({ email: user.email, sub: user.id });
+    return this.jwtService.sign({
+      email: user.email,
+      sub: user.id,
+      type: 'access',
+    });
   }
 
   private verifyPasswordResetToken(token: string): PasswordResetPayload {
