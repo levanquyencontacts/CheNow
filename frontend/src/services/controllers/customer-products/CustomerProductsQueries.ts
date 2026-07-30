@@ -19,3 +19,11 @@ export const useCustomerFeaturedProductsQuery = (params?: {
     queryFn: () => api.customerProducts.getFeaturedProducts(params),
   });
 };
+
+export const useCustomerProductQuery = (id?: number) => {
+  return useQuery({
+    enabled: Boolean(id),
+    queryKey: ["customer-product", id],
+    queryFn: () => api.customerProducts.getProductById(Number(id)),
+  });
+};

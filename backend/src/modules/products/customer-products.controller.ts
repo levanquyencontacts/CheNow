@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { ProductsService } from './products.service';
 
@@ -17,5 +17,10 @@ export class CustomerProductsController {
   @Get()
   findAll(@Query() paginationParams: PaginationParamsDto) {
     return this.service.findAllForCustomer(paginationParams);
+  }
+
+  @Get(':id')
+  getProductById(@Param('id') id: number) {
+    return this.service.findByIdForCustomer(Number(id));
   }
 }
