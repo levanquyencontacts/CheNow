@@ -166,6 +166,29 @@ export class ProductsService {
     };
   }
 
+  async findByIdForCustomer(id: number) {
+    const product = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.productStocks', 'productStocks')
+      .andWhere('product.id = :id', { id })
+      .andWhere('product.status = :status', {
+        status: ProductStatus.ACTIVE,
+      })
+      .andWhere('category.status = :categoryStatus', {
+        categoryStatus: CategoryStatus.ACTIVE,
+      })
+      .andWhere('productStocks.quantity > 0')
+      .getOne();
+
+    if (!product) {
+      return { message: 'Product not found' };
+    }
+
+    await this.hydrateProductStocks([product]);
+    return new CustomerProductListResponseDto(product);
+  }
+
   async createProduct(products: ProductsDto) {
     const { quantity, minQuantity, ...productData } = products;
 

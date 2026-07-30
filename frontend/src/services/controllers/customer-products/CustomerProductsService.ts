@@ -36,4 +36,9 @@ export class CustomerProductsService {
     });
     return data;
   }
+
+  async getProductById(id: number): Promise<CustomerProduct> {
+    const { data } = await this.apiClient.get(`/customer/products/${id}`);
+    return data;
+  }
 }
