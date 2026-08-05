@@ -16,7 +16,7 @@ export class AddressesService {
   findAll(userId: number) {
     return this.addressesRepository.find({
       where: { userId },
-      order: { isDefault: 'DESC', createdAt: 'ASC', id: 'ASC' },
+      order: { id: 'ASC' },
     });
   }
 

@@ -49,6 +49,10 @@ export class CreateOrderItemDto {
   @Min(0)
   subtotal: number;
 
+  @IsString()
+  @IsOptional()
+  note?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemToppingDto)
@@ -68,6 +72,10 @@ export class UpdateOrderItemDto {
   @IsInt()
   @Min(1)
   quantity: number;
+
+  @IsString()
+  @IsOptional()
+  note?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
