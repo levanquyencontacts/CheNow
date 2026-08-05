@@ -334,6 +334,7 @@ export class OrdersService {
             price,
             quantity: orderItemDto.quantity,
             subtotal: (price + sizeExtraPrice) * orderItemDto.quantity,
+            note: orderItemDto.note,
           });
           const savedOrderItem = await manager.save(OrderItems, orderItem);
 

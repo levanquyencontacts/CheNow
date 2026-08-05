@@ -59,6 +59,10 @@ export class OrderItems {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   subtotal: number;
+
+  @Column({ type: 'text', nullable: true })
+  note?: string | null;
+
   @OneToMany(
     () => OrderItemToppings,
     (orderItemTopping) => orderItemTopping.orderItem,
