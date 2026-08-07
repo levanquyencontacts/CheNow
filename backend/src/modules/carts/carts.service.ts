@@ -8,8 +8,14 @@ import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { ProductStatus } from '../../common/enums/common.enum';
 import { CategorySizes } from '../category-sizes/entity/category-sizes.entity';
 import { CategoryToppings } from '../category-topppings/entity/category-toppings.entity';
+import { OrdersService } from '../orders/orders.service';
 import { Products } from '../products/entity/products.entity';
-import { AddCartItemDto, UpdateCartItemDto } from './dto/cart.dto';
+import { Users } from '../users/users.entities';
+import {
+  AddCartItemDto,
+  CheckoutCartDto,
+  UpdateCartItemDto,
+} from './dto/cart.dto';
 import { CartItemToppings } from './entity/cart-item-topping.entity';
 import { CartItems } from './entity/cart-item.entity';
 import { Carts } from './entity/cart.entity';
@@ -27,6 +33,7 @@ export class CartsService {
     @InjectRepository(Carts)
     private cartsRepository: Repository<Carts>,
     private readonly dataSource: DataSource,
+    private readonly ordersService: OrdersService,
   ) {}
 
   async getCart(userId: number) {
@@ -152,6 +159,131 @@ export class CartsService {
       const cart = await this.getOrCreateCart(userId, manager);
       await manager.delete(CartItems, { cartId: cart.id });
       return this.toCartResponse(cart.id, manager);
+    });
+  }
+
+  async checkout(user: Users, dto: CheckoutCartDto) {
+    return this.dataSource.transaction(async (manager) => {
+      const cart = await this.getOrCreateCart(user.id, manager);
+      const cartItemIds = [...new Set(dto.cartItemIds)];
+
+      // Claim selected rows before pricing/order create so concurrent
+      // checkouts cannot read the same items under READ COMMITTED.
+      const lockedItems = await manager.find(CartItems, {
+        where: { cartId: cart.id, id: In(cartItemIds) },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (lockedItems.length !== cartItemIds.length) {
+        throw new BadRequestException('Selected cart items are invalid');
+      }
+
+      const cartItems = await manager.find(CartItems, {
+        where: { cartId: cart.id, id: In(cartItemIds) },
+        relations: [
+          'product',
+          'categorySize',
+          'categorySize.size',
+          'cartItemToppings',
+          'cartItemToppings.topping',
+        ],
+      });
+
+      const orderItemSnapshots: Array<{
+        categorySizeId: number;
+        note: string | null;
+        orderItemToppings: Array<{
+          price: number;
+          quantity: number;
+          toppingId: number;
+          toppingName: string;
+        }>;
+        price: number;
+        productId: number;
+        productName: string;
+        quantity: number;
+        sizeCode: string;
+        sizeExtraPrice: number;
+        sizeName: string;
+        subtotal: number;
+      }> = [];
+      let subtotalAmount = 0;
+
+      for (const cartItem of cartItems) {
+        const toppingIds = (cartItem.cartItemToppings ?? []).map(
+          (cartTopping) => cartTopping.toppingId,
+        );
+        const option = await this.validateCartOption(
+          {
+            categorySizeId: cartItem.categorySizeId,
+            note: cartItem.note,
+            productId: cartItem.productId,
+            toppingIds,
+          },
+          manager,
+        );
+
+        const price = this.toNumber(option.product.price);
+        const sizeExtraPrice = this.toNumber(option.categorySize.extraPrice);
+        const orderItemToppings = (cartItem.cartItemToppings ?? []).map(
+          (cartTopping) => ({
+            price: this.toNumber(cartTopping.topping.price),
+            quantity: cartItem.quantity,
+            toppingId: cartTopping.topping.id,
+            toppingName: cartTopping.topping.name,
+          }),
+        );
+        const toppingsUnitTotal = orderItemToppings.reduce(
+          (sum, topping) => sum + topping.price,
+          0,
+        );
+        const lineSubtotal =
+          (price + sizeExtraPrice + toppingsUnitTotal) * cartItem.quantity;
+        subtotalAmount += lineSubtotal;
+
+        orderItemSnapshots.push({
+          categorySizeId: option.categorySize.id,
+          note: option.note || null,
+          orderItemToppings,
+          price,
+          productId: option.product.id,
+          productName: option.product.productName,
+          quantity: cartItem.quantity,
+          sizeCode: option.categorySize.size.code,
+          sizeExtraPrice,
+          sizeName: option.categorySize.size.name,
+          subtotal: lineSubtotal,
+        });
+      }
+
+      // shippingFee: optional client value (Min 0). Server does not compute
+      // delivery fee yet; FE can send 0 until pricing rules land.
+      const shippingFee = dto.shippingFee ?? 0;
+      const discountAmount = 0;
+      const totalAmount = subtotalAmount + shippingFee;
+
+      const order = await this.ordersService.createFromSnapshots(
+        user,
+        manager,
+        {
+          addressId: dto.addressId,
+          discountAmount,
+          note: dto.note,
+          orderItems: orderItemSnapshots,
+          orderType: dto.orderType,
+          paymentMethod: dto.paymentMethod,
+          shippingFee,
+          subtotalAmount,
+          totalAmount,
+        },
+      );
+
+      await manager.delete(CartItems, {
+        cartId: cart.id,
+        id: In(cartItemIds),
+      });
+
+      return order;
     });
   }
 

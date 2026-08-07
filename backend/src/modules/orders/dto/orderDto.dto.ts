@@ -12,7 +12,9 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { PaginationParamsDto } from '../../../common/dtos/request.dto';
 import {
+  OrderListScope,
   OrderStatus,
   OrderType,
   PaymentMethod,
@@ -117,4 +119,10 @@ export class UpdateOrderStatusDto {
   @IsEnum(OrderStatus)
   @IsNotEmpty()
   status: OrderStatus;
+}
+
+export class MyOrdersQueryDto extends PaginationParamsDto {
+  @IsEnum(OrderListScope)
+  @IsOptional()
+  scope?: OrderListScope;
 }

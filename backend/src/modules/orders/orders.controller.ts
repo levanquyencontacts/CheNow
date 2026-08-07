@@ -10,7 +10,11 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
+import {
+  CreateOrderDto,
+  MyOrdersQueryDto,
+  UpdateOrderDto,
+} from './dto/orderDto.dto';
 import { OrdersService } from './orders.service';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import { OrderStatus } from '../../common/enums/common.enum';
@@ -50,7 +54,7 @@ export class OrdersController {
   @Get('my-orders')
   findMyOrders(
     @Request() request: AuthRequest,
-    @Query() paginationParams: PaginationParamsDto,
+    @Query() paginationParams: MyOrdersQueryDto,
   ) {
     return this.ordersService.findMyOrders(request.user, paginationParams);
   }

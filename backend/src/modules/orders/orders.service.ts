@@ -7,9 +7,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { PaginationParamsDto } from '../../common/dtos/request.dto';
 import {
+  ACTIVE_ORDER_STATUSES,
+  HISTORY_ORDER_STATUSES,
   Order,
+  OrderListScope,
   OrderStatus,
   OrderType,
+  PaymentMethod,
   RoleCode,
 } from '../../common/enums/common.enum';
 import { PaginationHelper } from '../../common/helpers/pagination.helper';
@@ -19,7 +23,11 @@ import { Products } from '../products/entity/products.entity';
 import { Toppings } from '../toppings/entity/toppings.entity';
 import { UserAddress } from '../addresses/entity/user-address.entity';
 import { Users } from '../users/users.entities';
-import { CreateOrderDto, UpdateOrderDto } from './dto/orderDto.dto';
+import {
+  CreateOrderDto,
+  MyOrdersQueryDto,
+  UpdateOrderDto,
+} from './dto/orderDto.dto';
 import { OrderItemToppings } from './entity/order-item-toppings';
 import { OrderItems } from './entity/order-items';
 import { OrderStatusLogs } from './entity/order-status-logs.entity';
@@ -106,11 +114,117 @@ export class OrdersService {
     });
   }
 
+  /**
+   * Persist an order from server-computed item snapshots inside an existing
+   * transaction (e.g. cart checkout). Does not open its own transaction.
+   */
+  async createFromSnapshots(
+    currentUser: Users,
+    manager: EntityManager,
+    payload: {
+      addressId?: number;
+      discountAmount?: number;
+      note?: string;
+      orderItems: Array<{
+        categorySizeId: number;
+        note?: string | null;
+        orderItemToppings?: Array<{
+          price: number;
+          quantity: number;
+          toppingId: number;
+          toppingName: string;
+        }>;
+        price: number;
+        productId: number;
+        productName: string;
+        quantity: number;
+        sizeCode: string;
+        sizeExtraPrice: number;
+        sizeName: string;
+        subtotal: number;
+      }>;
+      orderType: OrderType;
+      paymentMethod: PaymentMethod;
+      shippingFee?: number;
+      subtotalAmount: number;
+      totalAmount: number;
+    },
+  ) {
+    const {
+      addressId,
+      discountAmount = 0,
+      note,
+      orderItems,
+      orderType,
+      paymentMethod,
+      shippingFee = 0,
+      subtotalAmount,
+      totalAmount,
+    } = payload;
+
+    const deliverySnapshot = await this.resolveDeliverySnapshot(
+      manager,
+      currentUser,
+      orderType,
+      addressId,
+      {},
+    );
+    const invoiceCode = await this.generateInvoiceCode(manager);
+    const order = manager.create(Orders, {
+      discountAmount,
+      ...deliverySnapshot,
+      invoiceCode,
+      note,
+      orderType,
+      paymentMethod,
+      shippingFee,
+      status: OrderStatus.PENDING,
+      subtotalAmount,
+      totalAmount,
+      userId: currentUser.id,
+    });
+    const savedOrder = await manager.save(Orders, order);
+    await this.createStatusLog(manager, {
+      changedByUserId: currentUser.id,
+      fromStatus: null,
+      note: 'Order created',
+      orderId: savedOrder.id,
+      toStatus: savedOrder.status,
+    });
+
+    for (const orderItemDto of orderItems) {
+      const { orderItemToppings = [], ...orderItemData } = orderItemDto;
+      const orderItem = manager.create(OrderItems, {
+        ...orderItemData,
+        orderId: savedOrder.id,
+      });
+      const savedOrderItem = await manager.save(OrderItems, orderItem);
+
+      for (const orderItemToppingDto of orderItemToppings) {
+        const orderItemTopping = manager.create(OrderItemToppings, {
+          ...orderItemToppingDto,
+          orderItemId: savedOrderItem.id,
+        });
+        await manager.save(OrderItemToppings, orderItemTopping);
+      }
+    }
+
+    return manager.findOne(Orders, {
+      where: { id: savedOrder.id },
+      relations: [
+        'orderItems',
+        'orderItems.orderItemToppings',
+        'orderItems.product',
+        'statusLogs',
+      ],
+    });
+  }
+
   async findMyOrders(
     currentUser: Users,
-    paginationParams: PaginationParamsDto,
+    paginationParams: MyOrdersQueryDto,
   ) {
-    const { status, ...paginationOptions } = paginationParams;
+    const { status, scope, ...paginationOptions } = paginationParams;
     const queryBuilder = this.ordersRepository
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.orderItems', 'orderItems')
@@ -118,9 +232,7 @@ export class OrdersService {
       .leftJoinAndSelect('orderItems.product', 'product')
       .where('order.userId = :userId', { userId: currentUser.id });
 
-    if (status) {
-      queryBuilder.andWhere('order.status = :status', { status });
-    }
+    this.applyMyOrdersStatusFilter(queryBuilder, scope, status);
 
     const result = await PaginationHelper.paginate(
       queryBuilder,
@@ -465,6 +577,38 @@ export class OrdersService {
   private isPrivileged(user: Users) {
     const roleCode = user.userRole?.role.code;
     return roleCode === RoleCode.ADMIN || roleCode === RoleCode.STAFF;
+  }
+
+  private applyMyOrdersStatusFilter(
+    queryBuilder: ReturnType<Repository<Orders>['createQueryBuilder']>,
+    scope?: OrderListScope,
+    status?: string,
+  ) {
+    if (scope) {
+      const allowedStatuses =
+        scope === OrderListScope.ACTIVE
+          ? ACTIVE_ORDER_STATUSES
+          : HISTORY_ORDER_STATUSES;
+
+      if (status) {
+        if (!allowedStatuses.includes(status as OrderStatus)) {
+          throw new BadRequestException(
+            `status "${status}" is not allowed for scope="${scope}". Allowed: ${allowedStatuses.join(', ')}`,
+          );
+        }
+        queryBuilder.andWhere('order.status = :status', { status });
+        return;
+      }
+
+      queryBuilder.andWhere('order.status IN (:...statuses)', {
+        statuses: allowedStatuses,
+      });
+      return;
+    }
+
+    if (status) {
+      queryBuilder.andWhere('order.status = :status', { status });
+    }
   }
 
   private async createStatusLog(

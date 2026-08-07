@@ -12,7 +12,11 @@ import {
 import { JwtAuthGuard } from '../../guards/jwtauth.guath';
 import { Users } from '../users/users.entities';
 import { CartsService } from './carts.service';
-import { AddCartItemDto, UpdateCartItemDto } from './dto/cart.dto';
+import {
+  AddCartItemDto,
+  CheckoutCartDto,
+  UpdateCartItemDto,
+} from './dto/cart.dto';
 import { RolesGuard } from '../../guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleCode } from '../../common/enums/common.enum';
@@ -54,5 +58,13 @@ export class CartsController {
   @Delete()
   clearCart(@Request() request: AuthRequest) {
     return this.cartsService.clearCart(request.user.id);
+  }
+
+  @Post('checkout')
+  checkout(
+    @Request() request: AuthRequest,
+    @Body() payload: CheckoutCartDto,
+  ) {
+    return this.cartsService.checkout(request.user, payload);
   }
 }

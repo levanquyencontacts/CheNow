@@ -61,6 +61,24 @@ export enum OrderStatus {
   CANCELLED = 'cancelled',
 }
 
+/** Customer my-orders list group filter */
+export enum OrderListScope {
+  ACTIVE = 'active',
+  HISTORY = 'history',
+}
+
+export const ACTIVE_ORDER_STATUSES: OrderStatus[] = [
+  OrderStatus.PENDING,
+  OrderStatus.CONFIRMED,
+  OrderStatus.PREPARING,
+  OrderStatus.READY,
+];
+
+export const HISTORY_ORDER_STATUSES: OrderStatus[] = [
+  OrderStatus.COMPLETED,
+  OrderStatus.CANCELLED,
+];
+
 export enum ConversationUserRole {
   CUSTOMER = 'customer',
   ADMIN = 'admin',
