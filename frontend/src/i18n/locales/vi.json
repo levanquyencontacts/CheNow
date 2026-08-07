@@ -2,12 +2,17 @@
   "client_account": "Tài khoản",
   "client_closeTheAccountWindow": "Đóng cửa sổ tài khoản",
   "client_contact": "Liên hệ",
+  "client_dark": "Tối",
   "client_displayLanguage": "Ngôn ngữ hiển thị",
   "client_english": "Tiếng Anh",
   "client_language": "Ngôn ngữ",
   "client_languageSettings": "Cài đặt ngôn ngữ",
+  "client_light": "Sáng",
   "client_personalInformation": "Thông tin cá nhân",
   "client_security": "Bảo mật",
   "client_selectTheLanguageToBeUsedInTheInterface": "Chọn ngôn ngữ được sử dụng trong giao diện.",
+  "client_selectTheThemeToBeUsedInTheInterface": "Chọn giao diện sáng hoặc tối cho toàn bộ ứng dụng.",
+  "client_theme": "Giao diện",
+  "client_themeSettings": "Cài đặt giao diện",
   "client_vietnamese": "Tiếng Việt"
 }
