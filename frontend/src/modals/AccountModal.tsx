@@ -1,10 +1,16 @@
 "use client";
 
-import { Languages, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import {
+  Languages,
+  LogOut,
+  ShieldCheck,
+  SunMoon,
+  UserRound,
+} from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/common/hook";
+import { useLanguage, useTheme, type Theme } from "@/common/hook";
 import { ProfileAccountPanel } from "@/components/Account/ProfileAccount";
 import { SecurityAccountPanel } from "@/components/Account/SecurityAccountPanel";
 import { Box, Button, Modal, Select } from "@/components";
@@ -21,6 +27,12 @@ const languageLabelKeys = {
   en: "client_english",
   vi: "client_vietnamese",
 } as const;
+
+const themeLabelKeys: Record<Theme, string> = {
+  dark: "client_dark",
+  light: "client_light",
+};
+
 type AccountTabKey = (typeof accountTabs)[number]["key"];
 
 export function AccountModal() {
@@ -96,10 +108,15 @@ export function AccountModal() {
 
 function LanguageAccountPanel() {
   const { changeLanguage, currentLanguage, supportedLanguages } = useLanguage();
+  const { changeTheme, currentTheme, supportedThemes } = useTheme();
   const { t } = useTranslation();
 
   const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
     changeLanguage(event.target.value);
+  };
+
+  const handleThemeChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    changeTheme(event.target.value);
   };
 
   return (
@@ -129,6 +146,33 @@ function LanguageAccountPanel() {
             {supportedLanguages.map((language) => (
               <Select.Option key={language.code} value={language.code}>
                 {t(languageLabelKeys[language.code])}
+              </Select.Option>
+            ))}
+          </Select>
+        </Box>
+      </Box>
+
+      <Box className="mt-5 rounded-md border border-[#eadfd4] bg-[#fff3e8] p-5">
+        <Box className="flex items-center gap-2">
+          <SunMoon aria-hidden="true" className="h-4 w-4 text-[#805533]" />
+          <p className="text-sm font-bold text-[#143d2a]">
+            {t("client_themeSettings")}
+          </p>
+        </Box>
+        <p className="mt-1 text-xs text-[#6f6256]">
+          {t("client_selectTheThemeToBeUsedInTheInterface")}
+        </p>
+
+        <Box className="mt-5 max-w-xs">
+          <Select
+            fullWidth
+            label={t("client_theme")}
+            onChange={handleThemeChange}
+            value={currentTheme}
+          >
+            {supportedThemes.map((theme) => (
+              <Select.Option key={theme} value={theme}>
+                {t(themeLabelKeys[theme])}
               </Select.Option>
             ))}
           </Select>

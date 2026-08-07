@@ -2,12 +2,17 @@
   "client_account": "Account",
   "client_closeTheAccountWindow": "Close the account window.",
   "client_contact": "Contact",
+  "client_dark": "Dark",
   "client_displayLanguage": "Display language",
   "client_english": "English",
   "client_language": "Language",
   "client_languageSettings": "Language settings",
+  "client_light": "Light",
   "client_personalInformation": "Personal information",
   "client_security": "Security",
   "client_selectTheLanguageToBeUsedInTheInterface": "Select the language to be used in the interface.",
+  "client_selectTheThemeToBeUsedInTheInterface": "Select the light or dark theme for the whole app.",
+  "client_theme": "Theme",
+  "client_themeSettings": "Theme settings",
   "client_vietnamese": "Vietnamese"
 }

@@ -9,18 +9,21 @@ import store, { persistor } from "@/services/store";
 import { I18nProvider } from "./I18nProvider";
 import { ModalProvider } from "./ModalProvider";
 import { QueryProvider } from "./QueryProvider";
+import { ThemeProvider } from "./ThemeProvider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <QueryProvider>
-          <I18nProvider>
-            <ModalProvider>
-              {children}
-              <GlobalModalManager />
-            </ModalProvider>
-          </I18nProvider>
+          <ThemeProvider>
+            <I18nProvider>
+              <ModalProvider>
+                {children}
+                <GlobalModalManager />
+              </ModalProvider>
+            </I18nProvider>
+          </ThemeProvider>
           <ToastContainer position="top-right" />
         </QueryProvider>
       </PersistGate>
