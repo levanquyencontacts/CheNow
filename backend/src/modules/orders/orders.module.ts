@@ -20,5 +20,6 @@ import { UserAddress } from '../addresses/entity/user-address.entity';
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
+  exports: [OrdersService],
 })
 export class OrdersModule {}
