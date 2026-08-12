@@ -31,7 +31,9 @@ import {
 import { OrderItemToppings } from './entity/order-item-toppings';
 import { OrderItems } from './entity/order-items';
 import { OrderStatusLogs } from './entity/order-status-logs.entity';
+import { CreateDirectOrderDto } from './dto/create-direct-order.dto';
 import { Orders } from './entity/orders.entity';
+import { OrderItemOptionsService } from '../order-items/order-item-options.service';
 
 @Injectable()
 export class OrdersService {
@@ -39,6 +41,7 @@ export class OrdersService {
     @InjectRepository(Orders)
     private ordersRepository: Repository<Orders>,
     private readonly dataSource: DataSource,
+    private readonly orderItemOptionsService: OrderItemOptionsService,
   ) {}
 
   async create(currentUser: Users, createOrderDto: CreateOrderDto) {
@@ -118,6 +121,34 @@ export class OrdersService {
    * Persist an order from server-computed item snapshots inside an existing
    * transaction (e.g. cart checkout). Does not open its own transaction.
    */
+  async createDirectOrder(user: Users, dto: CreateDirectOrderDto) {
+    return this.dataSource.transaction(async (manager) => {
+      const snapshot =
+        await this.orderItemOptionsService.validateAndBuildSnapshot(manager, {
+          productId: dto.productId,
+          categorySizeId: dto.categorySizeId,
+          quantity: dto.quantity,
+          toppingIds: dto.toppingIds,
+          note: dto.note,
+        });
+
+      const shippingFee = dto.shippingFee ?? 0;
+      const subtotalAmount = snapshot.subtotal;
+      const totalAmount = subtotalAmount + shippingFee;
+
+      return this.createFromSnapshots(user, manager, {
+        addressId: dto.addressId,
+        discountAmount: 0,
+        orderItems: [snapshot],
+        orderType: dto.orderType,
+        paymentMethod: dto.paymentMethod,
+        shippingFee,
+        subtotalAmount,
+        totalAmount,
+      });
+    });
+  }
+
   async createFromSnapshots(
     currentUser: Users,
     manager: EntityManager,

@@ -10,6 +10,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { CreateDirectOrderDto } from './dto/create-direct-order.dto';
 import {
   CreateOrderDto,
   MyOrdersQueryDto,
@@ -40,6 +41,16 @@ export class OrdersController {
     @Body() createOrderDto: CreateOrderDto,
   ) {
     return this.ordersService.create(request.user, createOrderDto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleCode.CUSTOMER)
+  @Post('direct')
+  createDirect(
+    @Request() request: AuthRequest,
+    @Body() dto: CreateDirectOrderDto,
+  ) {
+    return this.ordersService.createDirectOrder(request.user, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

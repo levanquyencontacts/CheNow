@@ -9,7 +9,9 @@ import {
 import { CategorySizes } from '../category-sizes/entity/category-sizes.entity';
 import { CategoryToppings } from '../category-topppings/entity/category-toppings.entity';
 import { OrdersService } from '../orders/orders.service';
+import { OrderItemOptionsService } from '../order-items/order-item-options.service';
 import { Products } from '../products/entity/products.entity';
+import { Toppings } from '../toppings/entity/toppings.entity';
 import { Users } from '../users/users.entities';
 import { CartsService } from './carts.service';
 import { CheckoutCartDto } from './dto/cart.dto';
@@ -27,6 +29,7 @@ describe('CartsService.checkout', () => {
     save: jest.Mock;
   };
   let ordersService: { createFromSnapshots: jest.Mock };
+  let orderItemOptionsService: OrderItemOptionsService;
   let service: CartsService;
 
   const user = {
@@ -103,6 +106,7 @@ describe('CartsService.checkout', () => {
         totalAmount: 86000,
       }),
     };
+    orderItemOptionsService = new OrderItemOptionsService();
     const dataSource = {
       transaction: jest.fn(
         async (work: (entityManager: EntityManager) => Promise<unknown>) =>
@@ -113,6 +117,7 @@ describe('CartsService.checkout', () => {
     service = new CartsService(
       cartsRepository as unknown as Repository<Carts>,
       dataSource as unknown as DataSource,
+      orderItemOptionsService,
       ordersService as unknown as OrdersService,
     );
   });
@@ -132,6 +137,9 @@ describe('CartsService.checkout', () => {
         }
         if (entity === CategoryToppings) {
           return Promise.resolve([{ toppingId: 50, categoryId: 1 }]);
+        }
+        if (entity === Toppings) {
+          return Promise.resolve([{ id: 50, name: 'Pearl', price: 8000 }]);
         }
         return Promise.resolve([]);
       },

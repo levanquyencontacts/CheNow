@@ -8,6 +8,7 @@ import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { ProductStatus } from '../../common/enums/common.enum';
 import { CategorySizes } from '../category-sizes/entity/category-sizes.entity';
 import { CategoryToppings } from '../category-topppings/entity/category-toppings.entity';
+import { OrderItemOptionsService } from '../order-items/order-item-options.service';
 import { OrdersService } from '../orders/orders.service';
 import { Products } from '../products/entity/products.entity';
 import { Users } from '../users/users.entities';
@@ -33,6 +34,7 @@ export class CartsService {
     @InjectRepository(Carts)
     private cartsRepository: Repository<Carts>,
     private readonly dataSource: DataSource,
+    private readonly orderItemOptionsService: OrderItemOptionsService,
     private readonly ordersService: OrdersService,
   ) {}
 
@@ -189,71 +191,27 @@ export class CartsService {
         ],
       });
 
-      const orderItemSnapshots: Array<{
-        categorySizeId: number;
-        note: string | null;
-        orderItemToppings: Array<{
-          price: number;
-          quantity: number;
-          toppingId: number;
-          toppingName: string;
-        }>;
-        price: number;
-        productId: number;
-        productName: string;
-        quantity: number;
-        sizeCode: string;
-        sizeExtraPrice: number;
-        sizeName: string;
-        subtotal: number;
-      }> = [];
+      const orderItemSnapshots: Awaited<
+        ReturnType<OrderItemOptionsService['validateAndBuildSnapshot']>
+      >[] = [];
       let subtotalAmount = 0;
 
       for (const cartItem of cartItems) {
-        const toppingIds = (cartItem.cartItemToppings ?? []).map(
-          (cartTopping) => cartTopping.toppingId,
-        );
-        const option = await this.validateCartOption(
-          {
-            categorySizeId: cartItem.categorySizeId,
-            note: cartItem.note,
-            productId: cartItem.productId,
-            toppingIds,
-          },
-          manager,
-        );
-
-        const price = this.toNumber(option.product.price);
-        const sizeExtraPrice = this.toNumber(option.categorySize.extraPrice);
-        const orderItemToppings = (cartItem.cartItemToppings ?? []).map(
-          (cartTopping) => ({
-            price: this.toNumber(cartTopping.topping.price),
-            quantity: cartItem.quantity,
-            toppingId: cartTopping.topping.id,
-            toppingName: cartTopping.topping.name,
-          }),
-        );
-        const toppingsUnitTotal = orderItemToppings.reduce(
-          (sum, topping) => sum + topping.price,
-          0,
-        );
-        const lineSubtotal =
-          (price + sizeExtraPrice + toppingsUnitTotal) * cartItem.quantity;
-        subtotalAmount += lineSubtotal;
-
-        orderItemSnapshots.push({
-          categorySizeId: option.categorySize.id,
-          note: option.note || null,
-          orderItemToppings,
-          price,
-          productId: option.product.id,
-          productName: option.product.productName,
-          quantity: cartItem.quantity,
-          sizeCode: option.categorySize.size.code,
-          sizeExtraPrice,
-          sizeName: option.categorySize.size.name,
-          subtotal: lineSubtotal,
-        });
+        const snapshot =
+          await this.orderItemOptionsService.validateAndBuildSnapshot(
+            manager,
+            {
+              productId: cartItem.productId,
+              categorySizeId: cartItem.categorySizeId,
+              quantity: cartItem.quantity,
+              toppingIds: (cartItem.cartItemToppings ?? []).map(
+                (t) => t.toppingId,
+              ),
+              note: cartItem.note,
+            },
+          );
+        orderItemSnapshots.push(snapshot);
+        subtotalAmount += snapshot.subtotal;
       }
 
       // shippingFee: optional client value (Min 0). Server does not compute

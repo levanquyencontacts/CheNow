@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategorySizes } from '../category-sizes/entity/category-sizes.entity';
 import { CategoryToppings } from '../category-topppings/entity/category-toppings.entity';
+import { OrderItemsModule } from '../order-items/order-items.module';
 import { OrdersModule } from '../orders/orders.module';
 import { Products } from '../products/entity/products.entity';
 import { Toppings } from '../toppings/entity/toppings.entity';
@@ -22,6 +23,7 @@ import { Carts } from './entity/cart.entity';
       Toppings,
       CategoryToppings,
     ]),
+    OrderItemsModule,
     OrdersModule,
   ],
   controllers: [CartsController],
