@@ -9,6 +9,7 @@ import { UserAddress } from '../addresses/entity/user-address.entity';
 import { Users } from '../users/users.entities';
 import { CreateOrderDto } from './dto/orderDto.dto';
 import { Orders } from './entity/orders.entity';
+import { OrderItemOptionsService } from '../order-items/order-item-options.service';
 import { OrdersService } from './orders.service';
 
 describe('OrdersService address ownership', () => {
@@ -64,6 +65,7 @@ describe('OrdersService address ownership', () => {
     service = new OrdersService(
       {} as Repository<Orders>,
       dataSource as unknown as DataSource,
+      {} as OrderItemOptionsService,
     );
   });
 
@@ -147,6 +149,7 @@ describe('OrdersService.createFromSnapshots', () => {
       {
         transaction: jest.fn(),
       } as unknown as DataSource,
+      {} as OrderItemOptionsService,
     );
   });
 

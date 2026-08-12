@@ -7,9 +7,11 @@ import { OrderStatusLogs } from './entity/order-status-logs.entity';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { UserAddress } from '../addresses/entity/user-address.entity';
+import { OrderItemsModule } from '../order-items/order-items.module';
 
 @Module({
   imports: [
+    OrderItemsModule,
     TypeOrmModule.forFeature([
       Orders,
       OrderItems,
