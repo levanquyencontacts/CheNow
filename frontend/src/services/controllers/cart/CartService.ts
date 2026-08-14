@@ -1,6 +1,8 @@
 import {
   AddCartItemPayload,
+  CheckoutCartPayload,
   CustomerCart,
+  Order,
   UpdateCartItemPayload,
 } from "@/services/types/apiType";
 import { AxiosInstance } from "axios";
@@ -42,6 +44,14 @@ export class CartService {
 
   async clearCart(): Promise<CustomerCart> {
     const { data } = await this.apiClient.delete("/customer/cart");
+    return data;
+  }
+
+  async checkout(payload: CheckoutCartPayload): Promise<Order> {
+    const { data } = await this.apiClient.post(
+      "/customer/cart/checkout",
+      payload,
+    );
     return data;
   }
 }

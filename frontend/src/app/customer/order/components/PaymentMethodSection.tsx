@@ -5,8 +5,8 @@ import type { PaymentMethod } from "@/services/types/apiType";
 
 const PAYMENT_METHODS = [
   ["cash", "Tiền mặt", "Thanh toán khi nhận hàng"],
-  ["vnpay", "Chuyển khoản", "Nhận mã thanh toán sau khi đặt"],
-  ["momo", "Ví điện tử", "Thanh toán qua ví Momo"],
+  ["momo", "MoMo", "Thanh toán online sẽ bổ sung sau"],
+  ["vnpay", "VNPay", "Thanh toán online sẽ bổ sung sau"],
 ] as const;
 
 type PaymentMethodSectionProps = {
@@ -45,6 +45,12 @@ export function PaymentMethodSection({
           </button>
         ))}
       </div>
+      {(paymentMethod === "momo" || paymentMethod === "vnpay") && (
+        <p className="mt-3 text-xs leading-5 text-on-surface-variant">
+          Đơn sẽ ghi nhận phương thức này. Thanh toán online sẽ bổ sung sau,
+          chưa trừ tiền lúc đặt.
+        </p>
+      )}
     </div>
   );
 }

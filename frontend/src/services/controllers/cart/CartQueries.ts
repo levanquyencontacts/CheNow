@@ -1,16 +1,20 @@
+import { clearCheckoutSession } from "@/common/utils/checkoutSession";
 import api from "@/services/apiServices";
 import {
   AddCartItemPayload,
+  CheckoutCartPayload,
   CustomerCart,
   UpdateCartItemPayload,
 } from "@/services/types/apiType";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 export const customerCartQueryKey = ["customer-cart"];
 
-export const useCustomerCartQuery = () => {
+export const useCustomerCartQuery = (options?: { enabled?: boolean }) => {
   return useQuery({
+    enabled: options?.enabled ?? true,
     queryKey: customerCartQueryKey,
     queryFn: () => api.cart.getCart(),
   });
@@ -78,3 +82,34 @@ export const useClearCartMutation = () => {
     },
   });
 };
+
+export const useCheckoutCartMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CheckoutCartPayload) => api.cart.checkout(payload),
+    onSuccess: (order) => {
+      clearCheckoutSession();
+      queryClient.invalidateQueries({ queryKey: customerCartQueryKey });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.setQueryData(["my-order", order.id], order);
+      toast.success("Đặt hàng thành công.");
+    },
+    onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: customerCartQueryKey });
+      toast.error(getCheckoutErrorMessage(error));
+    },
+  });
+};
+
+function getCheckoutErrorMessage(error: unknown): string {
+  if (axios.isAxiosError<{ message?: string | string[] }>(error)) {
+    const message = error.response?.data?.message;
+    if (Array.isArray(message)) {
+      return message.join(", ");
+    }
+    return message || error.message || "Không thể đặt hàng.";
+  }
+
+  return error instanceof Error ? error.message : "Không thể đặt hàng.";
+}

@@ -1,28 +1,32 @@
 import { CheckCircle2 } from "lucide-react";
-import { formatPrice } from "../orderUtils";
+import { formatPrice, FREE_SHIPPING_THRESHOLD } from "../orderUtils";
 import { SummaryLine } from "./SummaryLine";
 
 type OrderSummaryCardProps = {
+  confirmLabel?: string;
   deliveryFee: number;
   disabled: boolean;
   disabledReason?: string;
   isPending: boolean;
   onConfirm: () => void;
+  pendingLabel?: string;
   subtotal: number;
   total: number;
 };
 
 export function OrderSummaryCard({
+  confirmLabel = "Xác nhận đặt hàng",
   deliveryFee,
   disabled,
   disabledReason,
   isPending,
   onConfirm,
+  pendingLabel = "Đang tạo đơn...",
   subtotal,
   total,
 }: OrderSummaryCardProps) {
   return (
-    <aside className="self-start rounded-2xl border border-[#eadfd4] bg-white p-5 shadow-sm lg:sticky lg:top-6">
+    <aside className="self-start rounded-2xl border border-[#eadfd4] bg-white p-5 shadow-sm lg:sticky lg:top-24">
       <h2 className="mb-4 text-lg font-bold text-charcoal-black">
         Tóm tắt đơn
       </h2>
@@ -36,6 +40,12 @@ export function OrderSummaryCard({
           </span>
         </div>
       </div>
+      {subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
+        <p className="mt-3 text-xs leading-5 text-on-surface-variant">
+          Miễn phí giao hàng cho đơn từ{" "}
+          {FREE_SHIPPING_THRESHOLD.toLocaleString("vi-VN")}đ.
+        </p>
+      )}
       <button
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-amber py-4 text-lg font-bold text-charcoal-black shadow-lg shadow-amber/20 transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
         disabled={disabled}
@@ -43,7 +53,7 @@ export function OrderSummaryCard({
         type="button"
       >
         <CheckCircle2 size={20} />
-        {isPending ? "Đang tạo đơn..." : "Xác nhận đặt hàng"}
+        {isPending ? pendingLabel : confirmLabel}
       </button>
       {disabledReason && (
         <p className="mt-2 text-center text-xs font-semibold text-error">

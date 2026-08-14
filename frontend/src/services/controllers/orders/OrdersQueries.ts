@@ -1,10 +1,13 @@
+import { clearCheckoutSession } from "@/common/utils/checkoutSession";
 import api from "@/services/apiServices";
 import {
+  CreateDirectOrderPayload,
   CreateOrderPayload,
   PaginationParams,
   UpdateOrderStatusPayload,
 } from "@/services/types/apiType";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 export const useOrdersQuery = (params?: PaginationParams) => {
@@ -52,6 +55,36 @@ export const useCancelMyOrderMutation = () => {
     },
   });
 };
+
+export const useCreateDirectOrderMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateDirectOrderPayload) =>
+      api.orders.createDirectOrder(payload),
+    onSuccess: (order) => {
+      clearCheckoutSession();
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.setQueryData(["my-order", order.id], order);
+      toast.success("Đặt hàng thành công.");
+    },
+    onError: (error) => {
+      toast.error(getDirectOrderErrorMessage(error));
+    },
+  });
+};
+
+function getDirectOrderErrorMessage(error: unknown): string {
+  if (axios.isAxiosError<{ message?: string | string[] }>(error)) {
+    const message = error.response?.data?.message;
+    if (Array.isArray(message)) {
+      return message.join(", ");
+    }
+    return message || error.message || "Không thể đặt hàng.";
+  }
+
+  return error instanceof Error ? error.message : "Không thể đặt hàng.";
+}
 
 export const useCreateOrderMutation = () => {
   const queryClient = useQueryClient();

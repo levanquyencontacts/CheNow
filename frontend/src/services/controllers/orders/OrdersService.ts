@@ -1,4 +1,5 @@
 import {
+  CreateDirectOrderPayload,
   CreateOrderPayload,
   Order,
   PaginationParams,
@@ -48,6 +49,11 @@ export class OrdersService {
 
   async createOrder(payload: CreateOrderPayload): Promise<Order> {
     const { data } = await this.apiClient.post("/orders", payload);
+    return data;
+  }
+
+  async createDirectOrder(payload: CreateDirectOrderPayload): Promise<Order> {
+    const { data } = await this.apiClient.post("/orders/direct", payload);
     return data;
   }
 

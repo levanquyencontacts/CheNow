@@ -82,7 +82,7 @@ export function CustomerHeader() {
           <button
             aria-label={cartLabel}
             className="relative rounded-full bg-[#f5ede4] p-2.5 transition-colors hover:bg-[#eadfd4]"
-            onClick={() => router.push("/customer/order")}
+            onClick={() => router.push(routes.CUSTOMER_CART)}
             type="button"
           >
             <ShoppingCart className="text-[#432010]" size={18} />

@@ -31,6 +31,8 @@ import {
   PRODUCTS,
 } from "@/common/mocks/customerMenu";
 import { resolveProductImageUrl } from "@/common/utils/media";
+import { routes } from "@/common/utils/constant";
+import { saveDirectCheckoutItem } from "@/common/utils/checkoutSession";
 import {
   useAddCartItemMutation,
   useCustomerCartQuery,
@@ -379,24 +381,51 @@ export default function MenuCustomerPage() {
     };
   };
 
-  const addConfiguredItem = async (redirectToOrder = false) => {
+  const addConfiguredItem = async () => {
     const item = createConfiguredItem();
     if (!item) return;
 
     await addCartItemMutation.mutateAsync(item);
     setSelectedProduct(null);
-
-    if (redirectToOrder) {
-      router.push("/customer/order");
-    }
   };
 
   const buyConfiguredItemNow = () => {
-    addConfiguredItem(true);
+    if (!selectedProduct || !selectedSize?.categorySizeId) return;
+
+    const toppingIds = selectedToppings
+      .map((id) => Number(id))
+      .filter((id) => Number.isInteger(id) && id > 0);
+    const saved = saveDirectCheckoutItem({
+      categorySizeId: selectedSize.categorySizeId,
+      image: selectedProduct.image,
+      note: note.trim() ? note.trim().slice(0, 200) : undefined,
+      productId: selectedProduct.id,
+      productName: selectedProduct.name,
+      quantity,
+      sizeLabel: selectedSize.label,
+      toppingIds,
+      toppings: toppingIds.map((id) => {
+        const topping = toppingOptions.find(
+          (option) => Number(option.id) === id,
+        );
+
+        return {
+          id,
+          name: topping?.name ?? "",
+          price: Number(topping?.price ?? 0),
+        };
+      }),
+      unitPrice: currentPrice,
+    });
+
+    if (!saved) return;
+
+    setSelectedProduct(null);
+    router.push(`${routes.CUSTOMER_CHECKOUT}?mode=direct`);
   };
 
   const openCartPage = () => {
-    router.push("/customer/order");
+    router.push(routes.CUSTOMER_CART);
   };
 
   const goToOrderButton = (
@@ -901,7 +930,7 @@ export default function MenuCustomerPage() {
                       !selectedSize?.categorySizeId ||
                       addCartItemMutation.isPending
                     }
-                    onClick={() => addConfiguredItem(false)}
+                    onClick={() => addConfiguredItem()}
                     type="button"
                   >
                     Thêm vào giỏ
@@ -909,9 +938,7 @@ export default function MenuCustomerPage() {
                   <button
                     className="flex h-12 items-center justify-center rounded-xl bg-amber px-5 text-sm font-black text-charcoal-black transition-transform hover:scale-[1.01] active:scale-[0.98]"
                     disabled={
-                      isCategorySizesLoading ||
-                      !selectedSize?.categorySizeId ||
-                      addCartItemMutation.isPending
+                      isCategorySizesLoading || !selectedSize?.categorySizeId
                     }
                     onClick={buyConfiguredItemNow}
                     type="button"
