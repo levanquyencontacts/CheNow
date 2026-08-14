@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { ArrowLeft, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { routes } from "@/common/utils/constant";
+import { getAddressesBackHref } from "@/common/utils/checkoutSession";
 import {
   useAddressesQuery,
   useCreateAddressMutation,
@@ -21,6 +22,7 @@ import { AddressFormModal } from "./components/AddressFormModal";
 
 export default function CustomerAddressesPage() {
   const authUser = useSelector((state: RootState) => state.auth.user);
+  const [backHref, setBackHref] = useState<string>(routes.CUSTOMER_HOME);
   const addressesQuery = useAddressesQuery();
   const [editingAddress, setEditingAddress] = useState<UserAddress | null>(
     null,
@@ -36,6 +38,10 @@ export default function CustomerAddressesPage() {
     updateMutation.isPending ||
     deleteMutation.isPending ||
     setDefaultMutation.isPending;
+
+  useEffect(() => {
+    setBackHref(getAddressesBackHref());
+  }, []);
 
   const saveAddress = async (payload: CreateAddressPayload) => {
     try {
@@ -73,7 +79,7 @@ export default function CustomerAddressesPage() {
       <div className="mx-auto max-w-5xl">
         <Link
           className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary"
-          href={routes.CUSTOMER_ORDER}
+          href={backHref}
         >
           <ArrowLeft size={16} />
           Quay lại thanh toán

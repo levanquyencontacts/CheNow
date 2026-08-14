@@ -568,7 +568,7 @@ export type CustomerCartTopping = {
 
 export type CustomerCartItem = {
   categorySizeId?: number;
-  id?: number;
+  id: number;
   key: string;
   linePrice: number;
   note?: string;
@@ -578,6 +578,27 @@ export type CustomerCartItem = {
   sizeCode?: string;
   sizeExtraPrice?: number;
   toppings: CustomerCartTopping[];
+};
+
+export type CheckoutCartPayload = {
+  addressId?: number;
+  cartItemIds: number[];
+  note?: string;
+  orderType: OrderType;
+  paymentMethod: PaymentMethod;
+  shippingFee?: number;
+};
+
+export type CreateDirectOrderPayload = {
+  addressId?: number;
+  categorySizeId: number;
+  note?: string;
+  orderType: OrderType;
+  paymentMethod: PaymentMethod;
+  productId: number;
+  quantity: number;
+  shippingFee?: number;
+  toppingIds?: number[];
 };
 
 export type CustomerCart = {

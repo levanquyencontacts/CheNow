@@ -8,6 +8,8 @@ export const routes = {
   CUSTOMER_MENU: "/customer/menu",
   CUSTOMER_ADDRESSES: "/customer/addresses",
   CUSTOMER_ORDER: "/customer/order",
+  CUSTOMER_CART: "/customer/cart",
+  CUSTOMER_CHECKOUT: "/customer/checkout",
   CUSTOMER_ORDERS: "/customer/orders",
   CUSTOMER_ORDER_DETAIL: (id: number) => `/customer/orders/${id}`,
   CATEGORY: "/admin/category",
