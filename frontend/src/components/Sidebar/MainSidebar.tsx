@@ -19,6 +19,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/services/store";
+import { UserAccountBlock } from "./UserAccountBlock";
 
 type NavItem = {
   href: string;
@@ -140,6 +141,8 @@ export function MainSidebar() {
           </Box>
         ))}
       </nav>
+
+      <UserAccountBlock />
     </Box>
   );
 }

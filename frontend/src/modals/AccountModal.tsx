@@ -35,9 +35,15 @@ const themeLabelKeys: Record<Theme, string> = {
 
 type AccountTabKey = (typeof accountTabs)[number]["key"];
 
-export function AccountModal() {
+interface AccountModalProps {
+  tab?: AccountTabKey;
+}
+
+export function AccountModal({ tab }: AccountModalProps) {
   const { closeModal } = useModal();
-  const [activeTab, setActiveTab] = useState<AccountTabKey>("profile");
+  const [activeTab, setActiveTab] = useState<AccountTabKey>(
+    tab && accountTabs.some((item) => item.key === tab) ? tab : "profile",
+  );
   const { t } = useTranslation();
   const logoutMutation = useLogoutMutation();
 

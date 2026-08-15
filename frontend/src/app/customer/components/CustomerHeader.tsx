@@ -9,6 +9,7 @@ import logoSamSam from "@/common/assets/images/logosamsam.png";
 import { NAV_LINKS } from "@/common/mocks/customerHome";
 import { routes } from "@/common/utils/constant";
 import { useCustomerCartQuery } from "@/services/controllers/cart/CartQueries";
+import { CustomerAccountButton } from "./CustomerAccountButton";
 
 const getNavHref = (label: string) => {
   if (label === "Sản phẩm") return "/customer/menu";
@@ -92,6 +93,7 @@ export function CustomerHeader() {
               </span>
             )}
           </button>
+          <CustomerAccountButton />
           <button
             className="p-2 lg:hidden"
             onClick={() => setMenuOpen((current) => !current)}
