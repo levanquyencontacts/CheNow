@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Settings, UserRound } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { useLanguage } from "@/common/hook";
 import { Box, Search, Select } from "@/components";
 
@@ -52,12 +52,6 @@ export function MainHeader() {
           className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-[#143d2a] transition hover:bg-[#f3e8de]"
         >
           <Settings aria-hidden="true" className="h-4 w-4" />
-        </div>
-        <div
-          aria-label="Account"
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-[#f0b47e] text-[#143d2a] transition hover:bg-[#e6a36d]"
-        >
-          <UserRound aria-hidden="true" className="h-4 w-4" />
         </div>
       </Box>
     </Box>

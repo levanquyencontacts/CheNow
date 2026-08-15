@@ -10,7 +10,7 @@ import {
   AuthArtwork,
   Box,
   Button,
-  Divider,
+  // Divider,
   Form,
   Link,
   Paper,
@@ -154,7 +154,7 @@ export default function LoginPage() {
             </Button>
           </Form>
 
-          <Divider className="my-8 text-xs uppercase text-[#8e8276]">Hoặc</Divider>
+          {/* <Divider className="my-8 text-xs uppercase text-[#8e8276]">Hoặc</Divider>
 
           <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Button
@@ -171,7 +171,7 @@ export default function LoginPage() {
               <span className="text-xl font-bold text-[#467bc3]">f</span>
               Đăng nhập với Facebook
             </Button>
-          </Box>
+          </Box> */}
 
           <Typography className="mt-7 text-center text-[#242820]" variant="body2">
             Chưa có tài khoản?{" "}
